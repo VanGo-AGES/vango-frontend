@@ -38,6 +38,28 @@
             "backgroundColor": "#000000"
           }
         }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "O VanGo precisa da sua localização para rastrear a rota da van em tempo real.",
+          "locationAlwaysPermission": "O VanGo precisa da sua localização em segundo plano para continuar rastreando a rota mesmo com o app fechado.",
+          "locationWhenInUsePermission": "O VanGo precisa da sua localização para rastrear a rota da van em tempo real."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#E6F4FE",
+          "sounds": []
+        }
+      ],
+      [
+        "@rnmapbox/maps",
+        {
+          "RNMapboxMapsDownloadToken": "INSIRA_SEU_MAPBOX_SECRET_TOKEN_AQUI"
+        }
       ]
     ],
     "experiments": {
