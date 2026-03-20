@@ -55,12 +55,7 @@
           "sounds": []
         }
       ],
-      [
-        "@rnmapbox/maps",
-        {
-          "RNMapboxMapsDownloadToken": "INSIRA_SEU_MAPBOX_SECRET_TOKEN_AQUI"
-        }
-      ]
+      "@rnmapbox/maps"
     ],
     "experiments": {
       "typedRoutes": true,
