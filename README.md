@@ -133,6 +133,41 @@ O coverage é coletado dos diretórios: `app/`, `components/`, `hooks/`, `store/
 
 ---
 
+## Fluxo de Branches (Gitflow)
+
+O projeto segue uma adaptação simplificada do Gitflow:
+
+| Branch        | Propósito                                                                  |
+| ------------- | -------------------------------------------------------------------------- |
+| `main`        | Código estável e pronto para produção. Nunca recebe commits diretos.       |
+| `dev`         | Branch de integração. Todo desenvolvimento parte daqui e retorna para cá.  |
+| `feat/<nome>` | Nova funcionalidade. Criada a partir da `dev`, mergeada de volta na `dev`. |
+| `fix/<nome>`  | Correção de bug. Criada a partir da `dev`, mergeada de volta na `dev`.     |
+
+### Fluxo padrão para uma feature
+
+```bash
+# 1. Sempre parta da dev atualizada
+git checkout dev
+git pull origin dev
+
+# 2. Crie a branch da feature
+git checkout -b feat/nome-da-feature
+
+# 3. Desenvolva, faça commits seguindo o padrão Conventional Commits
+git commit -m "feat: descrição da mudança"
+
+# 4. Abra um Pull Request de feat/nome-da-feature → dev
+```
+
+> **Regras:**
+>
+> - `dev` → `main` só via PR aprovado
+> - Commits diretos em `main` e `dev` são bloqueados por convenção — sempre via PR
+> - O nome da branch deve refletir o tipo do trabalho (`feat/`, `fix/`)
+
+---
+
 ## Padrões de Qualidade de Código
 
 O projeto bloqueia commits que não seguem os padrões abaixo. **Você não conseguirá fazer um commit se quebrar essas regras.**
