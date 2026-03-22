@@ -81,10 +81,17 @@ O projeto usa o sistema nativo do Expo para variáveis de ambiente. Todas as var
    const mapboxKey = process.env.EXPO_PUBLIC_MAPBOX_KEY;
    ```
 
-> **MapBox:** são necessários dois tokens distintos.
+> **MapBox:** são necessários dois tokens distintos com propósitos diferentes.
 >
-> - **Token público** (`pk.*`): vai no `.env` como `EXPO_PUBLIC_MAPBOX_KEY`. Usado em runtime para renderizar o mapa.
-> - **Token secreto** (`sk.*`): usado apenas no build nativo para baixar o SDK. Configure via variável de ambiente `RNMAPBOX_MAPS_DOWNLOAD_TOKEN` na máquina de build (CI/CD ou local antes do `expo prebuild`). Nunca commite o token secreto.
+> - **Token público** (`pk.*`): vai no `.env` como `EXPO_PUBLIC_MAPBOX_KEY`. É injetado no bundle pelo Expo e usado em runtime para renderizar o mapa.
+> - **Token secreto** (`sk.*`): usado **apenas em tempo de build** pelo Gradle para baixar o SDK nativo do MapBox. Nunca entra no app e nunca deve estar em arquivo. Configure como variável de ambiente do terminal antes de rodar o build:
+>
+>   ```bash
+>   export RNMAPBOX_MAPS_DOWNLOAD_TOKEN=sk.seu_token_aqui
+>   npx expo prebuild
+>   ```
+>
+>   Em CI/CD (GitHub Actions, EAS Build), configure como secret do repositório.
 
 ---
 
