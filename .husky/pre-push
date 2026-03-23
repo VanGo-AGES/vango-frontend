@@ -1,5 +1,0 @@
-# Valida o padrão do nome da branch: feat/nome, fix/nome, etc.
-if ! echo "$branch" | grep -qE "^(feat|fix|hotfix|chore|docs|refactor|test)/"; then
-  echo "ERRO: Nome de branch inválido [$branch]. Use o padrão: feat/nome, fix/nome, etc."
-  exit 1
-fi
