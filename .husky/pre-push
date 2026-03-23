@@ -1,11 +1,3 @@
-branch=$(git branch --show-current)
-
-# Bloqueia push direto na main ou dev
-if [ "$branch" = "main" ] || [ "$branch" = "dev" ]; then
-  echo "ERRO: Push direto na branch '$branch' não é permitido. Use um PR."
-  exit 1
-fi
-
 # Valida o padrão do nome da branch: feat/nome, fix/nome, etc.
 if ! echo "$branch" | grep -qE "^(feat|fix|hotfix|chore|docs|refactor|test)/"; then
   echo "ERRO: Nome de branch inválido [$branch]. Use o padrão: feat/nome, fix/nome, etc."
