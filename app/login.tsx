@@ -44,39 +44,45 @@ export default function LoginScreen() {
     <View style={styles.container}>
       <Text style={styles.title}> VanGo </Text>
 
-      <Controller
-        control={control}
-        name="email"
-        render={({ field: { onChange, value } }) => (
-          <TextInput
-            label="E-mail"
-            placeholder="Digite aqui o seu email"
-            value={value}
-            onChangeText={onChange}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            style={styles.textInput}
-          />
-        )}
-      />
-      {errors.email && <Text>{errors.email.message}</Text>}
+      <View style={styles.fieldContainer}>
+        <Controller
+          control={control}
+          name="email"
+          render={({ field: { onChange, value } }) => (
+            <TextInput
+              label="E-mail"
+              placeholder="Digite aqui o seu email"
+              value={value}
+              onChangeText={onChange}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              style={styles.textInput}
+            />
+          )}
+        />
+        {errors.email && <Text style={{ color: colors.primary }}>{errors.email.message}</Text>}
+      </View>
 
-      <Controller
-        control={control}
-        name="password"
-        render={({ field: { onChange, value } }) => (
-          <TextInput
-            label="Senha"
-            placeholder="Digite aqui a sua senha"
-            value={value}
-            onChangeText={onChange}
-            autoCapitalize="none"
-            secureTextEntry
-            style={styles.textInput}
-          />
+      <View style={styles.fieldContainer}>
+        <Controller
+          control={control}
+          name="password"
+          render={({ field: { onChange, value } }) => (
+            <TextInput
+              label="Senha"
+              placeholder="Digite aqui a sua senha"
+              value={value}
+              onChangeText={onChange}
+              autoCapitalize="none"
+              secureTextEntry
+              style={styles.textInput}
+            />
+          )}
+        />
+        {errors.password && (
+          <Text style={{ color: colors.primary }}>{errors.password.message}</Text>
         )}
-      />
-      {errors.password && <Text>{errors.password.message}</Text>}
+      </View>
 
       <Button
         mode="contained"
@@ -99,7 +105,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.dark,
   },
   textInput: {
-    marginBottom: 16,
+    marginBottom: 6,
   },
   button: {
     backgroundColor: colors.primary,
@@ -107,6 +113,9 @@ const styles = StyleSheet.create({
   title: {
     ...typography.header2,
     color: colors.primary,
+    marginBottom: 16,
+  },
+  fieldContainer: {
     marginBottom: 16,
   },
 });
