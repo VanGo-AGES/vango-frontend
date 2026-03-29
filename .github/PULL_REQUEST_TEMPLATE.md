@@ -1,7 +1,10 @@
 ## User Story
 
-<!-- Cole aqui a user story relacionada à task -->
-<!-- Ex: "Como motorista, quero visualizar minha rota em tempo real para saber onde estou." -->
+<!-- Exemplo: US01 - Criar conta e concluir cadastro inicial -->
+
+## Task
+
+<!-- Exemplo: TK01 - Criar componente AppLogo -->
 
 ## O que foi feito
 
@@ -22,3 +25,7 @@
 
 1.
 2.
+
+## Comentários (opcional)
+
+<!-- Escreva aqui informações extras se julgar necessário -->
