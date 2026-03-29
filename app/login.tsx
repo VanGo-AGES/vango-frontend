@@ -86,7 +86,7 @@ export default function LoginScreen() {
 
       <Button
         mode="contained"
-        onPress={handleSubmit((data) => console.log(data))}
+        onPress={handleSubmit((_data) => {})}
         //onPress={handleSubmit(mutate)}
         style={styles.button}
         textColor={colors.dark}
