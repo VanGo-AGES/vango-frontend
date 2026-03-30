@@ -1,1 +1,16 @@
 npx lint-staged
+
+# Detecta possíveis segredos nos arquivos staged
+staged=$(git diff --cached --name-only)
+
+if [ -n "$staged" ]; then
+  if git diff --cached -- ':!.husky/*' | grep -qE "(sk\.[a-zA-Z0-9]{20,}|MAPBOX_SECRET|password\s*=\s*['\"][^'\"]+['\"]|secret\s*=\s*['\"][^'\"]+['\"])"; then
+    echo "ERRO: Possível segredo detectado nos arquivos staged. Verifique antes de commitar."
+    exit 1
+  fi
+
+  if echo "$staged" | grep -qE "^\.env$"; then
+    echo "ERRO: Arquivo .env não pode ser commitado."
+    exit 1
+  fi
+fi
