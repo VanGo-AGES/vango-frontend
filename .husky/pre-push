@@ -1,0 +1,11 @@
+branch=$(git rev-parse --abbrev-ref HEAD)
+pattern="^US[0-9]+/TK[0-9]+/.+"
+
+if ! echo "$branch" | grep -qE "$pattern"; then
+  echo ""
+  echo "Nome de branch inválido: '$branch'"
+  echo "O padrão esperado é: USXX/TKYY/nome-da-branch"
+  echo "Exemplo: US01/TK03/adiciona-tela-de-login"
+  echo ""
+  exit 1
+fi
