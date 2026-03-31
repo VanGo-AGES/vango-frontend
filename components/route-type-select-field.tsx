@@ -15,6 +15,14 @@ type RouteTypeSelectFieldProps = {
   error?: string;
 };
 
+const INPUT_THEME = {
+  colors: {
+    onSurface: colors.dark,
+    onSurfaceVariant: colors.subtleText,
+    error: colors.destructive,
+  },
+};
+
 export function RouteTypeSelectField({ value, onChange, error }: RouteTypeSelectFieldProps) {
   const [menuVisible, setMenuVisible] = useState(false);
 
@@ -39,7 +47,7 @@ export function RouteTypeSelectField({ value, onChange, error }: RouteTypeSelect
         visible={menuVisible}
         onDismiss={closeMenu}
         anchor={
-          <Pressable onPress={openMenu}>
+          <Pressable onPress={openMenu} accessibilityRole="combobox">
             <View pointerEvents="none">
               <TextInput
                 value={value ?? ''}
@@ -58,13 +66,7 @@ export function RouteTypeSelectField({ value, onChange, error }: RouteTypeSelect
                 outlineColor={colors.dark}
                 activeOutlineColor={colors.dark}
                 outlineStyle={styles.outline}
-                theme={{
-                  colors: {
-                    onSurface: colors.dark,
-                    onSurfaceVariant: colors.subtleText,
-                    error: colors.destructive,
-                  },
-                }}
+                theme={INPUT_THEME}
               />
             </View>
           </Pressable>
@@ -76,7 +78,7 @@ export function RouteTypeSelectField({ value, onChange, error }: RouteTypeSelect
       </Menu>
 
       {hasError && (
-        <HelperText type="error" visible={hasError} style={styles.errorText}>
+        <HelperText type="error" style={styles.errorText}>
           {error}
         </HelperText>
       )}
