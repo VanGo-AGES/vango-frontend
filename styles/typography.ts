@@ -44,6 +44,10 @@ export const typography = {
     fontFamily: 'WorkSans_500Medium',
     fontSize: 14,
   },
+  caption: {
+    fontFamily: 'WorkSans_400Regular',
+    fontSize: 14,
+  },
   preTitle: {
     fontFamily: 'WorkSans_700Bold',
     fontSize: 10,
