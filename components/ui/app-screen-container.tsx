@@ -9,7 +9,7 @@ type Props = {
   style?: ViewStyle;
 };
 
-export function AppScreenContainer({ children, backgroundColor = colors.dark, style }: Props) {
+export function AppScreenContainer({ children, backgroundColor = colors.light, style }: Props) {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }, style]}>{children}</SafeAreaView>
   );
