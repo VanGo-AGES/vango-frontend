@@ -21,7 +21,7 @@ const DEFAULT_USER: ProfileSummaryCardUser = {
   avatarUri: undefined,
 };
 
-const AVATAR_SIZE = 56;
+const AVATAR_SIZE = 60;
 
 const Avatar: React.FC<{ uri?: string }> = ({ uri }) => {
   if (uri) {
@@ -76,6 +76,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 16,
     elevation: 2,
+    gap: 16,
   },
   avatarImage: {
     width: AVATAR_SIZE,
@@ -97,9 +98,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   nameText: {
-    ...typography.bodyBold,
+    ...typography.subtitle,
     color: colors.dark,
-    marginBottom: 4,
+    marginTop: 4,
   },
   locationRow: {
     flexDirection: 'row',
@@ -107,8 +108,9 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   locationText: {
-    ...typography.small,
+    ...typography.body,
     color: colors.subtleText,
     flexShrink: 1,
+    lineHeight: 22.4,
   },
 });
