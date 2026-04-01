@@ -135,7 +135,24 @@ O coverage é coletado dos diretórios: `app/`, `components/`, `hooks/`, `store/
 
 ## Padrões de Qualidade de Código
 
-O projeto bloqueia commits que não seguem os padrões abaixo. **Você não conseguirá fazer um commit se quebrar essas regras.**
+O projeto bloqueia commits e nomes de branches que não seguem os padrões abaixo. **Você não conseguirá fazer um commit nem fazer um push se quebrar essas regras.**
+
+### Nome de Branches
+
+Formato obrigatório: `USXX/TKYY/nome-da-branch`
+
+- `XX` — número da User Story
+- `YY` — número da Task
+- `nome-da-branch` — descrição curta em kebab-case
+
+Exemplos válidos:
+
+```
+US01/TK03/adiciona-tela-de-login
+US05/TK02/componente-route-type
+```
+
+> O `git push` é bloqueado automaticamente se o nome da branch estiver fora do padrão. Push direto em `main` e `dev` também é bloqueado — sempre via PR.
 
 ### Commits (Commitlint)
 
