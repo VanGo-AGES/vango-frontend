@@ -85,21 +85,23 @@ export function ProfileMenuSection({
   return (
     <View style={styles.wrapper}>
       {sections.map((section) => (
-        <View key={section.title} style={styles.sectionCard}>
-          <View style={styles.header}>
-            <Text style={styles.title}>{section.title}</Text>
-          </View>
+        <View key={section.title} style={styles.shadowContainer}>
+          <View style={styles.sectionCard}>
+            <View style={styles.header}>
+              <Text style={styles.title}>{section.title}</Text>
+            </View>
 
-          <View style={styles.itemsContainer}>
-            {section.items.map((item, index) => (
-              <ProfileMenuItem
-                key={item.label}
-                label={item.label}
-                icon={item.icon}
-                onPress={item.onPress}
-                isLast={index === section.items.length - 1}
-              />
-            ))}
+            <View style={styles.itemsContainer}>
+              {section.items.map((item, index) => (
+                <ProfileMenuItem
+                  key={item.label}
+                  label={item.label}
+                  icon={item.icon}
+                  onPress={item.onPress}
+                  isLast={index === section.items.length - 1}
+                />
+              ))}
+            </View>
           </View>
         </View>
       ))}
@@ -111,16 +113,19 @@ const styles = StyleSheet.create({
   wrapper: {
     gap: 16,
   },
-  sectionCard: {
+  shadowContainer: {
     borderRadius: 16,
-    overflow: 'hidden',
     backgroundColor: colors.light,
-
     shadowColor: '#000',
     shadowOffset: { width: 2, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 4,
+  },
+  sectionCard: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: colors.light,
   },
   header: {
     backgroundColor: colors.light,
