@@ -10,7 +10,11 @@ export interface DeleteDialogProps {
   onConfirm: () => void;
 }
 
-const DeleteDialog: React.FC<DeleteDialogProps> = ({ visible, onCancel, onConfirm }) => {
+const AppDialogDeleteDependent: React.FC<DeleteDialogProps> = ({
+  visible,
+  onCancel,
+  onConfirm,
+}) => {
   return (
     <Modal
       visible={visible}
@@ -22,15 +26,12 @@ const DeleteDialog: React.FC<DeleteDialogProps> = ({ visible, onCancel, onConfir
       <View style={styles.overlay}>
         <View style={styles.dialogContainer}>
           <View style={styles.header}>
-            <Text style={styles.title} numberOfLines={2}>
-              Tem certeza que quer deletar o dependente?
-            </Text>
-            <Text style={styles.description} numberOfLines={3}>
-              Essa ação não poderá ser desfeita.
-            </Text>
+            <Text style={styles.title}>Tem certeza que quer deletar o dependente?</Text>
+
+            <Text style={styles.description}>Essa ação não poderá ser desfeita.</Text>
           </View>
 
-          {/* Divider igual da imagem */}
+          {/* Divider */}
           <View style={styles.divider} />
 
           <View style={styles.footer}>
@@ -62,12 +63,12 @@ const DeleteDialog: React.FC<DeleteDialogProps> = ({ visible, onCancel, onConfir
   );
 };
 
-export default DeleteDialog;
+export default AppDialogDeleteDependent;
 
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(14, 14, 44, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
@@ -79,18 +80,19 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 400,
     overflow: 'hidden',
+
     elevation: 8,
     shadowColor: colors.dark,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.2,
     shadowRadius: 8,
   },
 
   header: {
     paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 20,
-    gap: 8,
+    paddingTop: 28,
+    paddingBottom: 24,
+    gap: 10,
   },
 
   title: {
@@ -102,27 +104,30 @@ const styles = StyleSheet.create({
 
   description: {
     ...typography.body,
-    color: colors.subtleText,
+    color: colors.text,
     lineHeight: 20,
   },
 
   divider: {
     height: 1,
-    backgroundColor: '#E5E7EB', // linha igual da imagem
+    backgroundColor: colors.accent,
   },
 
   footer: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    gap: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 20,
+    gap: 24,
   },
 
   button: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
   },
 
   cancelText: {
