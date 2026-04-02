@@ -1,0 +1,17 @@
+branch=$(git branch --show-current)
+pattern="^US[0-9]+/TK[0-9]+/.+"
+
+# Bloqueia push direto na main ou dev
+if [ "$branch" = "main" ] || [ "$branch" = "dev" ]; then
+  echo "ERRO: Push direto na branch '$branch' não é permitido. Use um PR."
+  exit 1
+fi
+
+if ! echo "$branch" | grep -qE "$pattern"; then
+  echo ""
+  echo "Nome de branch inválido: '$branch'"
+  echo "O padrão esperado é: USXX/TKYY/nome-da-branch"
+  echo "Exemplo: US01/TK03/adiciona-tela-de-login"
+  echo ""
+  exit 1
+fi
