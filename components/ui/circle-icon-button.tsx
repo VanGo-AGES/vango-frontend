@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, ViewStyle } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../../styles/colors';
 
 type CircleIconButtonProps = {
@@ -12,7 +12,7 @@ type CircleIconButtonProps = {
 export default function CircleIconButton({ icon, onPress, style }: CircleIconButtonProps) {
   return (
     <Pressable style={[styles.button, style]} onPress={onPress}>
-      <Ionicons name={icon} size={24} color={colors.dark} />
+      <MaterialIcons name={icon} size={24} color={colors.dark} />
     </Pressable>
   );
 }
