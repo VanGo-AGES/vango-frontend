@@ -1,98 +1,83 @@
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { ComponentProps, useState } from 'react';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { ComponentProps } from 'react';
+import { StyleSheet, Text as RNText, View } from 'react-native';
+import { HelperText, TextInput } from 'react-native-paper';
 
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
-interface AppTextFieldProps extends Omit<ComponentProps<typeof TextInput>, 'placeholderTextColor'> {
+const INPUT_THEME = {
+  colors: {
+    onSurface: colors.dark,
+    onSurfaceVariant: colors.subtleText,
+    error: colors.destructive,
+  },
+};
+
+type AppTextFieldProps = ComponentProps<typeof TextInput> & {
   label: string;
   error?: string;
-}
+};
 
 export function AppTextField({ label, error, style, ...props }: AppTextFieldProps) {
-  const [isFocused, setIsFocused] = useState(false);
+  const hasError = !!error;
 
   return (
     <View style={styles.wrapper}>
-      {/* Floating label with yellow background, always positioned over the border */}
-      <View style={styles.labelContainer}>
-        <Text style={[styles.labelText, error ? styles.labelTextError : null]}>{label}</Text>
+      {/* Etiqueta posicionada sobre a borda superior */}
+      <View style={styles.labelBadge}>
+        <RNText style={[styles.labelText, hasError && styles.labelTextError]}>{label}</RNText>
       </View>
 
-      {/* Border container + input + error icon */}
-      <View
-        style={[
-          styles.inputContainer,
-          isFocused && styles.inputContainerFocused,
-          error ? styles.inputContainerError : null,
-        ]}
-      >
-        <TextInput
-          style={[styles.input, style]}
-          placeholderTextColor={colors.subtleText}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          {...props}
-        />
-        {error && (
-          <MaterialIcons name="error" size={24} color={colors.error} style={styles.errorIcon} />
-        )}
-      </View>
+      <TextInput
+        mode="outlined"
+        error={hasError}
+        right={
+          hasError ? <TextInput.Icon icon="alert-circle" color={colors.destructive} /> : undefined
+        }
+        style={[styles.input, style]}
+        outlineColor={colors.dark}
+        activeOutlineColor={colors.dark}
+        outlineStyle={styles.outline}
+        theme={INPUT_THEME}
+        {...props}
+      />
 
-      {/* Error message */}
-      {error && <Text style={styles.errorText}>{error}</Text>}
+      {hasError && (
+        <HelperText type="error" style={styles.errorText}>
+          {error}
+        </HelperText>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   wrapper: {
-    position: 'relative',
-    marginTop: 12,
+    marginTop: 8,
   },
-  labelContainer: {
+  labelBadge: {
     position: 'absolute',
-    top: -8,
+    top: -9,
     left: 12,
     zIndex: 1,
     backgroundColor: colors.primary,
     paddingHorizontal: 4,
+    paddingVertical: 1,
   },
   labelText: {
-    ...typography.small,
+    ...typography.caption,
     color: colors.dark,
   },
   labelTextError: {
-    color: colors.error,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: 56,
-    borderWidth: 1,
-    borderColor: colors.subtleText,
-    borderRadius: 4,
-    paddingHorizontal: 16,
-  },
-  inputContainerFocused: {
-    borderColor: colors.subtleText,
-  },
-  inputContainerError: {
-    borderColor: colors.error,
+    color: colors.destructive,
   },
   input: {
-    flex: 1,
-    ...typography.body,
-    color: colors.dark,
+    backgroundColor: colors.light,
   },
-  errorIcon: {
-    marginLeft: 8,
+  outline: {
+    borderWidth: 1,
   },
   errorText: {
-    ...typography.small,
-    color: colors.error,
-    marginTop: 4,
-    marginLeft: 4,
+    marginTop: -4,
   },
 });
