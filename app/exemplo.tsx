@@ -15,6 +15,7 @@ import { Button, HelperText, TextInput } from 'react-native-paper';
 
 // 4. Imports internos sempre com o alias @/ — nunca com caminhos relativos (../../).
 import { exampleFormSchema, type ExampleFormData } from '@/schemas/example-form';
+import { AppScreenContainer } from '@/components/ui/app-screen-container';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
@@ -44,7 +45,7 @@ export default function ExemploScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <AppScreenContainer backgroundColor={colors.light} style={styles.container}>
       {/* 7. Tipografia: sempre via tokens de @/styles/typography. Nunca fontSize hardcoded. */}
       <Text style={styles.title}>Exemplo de Tela</Text>
       <Text style={styles.subtitle}>Formulário com React Hook Form + Zod</Text>
@@ -105,7 +106,7 @@ export default function ExemploScreen() {
       >
         Entrar
       </Button>
-    </View>
+    </AppScreenContainer>
   );
 }
 
@@ -113,9 +114,6 @@ export default function ExemploScreen() {
 //     Cores via tokens de @/styles/colors — nunca HEX direto no StyleSheet.
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: colors.light,
-    padding: 24,
     justifyContent: 'center',
     gap: 8,
   },
