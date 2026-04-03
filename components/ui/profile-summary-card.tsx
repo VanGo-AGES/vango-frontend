@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 16,
     elevation: 2,
-    gap: 16,
+    gap: 24,
   },
   avatarImage: {
     width: AVATAR_SIZE,
