@@ -1,12 +1,14 @@
-import { WorkSans_500Medium, WorkSans_700Bold, useFonts } from '@expo-google-fonts/work-sans';
+import { useFonts } from 'expo-font';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PaperProvider } from 'react-native-paper';
 
 import { queryClient } from '@/lib/query-client';
+import { fonts } from '@/styles/typography';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -15,7 +17,7 @@ export const unstable_settings = {
 };
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({ WorkSans_500Medium, WorkSans_700Bold });
+  const [fontsLoaded] = useFonts(fonts);
 
   useEffect(() => {
     if (fontsLoaded) SplashScreen.hideAsync();
@@ -24,14 +26,16 @@ export default function RootLayout() {
   if (!fontsLoaded) return null;
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <PaperProvider>
-        <Stack initialRouteName="index">
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen name="exemplo" options={{ headerShown: false }} />
-        </Stack>
-        <StatusBar style="auto" />
-      </PaperProvider>
-    </QueryClientProvider>
+    <SafeAreaProvider>
+      <QueryClientProvider client={queryClient}>
+        <PaperProvider>
+          <Stack initialRouteName="index">
+            <Stack.Screen name="index" options={{ headerShown: false }} />
+            <Stack.Screen name="exemplo" options={{ headerShown: false }} />
+          </Stack>
+          <StatusBar style="auto" />
+        </PaperProvider>
+      </QueryClientProvider>
+    </SafeAreaProvider>
   );
 }
