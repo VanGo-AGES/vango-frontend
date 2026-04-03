@@ -81,10 +81,17 @@ O projeto usa o sistema nativo do Expo para variáveis de ambiente. Todas as var
    const mapboxKey = process.env.EXPO_PUBLIC_MAPBOX_KEY;
    ```
 
-> **MapBox:** são necessários dois tokens distintos.
+> **MapBox:** são necessários dois tokens distintos com propósitos diferentes.
 >
-> - **Token público** (`pk.*`): vai no `.env` como `EXPO_PUBLIC_MAPBOX_KEY`. Usado em runtime para renderizar o mapa.
-> - **Token secreto** (`sk.*`): usado apenas no build nativo para baixar o SDK. Configure via variável de ambiente `RNMAPBOX_MAPS_DOWNLOAD_TOKEN` na máquina de build (CI/CD ou local antes do `expo prebuild`). Nunca commite o token secreto.
+> - **Token público** (`pk.*`): vai no `.env` como `EXPO_PUBLIC_MAPBOX_KEY`. É injetado no bundle pelo Expo e usado em runtime para renderizar o mapa.
+> - **Token secreto** (`sk.*`): usado **apenas em tempo de build** pelo Gradle para baixar o SDK nativo do MapBox. Nunca entra no app e nunca deve estar em arquivo. Configure como variável de ambiente do terminal antes de rodar o build:
+>
+>   ```bash
+>   export RNMAPBOX_MAPS_DOWNLOAD_TOKEN=sk.seu_token_aqui
+>   npx expo prebuild
+>   ```
+>
+>   Em CI/CD (GitHub Actions, EAS Build), configure como secret do repositório.
 
 ---
 
@@ -133,9 +140,61 @@ O coverage é coletado dos diretórios: `app/`, `components/`, `hooks/`, `store/
 
 ---
 
+## Fluxo de Branches (Gitflow)
+
+O projeto segue uma adaptação simplificada do Gitflow:
+
+| Branch | Propósito                                                                 |
+| ------ | ------------------------------------------------------------------------- |
+| `main` | Código estável e pronto para produção. Nunca recebe commits diretos.      |
+| `dev`  | Branch de integração. Todo desenvolvimento parte daqui e retorna para cá. |
+
+Padrão de Nomenclatura: 'USXX/TK/nome-da-branch'
+
+### Fluxo padrão para uma feature
+
+```bash
+# 1. Sempre parta da dev atualizada
+git checkout dev
+git pull origin dev
+
+# 2. Crie a branch da feature
+git checkout -b feat/nome-da-feature
+
+# 3. Desenvolva, faça commits seguindo o padrão Conventional Commits
+git commit -m "feat: descrição da mudança"
+
+# 4. Abra um Pull Request de feat/nome-da-feature → dev
+```
+
+> **Regras:**
+>
+> - `dev` → `main` só via PR aprovado
+> - Commits diretos em `main` e `dev` são bloqueados por convenção — sempre via PR
+> - O nome da branch deve refletir o tipo do trabalho (`feat/`, `fix/`)
+
+---
+
 ## Padrões de Qualidade de Código
 
-O projeto bloqueia commits que não seguem os padrões abaixo. **Você não conseguirá fazer um commit se quebrar essas regras.**
+O projeto bloqueia commits e nomes de branches que não seguem os padrões abaixo. **Você não conseguirá fazer um commit nem fazer um push se quebrar essas regras.**
+
+### Nome de Branches
+
+Formato obrigatório: `USXX/TKYY/nome-da-branch`
+
+- `XX` — número da User Story
+- `YY` — número da Task
+- `nome-da-branch` — descrição curta em kebab-case
+
+Exemplos válidos:
+
+```
+US01/TK03/adiciona-tela-de-login
+US05/TK02/componente-route-type
+```
+
+> O `git push` é bloqueado automaticamente se o nome da branch estiver fora do padrão. Push direto em `main` e `dev` também é bloqueado — sempre via PR.
 
 ### Commits (Commitlint)
 
