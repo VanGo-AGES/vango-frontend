@@ -144,12 +144,12 @@ O coverage é coletado dos diretórios: `app/`, `components/`, `hooks/`, `store/
 
 O projeto segue uma adaptação simplificada do Gitflow:
 
-| Branch        | Propósito                                                                  |
-| ------------- | -------------------------------------------------------------------------- |
-| `main`        | Código estável e pronto para produção. Nunca recebe commits diretos.       |
-| `dev`         | Branch de integração. Todo desenvolvimento parte daqui e retorna para cá.  |
-| `feat/<nome>` | Nova funcionalidade. Criada a partir da `dev`, mergeada de volta na `dev`. |
-| `fix/<nome>`  | Correção de bug. Criada a partir da `dev`, mergeada de volta na `dev`.     |
+| Branch | Propósito                                                                 |
+| ------ | ------------------------------------------------------------------------- |
+| `main` | Código estável e pronto para produção. Nunca recebe commits diretos.      |
+| `dev`  | Branch de integração. Todo desenvolvimento parte daqui e retorna para cá. |
+
+Padrão de Nomenclatura: 'USXX/TK/nome-da-branch'
 
 ### Fluxo padrão para uma feature
 
