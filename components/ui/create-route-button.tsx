@@ -1,5 +1,4 @@
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleProp, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
 import { Href, useRouter } from 'expo-router';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
@@ -9,14 +8,16 @@ export interface CreateRouteButtonProps {
   href?: Href;
   label?: string;
   disabled?: boolean;
+  style?: StyleProp<ViewStyle>;
 }
 
-export const CreateRouteButton = ({
+export function CreateRouteButton({
   onPress,
   href,
   label = 'CRIAR ROTA',
   disabled = false,
-}: CreateRouteButtonProps) => {
+  style,
+}: CreateRouteButtonProps) {
   const router = useRouter();
 
   const handlePress = () => {
@@ -31,7 +32,9 @@ export const CreateRouteButton = ({
       onPress={handlePress}
       disabled={disabled}
       activeOpacity={0.75}
-      style={[styles.button, disabled && styles.buttonDisabled]}
+      accessibilityRole="button"
+      accessibilityState={{ disabled }}
+      style={[styles.button, disabled && styles.buttonDisabled, style]}
     >
       <View style={styles.content}>
         <Text style={[styles.plus, disabled && styles.labelDisabled]}>+</Text>
@@ -39,7 +42,7 @@ export const CreateRouteButton = ({
       </View>
     </TouchableOpacity>
   );
-};
+}
 
 const styles = StyleSheet.create({
   button: {
@@ -47,7 +50,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.subtleText,
     borderRadius: 12,
-    width: 330,
     paddingVertical: 8,
     paddingHorizontal: 24,
     alignItems: 'center',
@@ -63,12 +65,12 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   plus: {
-    ...typography.bodyBold,
+    ...typography.buttonText,
     color: colors.dark,
     fontSize: 18,
   },
   label: {
-    ...typography.bodyBold,
+    ...typography.buttonText,
     color: colors.dark,
     letterSpacing: 0.3,
   },
