@@ -34,13 +34,11 @@ const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 24,
     paddingTop: 12,
-    paddingBottom: 20,
-    height: 20,
+    paddingBottom: 10,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 4,
   },
 });
