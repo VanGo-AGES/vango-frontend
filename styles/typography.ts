@@ -1,3 +1,15 @@
+import {
+  WorkSans_400Regular,
+  WorkSans_500Medium,
+  WorkSans_700Bold,
+} from '@expo-google-fonts/work-sans';
+
+export const fonts = {
+  WorkSans_400Regular,
+  WorkSans_500Medium,
+  WorkSans_700Bold,
+};
+
 export const typography = {
   header1: {
     fontFamily: 'WorkSans_700Bold',
@@ -30,6 +42,10 @@ export const typography = {
   },
   small: {
     fontFamily: 'WorkSans_500Medium',
+    fontSize: 14,
+  },
+  caption: {
+    fontFamily: 'WorkSans_400Regular',
     fontSize: 14,
   },
   preTitle: {
