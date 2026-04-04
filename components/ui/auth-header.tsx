@@ -1,23 +1,22 @@
-import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { typography } from '../../styles/typography';
-import { colors } from '../../styles/colors';
+import { typography } from '@/styles/typography';
+import { colors } from '@/styles/colors';
 
-type Props = {
+type AuthHeaderProps = {
   title: string;
   subtitle?: string;
   showBackButton?: boolean;
   onBackPress?: () => void;
 };
 
-export default function AuthHeader({
+export function AuthHeader({
   title,
   subtitle,
   showBackButton = false,
   onBackPress,
-}: Props) {
+}: AuthHeaderProps) {
   const router = useRouter();
 
   const handleBackPress = () => {
@@ -35,6 +34,8 @@ export default function AuthHeader({
         <View style={styles.topRow}>
           <Pressable
             onPress={handleBackPress}
+            accessibilityRole="button"
+            accessibilityLabel="voltar"
             style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
           >
             <MaterialIcons name="arrow-back" size={24} color={colors.dark} />
@@ -70,7 +71,7 @@ const styles = StyleSheet.create({
   },
 
   backButtonPressed: {
-    opacity: 1,
+    opacity: 0.6,
   },
 
   title: {

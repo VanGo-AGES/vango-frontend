@@ -1,20 +1,39 @@
-import React from 'react';
 import { Pressable, StyleSheet, ViewStyle } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors } from '../../styles/colors';
+
+import { colors } from '@/styles/colors';
 
 type CircleIconButtonProps = {
   icon: 'arrow-forward' | 'arrow-back';
   onPress: () => void;
   style?: ViewStyle;
+  accessibilityLabel?: string;
 };
 
-export default function CircleIconButton({ icon, onPress, style }: CircleIconButtonProps) {
+export function CircleIconButton({
+  icon,
+  onPress,
+  style,
+  accessibilityLabel,
+}: CircleIconButtonProps) {
   return (
-    <Pressable style={[styles.button, style]} onPress={onPress}>
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? getAccessibilityLabel(icon)}
+      style={({ pressed }) => [styles.button, style, pressed && styles.buttonPressed]}
+    >
       <MaterialIcons name={icon} size={24} color={colors.dark} />
     </Pressable>
   );
+}
+
+function getAccessibilityLabel(icon: 'arrow-forward' | 'arrow-back') {
+  if (icon === 'arrow-back') {
+    return 'voltar';
+  }
+
+  return 'avançar';
 }
 
 const styles = StyleSheet.create({
@@ -27,5 +46,9 @@ const styles = StyleSheet.create({
     borderColor: colors.dark,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+
+  buttonPressed: {
+    opacity: 0.6,
   },
 });
