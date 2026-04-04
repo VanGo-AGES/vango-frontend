@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { StyleProp, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
@@ -9,7 +10,7 @@ export interface PrimaryButtonProps {
   onPress: () => void;
   variant?: ButtonVariant;
   disabled?: boolean;
-  icon?: React.ReactNode;
+  icon?: ReactNode;
   labelColor?: string;
   style?: StyleProp<ViewStyle>;
 }
