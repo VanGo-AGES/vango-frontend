@@ -36,7 +36,12 @@ export function WeekdaySelector({ value, onChange, error, style }: WeekdaySelect
               accessibilityRole="checkbox"
               accessibilityState={{ checked: isSelected }}
             >
-              <Text style={isSelected ? styles.chipTextSelected : styles.chipTextUnselected}>
+              <Text
+                style={[
+                  styles.chipText,
+                  isSelected ? styles.chipTextSelected : styles.chipTextUnselected,
+                ]}
+              >
                 {day}
               </Text>
             </Pressable>
@@ -93,7 +98,6 @@ const styles = StyleSheet.create({
     ...typography.small,
   },
   chipTextUnselected: {
-    ...typography.small,
     color: colors.text,
   },
   chipTextSelected: {
