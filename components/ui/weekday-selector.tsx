@@ -1,20 +1,17 @@
-import React from 'react';
-import { View, StyleSheet, Pressable } from 'react-native';
-import { Text, useTheme } from 'react-native-paper';
-import { typography } from '../styles/typography';
-import { colors } from '../styles/colors';
+import { View, Text, StyleSheet, Pressable, ViewStyle, StyleProp } from 'react-native';
+import { typography } from '@/styles/typography';
+import { colors } from '@/styles/colors';
 
-interface WeekdaySelectorProps {
+export interface WeekdaySelectorProps {
   value: string[];
   onChange: (days: string[]) => void;
   error?: string;
+  style?: StyleProp<ViewStyle>;
 }
 
 const WEEKDAYS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'];
 
-export const WeekdaySelector = ({ value = [], onChange, error }: WeekdaySelectorProps) => {
-  const theme = useTheme();
-
+export function WeekdaySelector({ value, onChange, error, style }: WeekdaySelectorProps) {
   const toggleDay = (day: string) => {
     if (value.includes(day)) {
       onChange(value.filter((d) => d !== day));
@@ -24,7 +21,7 @@ export const WeekdaySelector = ({ value = [], onChange, error }: WeekdaySelector
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, style]}>
       <Text style={styles.label}>Recorrência</Text>
 
       <View style={[styles.chipGroup, error ? styles.chipGroupError : null]}>
@@ -36,13 +33,10 @@ export const WeekdaySelector = ({ value = [], onChange, error }: WeekdaySelector
               key={day}
               onPress={() => toggleDay(day)}
               style={[styles.chip, isSelected ? styles.chipSelected : styles.chipUnselected]}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: isSelected }}
             >
-              <Text
-                style={[
-                  styles.chipText,
-                  isSelected ? styles.chipTextSelected : styles.chipTextUnselected,
-                ]}
-              >
+              <Text style={isSelected ? styles.chipTextSelected : styles.chipTextUnselected}>
                 {day}
               </Text>
             </Pressable>
@@ -53,13 +47,10 @@ export const WeekdaySelector = ({ value = [], onChange, error }: WeekdaySelector
       {error && <Text style={styles.errorText}>{error}</Text>}
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  container: {
-    marginVertical: 8,
-    marginHorizontal: 20,
-  },
+  container: {},
   label: {
     backgroundColor: colors.primary,
     ...typography.small,
