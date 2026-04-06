@@ -4,58 +4,75 @@ import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
-export interface DeleteDialogProps {
-  visible: boolean;
-  onCancel: () => void;
-  onConfirm: () => void;
+type ActionVariant = 'default' | 'destructive' | 'cancel';
+
+export interface DialogAction {
+  label: string;
+  onPress: () => void;
+  variant?: ActionVariant;
+  icon?: string;
 }
 
-const AppDialogDeleteDependent: React.FC<DeleteDialogProps> = ({
+export interface AppDialogProps {
+  visible: boolean;
+  title: string;
+  description: string;
+  actions: DialogAction[];
+  onRequestClose?: () => void;
+}
+
+const getActionColor = (variant: ActionVariant = 'default'): string => {
+  switch (variant) {
+    case 'destructive':
+      return colors.destructive;
+    case 'cancel':
+      return colors.subtleText;
+    default:
+      return colors.secondary;
+  }
+};
+
+const AppDialog: React.FC<AppDialogProps> = ({
   visible,
-  onCancel,
-  onConfirm,
+  title,
+  description,
+  actions,
+  onRequestClose,
 }) => {
   return (
     <Modal
       visible={visible}
       transparent
       animationType="fade"
-      onRequestClose={onCancel}
+      onRequestClose={onRequestClose}
       statusBarTranslucent
     >
       <View style={styles.overlay}>
         <View style={styles.dialogContainer}>
           <View style={styles.header}>
-            <Text style={styles.title}>Tem certeza que quer deletar o dependente?</Text>
-
-            <Text style={styles.description}>Essa ação não poderá ser desfeita.</Text>
+            <Text style={styles.title}>{title}</Text>
+            <Text style={styles.description}>{description}</Text>
           </View>
 
-          {/* Divider */}
           <View style={styles.divider} />
 
-          <View style={styles.footer}>
-            <TouchableOpacity
-              style={styles.button}
-              onPress={onCancel}
-              activeOpacity={0.7}
-              accessibilityRole="button"
-              accessibilityLabel="Cancelar"
-            >
-              <Icon name="close" size={18} color={colors.subtleText} />
-              <Text style={styles.cancelText}>Cancelar</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.button}
-              onPress={onConfirm}
-              activeOpacity={0.7}
-              accessibilityRole="button"
-              accessibilityLabel="Deletar"
-            >
-              <Icon name="check" size={18} color={colors.destructive} />
-              <Text style={styles.deleteText}>Deletar</Text>
-            </TouchableOpacity>
+          <View style={[styles.footer, actions.length === 1 && styles.footerCentered]}>
+            {actions.map((action, index) => {
+              const color = getActionColor(action.variant);
+              return (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.button}
+                  onPress={action.onPress}
+                  activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel={action.label}
+                >
+                  {action.icon && <Icon name={action.icon as any} size={18} color={color} />}
+                  <Text style={[styles.buttonText, { color }]}>{action.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </View>
       </View>
@@ -63,7 +80,7 @@ const AppDialogDeleteDependent: React.FC<DeleteDialogProps> = ({
   );
 };
 
-export default AppDialogDeleteDependent;
+export default AppDialog;
 
 const styles = StyleSheet.create({
   overlay: {
@@ -80,7 +97,6 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 400,
     overflow: 'hidden',
-
     elevation: 8,
     shadowColor: colors.dark,
     shadowOffset: { width: 0, height: 4 },
@@ -121,6 +137,10 @@ const styles = StyleSheet.create({
     gap: 24,
   },
 
+  footerCentered: {
+    justifyContent: 'center',
+  },
+
   button: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -130,15 +150,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
 
-  cancelText: {
+  buttonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.subtleText,
-  },
-
-  deleteText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.destructive,
   },
 });
