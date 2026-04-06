@@ -1,27 +1,24 @@
-import React from 'react';
-import { View, Text, StyleSheet, useColorScheme } from 'react-native';
+import { View, Text, StyleSheet, useColorScheme, ViewStyle, StyleProp } from 'react-native';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
+import Constants from 'expo-constants';
 
-interface BottomVersionInfoProps {
+export interface BottomVersionInfoProps {
   theme?: 'light' | 'dark';
-  version?: string;
+  style: StyleProp<ViewStyle>;
   brandName?: string;
 }
 
-export function BottomVersionInfo({
-  theme,
-  version = 'V1.0',
-  brandName = 'VanGO',
-}: BottomVersionInfoProps) {
+export function BottomVersionInfo({ theme, style, brandName = 'VanGO' }: BottomVersionInfoProps) {
   const systemScheme = useColorScheme();
   const scheme = theme ?? systemScheme ?? 'light';
   const isDark = scheme === 'dark';
 
   const brandColor = isDark ? colors.primary : colors.dark;
+  const version = Constants.expoConfig?.version ?? '1.0.0';
 
   return (
-    <View style={[styles.container]}>
+    <View style={style}>
       <View style={styles.row}>
         <Text style={[typography.small, { color: brandColor }]}>{brandName}</Text>
         <Text style={[typography.small, { color: brandColor }]}>{version}</Text>
@@ -31,11 +28,6 @@ export function BottomVersionInfo({
 }
 
 const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: 24,
-    paddingTop: 12,
-    paddingBottom: 10,
-  },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
