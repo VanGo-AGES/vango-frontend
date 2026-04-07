@@ -24,7 +24,7 @@ import { typography } from '@/styles/typography';
 
 const defaultValues: EditProfileFormData = {
   name: 'João Silva',
-  cpf: '99864387012',
+  cpf: '60039877078',
   phone: '11999999999',
   password: '123456',
 };
@@ -75,7 +75,7 @@ export default function EditProfileScreen() {
   };
 
   const handleCancel = () => {
-    reset(defaultValues);
+    reset();
   };
 
   return (
@@ -98,7 +98,7 @@ export default function EditProfileScreen() {
             />
 
             <View style={styles.avatarWrap}>
-              <EditableProfilePicture size={124} accessibilityLabel="Foto de perfil" />
+              <EditableProfilePicture size={100} accessibilityLabel="Foto de perfil" />
             </View>
           </View>
 
@@ -228,16 +228,25 @@ const styles = StyleSheet.create({
   },
   avatarWrap: {
     alignItems: 'center',
+    justifyContent: 'center',
     marginTop: 28,
+    width: 130,
+    height: 130,
+    borderRadius: 150,
+    borderWidth: 1,
+    borderColor: colors.subtleText,
+    backgroundColor: colors.accent,
+    alignSelf: 'center',
+    zIndex: 10,
   },
   formCard: {
     flex: 1,
     backgroundColor: colors.light,
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
-    marginTop: -16,
+    marginTop: -70,
     paddingHorizontal: 24,
-    paddingTop: 36,
+    paddingTop: 56,
     paddingBottom: 32,
   },
   formContent: {
@@ -246,7 +255,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   title: {
-    ...typography.header3,
+    ...typography.bodyBold,
     color: colors.dark,
     textAlign: 'center',
     marginBottom: 28,
@@ -261,10 +270,11 @@ const styles = StyleSheet.create({
   actions: {
     alignItems: 'center',
     gap: 12,
-    marginTop: 28,
+    marginTop: 48,
   },
   saveButton: {
     alignSelf: 'center',
+    height: 50,
   },
   cancelText: {
     ...typography.bodyBold,
