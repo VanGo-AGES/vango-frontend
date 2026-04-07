@@ -1,4 +1,4 @@
-import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { Image, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
@@ -6,12 +6,6 @@ import { typography } from '@/styles/typography';
 import { CircleIconButton } from './circle-icon-button';
 
 export type ProfileCardVariant = 'motorista' | 'passageiro';
-
-type ProfileCardProps = {
-  variant: ProfileCardVariant;
-  onPress: () => void;
-  style?: StyleProp<ViewStyle>;
-};
 
 const CARD_CONTENT: Record<ProfileCardVariant, { title: string; description: string }> = {
   motorista: {
@@ -24,12 +18,23 @@ const CARD_CONTENT: Record<ProfileCardVariant, { title: string; description: str
   },
 };
 
-export function ProfileCard({ variant, onPress, style }: ProfileCardProps) {
+export type ProfileCardProps = {
+  variant: ProfileCardVariant;
+  onPress: () => void;
+  imageUri?: string;
+  style?: StyleProp<ViewStyle>;
+};
+
+export function ProfileCard({ variant, onPress, imageUri, style }: ProfileCardProps) {
   const content = CARD_CONTENT[variant];
 
   return (
     <View style={[styles.card, style]}>
-      <View style={styles.imagePlaceholder} />
+      <View style={styles.imagePlaceholder}>
+        {imageUri ? (
+          <Image source={{ uri: imageUri }} style={styles.image} resizeMode="cover" />
+        ) : null}
+      </View>
 
       <View style={styles.footer}>
         <View style={styles.copyContainer}>
@@ -50,31 +55,33 @@ export function ProfileCard({ variant, onPress, style }: ProfileCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    width: 300,
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: colors.dark,
-    backgroundColor: 'transparent',
-    paddingHorizontal: 15,
-    paddingVertical: 15,
-    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    gap: 16,
   },
   imagePlaceholder: {
-    height: 120,
+    height: 125,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: colors.dark,
-    backgroundColor: 'transparent',
+    overflow: 'hidden',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
   },
   footer: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 8,
+    gap: 4,
   },
   copyContainer: {
     flex: 1,
-    gap: 2,
+    gap: 4,
   },
   title: {
     ...typography.bodyBold,
@@ -86,9 +93,8 @@ const styles = StyleSheet.create({
     lineHeight: 21,
   },
   actionButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    marginBottom: 2,
+    width: 48,
+    height: 48,
+    borderRadius: 100,
   },
 });
