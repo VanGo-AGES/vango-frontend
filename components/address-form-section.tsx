@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { AppTextField } from '@/components/app-text-field';
@@ -27,47 +28,66 @@ export function AddressFormSection({
   onChange,
   errors = {},
 }: AddressFormSectionProps) {
+  const [cepError, setCepError] = useState<string | undefined>();
+  const [addressFilled, setAddressFilled] = useState(false);
+
+  async function handleCepChange(text: string) {
+    const digits = text.replace(/\D/g, '').slice(0, 8);
+    onChange('cep', digits);
+
+    if (addressFilled) {
+      setAddressFilled(false);
+      onChange('rua', '');
+      onChange('bairro', '');
+      onChange('cidade', '');
+    }
+    setCepError(undefined);
+
+    if (digits.length === 8) {
+      try {
+        const response = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+        const data = await response.json();
+        if (data.erro) {
+          setCepError('CEP não encontrado');
+          return;
+        }
+        onChange('rua', data.logradouro || '');
+        onChange('bairro', data.bairro || '');
+        onChange('cidade', data.localidade || '');
+        setAddressFilled(true);
+      } catch {
+        setCepError('Erro ao buscar CEP');
+      }
+    }
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{title}</Text>
 
       <AppTextField
         label="CEP"
-        value={value.cep}
-        onChangeText={(text) => onChange('cep', text)}
-        error={errors.cep}
+        value={value.cep.length > 5 ? `${value.cep.slice(0, 5)}-${value.cep.slice(5)}` : value.cep}
+        onChangeText={handleCepChange}
+        error={cepError ?? errors.cep}
         keyboardType="numeric"
         placeholder="00000-000"
+        maxLength={9}
       />
 
       <AppTextField
         label="Número"
         value={value.numero}
-        onChangeText={(text) => onChange('numero', text)}
+        onChangeText={(text) => onChange('numero', text.replace(/\D/g, ''))}
         error={errors.numero}
         keyboardType="numeric"
       />
 
-      <AppTextField
-        label="Rua"
-        value={value.rua}
-        onChangeText={(text) => onChange('rua', text)}
-        error={errors.rua}
-      />
+      <AppTextField label="Rua" value={value.rua} editable={false} error={errors.rua} />
 
-      <AppTextField
-        label="Bairro"
-        value={value.bairro}
-        onChangeText={(text) => onChange('bairro', text)}
-        error={errors.bairro}
-      />
+      <AppTextField label="Bairro" value={value.bairro} editable={false} error={errors.bairro} />
 
-      <AppTextField
-        label="Cidade"
-        value={value.cidade}
-        onChangeText={(text) => onChange('cidade', text)}
-        error={errors.cidade}
-      />
+      <AppTextField label="Cidade" value={value.cidade} editable={false} error={errors.cidade} />
     </View>
   );
 }
@@ -78,7 +98,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   title: {
-    ...typography.subtitle,
+    ...typography.bodyBold,
     color: colors.dark,
     textAlign: 'center',
     marginBottom: 8,
