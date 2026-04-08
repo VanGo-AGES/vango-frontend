@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
   dialogContainer: {
     backgroundColor: colors.light,
     borderRadius: 16,
-    width: '100%',
+    width: '80%',
     maxWidth: 400,
     overflow: 'hidden',
     elevation: 8,
