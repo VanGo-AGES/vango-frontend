@@ -2,10 +2,10 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppTextField } from '@/components/app-text-field';
 import { PrimaryButton } from '@/components/primary-button';
-import { AppScreenContainer } from '@/components/ui/app-screen-container';
 import { RouteStepIndicator } from '@/components/ui/route-step-indicator';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
@@ -61,20 +61,22 @@ export default function CreateRouteOriginScreen() {
   };
 
   return (
-    <AppScreenContainer backgroundColor={colors.accent} style={styles.screenContainer}>
-      <View style={styles.headerArea}>
-        <Pressable
-          onPress={() => router.back()}
-          accessibilityRole="button"
-          accessibilityLabel="voltar"
-          style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
-        >
-          <MaterialIcons name="arrow-back" size={22} color={colors.dark} />
-        </Pressable>
+    <View style={styles.screenContainer}>
+      <SafeAreaView style={styles.topSafeArea} edges={['top']}>
+        <View style={styles.headerArea}>
+          <Pressable
+            onPress={() => router.back()}
+            accessibilityRole="button"
+            accessibilityLabel="voltar"
+            style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
+          >
+            <MaterialIcons name="arrow-back" size={22} color={colors.dark} />
+          </Pressable>
 
-        <Text style={styles.title}>Criar Rota</Text>
-        <Text style={styles.subtitle}>Preencha as informações{`\n`}para criar sua rota.</Text>
-      </View>
+          <Text style={styles.title}>Criar Rota</Text>
+          <Text style={styles.subtitle}>Preencha as informações{`\n`}para criar sua rota.</Text>
+        </View>
+      </SafeAreaView>
 
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>Endereço de Origem</Text>
@@ -163,16 +165,21 @@ export default function CreateRouteOriginScreen() {
           </View>
         </View>
       </View>
-    </AppScreenContainer>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   screenContainer: {
-    paddingBottom: 0,
+    flex: 1,
+    backgroundColor: colors.accent,
+  },
+  topSafeArea: {
+    backgroundColor: colors.accent,
   },
   headerArea: {
     paddingTop: 8,
+    paddingHorizontal: 24,
     alignItems: 'center',
   },
   backButton: {
@@ -205,27 +212,26 @@ const styles = StyleSheet.create({
     backgroundColor: colors.light,
     borderTopLeftRadius: 26,
     borderTopRightRadius: 26,
-    paddingHorizontal: 24,
-    paddingTop: 56,
-    paddingBottom: 20,
+    paddingHorizontal: 64,
+    paddingTop: 32,
+    paddingBottom: 24,
   },
   cardContent: {
     flex: 1,
-    justifyContent: 'space-between',
   },
   sectionTitle: {
     ...typography.bodyBold,
     color: colors.dark,
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   fieldsContainer: {
-    gap: 6,
+    gap: 10,
   },
   footer: {
     alignItems: 'center',
-    paddingTop: 20,
-    gap: 24,
+    paddingTop: 36,
+    gap: 32,
   },
   routeStepIndicatorWrapper: {
     alignSelf: 'center',
