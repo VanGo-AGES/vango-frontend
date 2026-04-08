@@ -12,7 +12,7 @@ import { typography } from '@/styles/typography';
 
 export type FieldName = 'cep' | 'numero' | 'rua' | 'bairro' | 'cidade';
 
-export default function CreateRouteOriginScreen() {
+export default function CreateRouteDestinationScreen() {
   const router = useRouter();
 
   const [cep, setCep] = useState('90619-900');
@@ -79,7 +79,7 @@ export default function CreateRouteOriginScreen() {
       </SafeAreaView>
 
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Endereço de Origem</Text>
+        <Text style={styles.sectionTitle}>Endereço de Destino</Text>
         <View style={styles.cardContent}>
           <View style={styles.fieldsContainer}>
             <AppTextField
@@ -152,7 +152,7 @@ export default function CreateRouteOriginScreen() {
 
           <View style={styles.footer}>
             <View style={styles.routeStepIndicatorWrapper}>
-              <RouteStepIndicator currentStep={2} totalSteps={4} />
+              <RouteStepIndicator currentStep={3} totalSteps={4} />
             </View>
 
             <PrimaryButton
