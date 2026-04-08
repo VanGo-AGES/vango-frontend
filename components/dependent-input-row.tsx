@@ -108,7 +108,6 @@ export function DependentInputRow({
                   error={errors?.[index]?.name?.message}
                   outlineColor={colors.subtleText}
                   activeOutlineColor={colors.subtleText}
-                  style={styles.inputField}
                   right={
                     <TextInput.Icon
                       icon="close-circle-outline"
@@ -149,10 +148,9 @@ export function DependentInputRow({
 
 const styles = StyleSheet.create({
   container: {
-    gap: 12,
+    gap: 8,
   },
   cardWrapper: {
-    backgroundColor: colors.light,
     borderRadius: 8,
     overflow: 'hidden',
     borderWidth: 1,
@@ -168,7 +166,7 @@ const styles = StyleSheet.create({
   radioWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 8,
   },
   iconWrapper: {
     backgroundColor: 'rgba(0,0,0,0.05)',
@@ -176,20 +174,17 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   optionText: {
-    ...typography.bodyBold,
+    ...typography.body,
     color: colors.dark,
   },
   dropdownContent: {
-    backgroundColor: colors.accent,
-    paddingHorizontal: 16,
+    paddingLeft: 64,
+    paddingRight: 16,
     paddingBottom: 16,
-    gap: 12,
+    gap: 8,
   },
   inputRow: {
     width: '100%',
-  },
-  inputField: {
-    backgroundColor: colors.accent,
   },
   addButton: {
     flexDirection: 'row',
