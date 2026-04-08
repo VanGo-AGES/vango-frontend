@@ -1,10 +1,11 @@
-import { View, StyleSheet } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import SuccessShape from '@/assets/images/success-flower-shape.svg';
-import { AuthHeader } from '@/components/ui/auth-header';
+import { AppScreenContainer } from '@/components/ui/app-screen-container';
 import { PrimaryButton } from '@/components/primary-button';
 import { colors } from '@/styles/colors';
+import { typography } from '@/styles/typography';
 
 export default function RegisterSuccessScreen() {
   const router = useRouter();
@@ -14,14 +15,18 @@ export default function RegisterSuccessScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <AppScreenContainer style={styles.container}>
       <View style={styles.content}>
         <View style={styles.innerContent}>
           <View style={styles.illustrationWrapper}>
             <SuccessShape width={160} height={160} />
             <MaterialIcons name="check" size={70} color={colors.primary} style={styles.icon} />
           </View>
-          <AuthHeader title="Tudo certo!" subtitle="Seu cadastro foi realizado com sucesso :)" />
+
+          <View style={styles.textBlock}>
+            <Text style={styles.title}>Tudo certo!</Text>
+            <Text style={styles.subtitle}>Seu cadastro foi realizado com sucesso :)</Text>
+          </View>
         </View>
       </View>
 
@@ -32,18 +37,13 @@ export default function RegisterSuccessScreen() {
         style={styles.button}
         icon={<MaterialIcons name="arrow-forward" size={24} color={colors.light} />}
       />
-    </View>
+    </AppScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: colors.primary,
-    paddingHorizontal: 24,
-    paddingTop: 32,
-    paddingBottom: 32,
-    justifyContent: 'space-between',
   },
   content: {
     flex: 1,
@@ -61,12 +61,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  shape: {
-    width: '100%',
-    height: '100%',
-  },
   icon: {
     position: 'absolute',
+  },
+  textBlock: {
+    alignItems: 'center',
+    gap: 16,
+  },
+  title: {
+    ...typography.header2,
+    color: colors.dark,
+    textAlign: 'center',
+  },
+  subtitle: {
+    ...typography.subtitle,
+    color: colors.dark,
+    width: 350,
+    textAlign: 'center',
   },
   button: {
     alignSelf: 'center',
