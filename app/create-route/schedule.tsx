@@ -2,9 +2,8 @@ import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 import { PrimaryButton } from '@/components/primary-button';
-import { AppScreenContainer } from '@/components/ui/app-screen-container';
 import { HourSelector } from '@/components/ui/hour-selector';
 import { RouteStepIndicator } from '@/components/ui/route-step-indicator';
 import { SectionHeader } from '@/components/ui/section-header';
@@ -36,7 +35,7 @@ export default function ScheduleScreen() {
   };
 
   return (
-    <AppScreenContainer style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <SectionHeader
         title="Criar Rota"
         subtitle="Preencha as informações para criar sua rota."
@@ -85,14 +84,13 @@ export default function ScheduleScreen() {
           </View>
         </View>
       </View>
-    </AppScreenContainer>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 0,
     backgroundColor: colors.accent,
   },
   content_card: {
