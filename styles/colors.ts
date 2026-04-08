@@ -8,5 +8,6 @@ export const colors = {
   subtleText: '#8C8CA1', // Light Slate - Helper / Deemphasized text
   accent: '#ECF1F4', // Dorian - Accent color / Hairlines
   light: '#FAFCFE', // Cloud - Light mode backgrounds / Dialogs
+  white: '#FFFFFF', // White - Pure white for backgrounds and elements
   destructive: '#F06163', //  Red - Destructive actions such as deleting
 };
