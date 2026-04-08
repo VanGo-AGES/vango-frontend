@@ -5,9 +5,6 @@ import { AppScreenContainer } from '@/components/ui/app-screen-container';
 import { BottomVersionInfo } from '@/components/ui/bottom-version-info';
 import { colors } from '@/styles/colors';
 
-// const SPLASH_DELAY_MS = 0;
-// When the auth flow is ready, use this delay before navigating away from this screen.
-
 export default function SplashScreen() {
   return (
     <AppScreenContainer backgroundColor={colors.dark} style={styles.container}>
