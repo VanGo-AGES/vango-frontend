@@ -54,7 +54,6 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     alignItems: 'center',
-    paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 24,
   },
@@ -66,8 +65,12 @@ const styles = StyleSheet.create({
   },
 
   backButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 4,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(250, 252, 254, 0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   backButtonPressed: {
