@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   label: {
-    ...typography.bodyBold,
+    ...typography.body,
   },
   labelDisabled: {
     color: colors.subtleText,
