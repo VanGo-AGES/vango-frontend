@@ -13,7 +13,7 @@ import { fonts } from '@/styles/typography';
 SplashScreen.preventAutoHideAsync();
 
 export const unstable_settings = {
-  anchor: 'exemplo',
+  anchor: 'onboarding',
 };
 
 export default function RootLayout() {
@@ -31,7 +31,9 @@ export default function RootLayout() {
         <PaperProvider>
           <Stack initialRouteName="index">
             <Stack.Screen name="index" options={{ headerShown: false }} />
+            <Stack.Screen name="onboarding" options={{ headerShown: false }} />
             <Stack.Screen name="exemplo" options={{ headerShown: false }} />
+            <Stack.Screen name="login" options={{ headerShown: false }} />
             <Stack.Screen name="register-success" options={{ headerShown: false }} />
             <Stack.Screen name="register-basic-info-screen" options={{ headerShown: false }} />
           </Stack>
