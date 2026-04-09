@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -22,10 +22,13 @@ export default function PassengerDependentsScreen() {
     Dependent[] | null
   >(null);
 
+  const skipNextDeleteDialog = useRef(false);
+
   const handleChangeHasDependents = (value: boolean) => {
     setHasDependents(value);
 
     if (!value) {
+      skipNextDeleteDialog.current = true;
       setDependents([]);
       return;
     }
@@ -36,6 +39,12 @@ export default function PassengerDependentsScreen() {
   };
 
   const handleChangeDependents = (nextDependents: Dependent[]) => {
+    if (skipNextDeleteDialog.current) {
+      skipNextDeleteDialog.current = false;
+      setDependents(nextDependents);
+      return;
+    }
+
     const wasRemovalAttempt = nextDependents.length < dependents.length;
 
     if (wasRemovalAttempt) {
@@ -87,7 +96,6 @@ export default function PassengerDependentsScreen() {
       return;
     }
 
-    // Substituir por rota correta durante integracao.
     router.push('/exemplo');
   };
 
@@ -113,7 +121,7 @@ export default function PassengerDependentsScreen() {
           <DependentInputRow
             dependents={dependents}
             onChangeDependents={handleChangeDependents}
-            hasDependents={hasDependents === true}
+            hasDependents={hasDependents}
             onChangeHasDependents={handleChangeHasDependents}
           />
         </View>
