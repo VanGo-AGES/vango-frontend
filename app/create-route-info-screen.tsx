@@ -111,6 +111,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 56,
     paddingBottom: 20,
+    marginHorizontal: -24,
   },
   cardContent: {
     flex: 1,
@@ -123,7 +124,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   fieldsContainer: {
-    gap: 6,
+    gap: 16,
   },
   footer: {
     alignItems: 'center',
