@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AppScreenContainer } from '@/components/ui/app-screen-container';
 import { PrimaryButton } from '@/components/primary-button';
 import { HourSelector } from '@/components/ui/hour-selector';
 import { RouteStepIndicator } from '@/components/ui/route-step-indicator';
@@ -35,22 +36,20 @@ export default function ScheduleScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <SectionHeader
-        title="Criar Rota"
-        subtitle="Preencha as informações para criar sua rota."
-        showBackButton
-      />
+    <AppScreenContainer
+      backgroundColor={colors.accent}
+      style={styles.container}
+      edges={['right', 'bottom', 'left']}
+    >
+      <View style={styles.topSection}>
+        <SectionHeader
+          title="Criar Rota"
+          subtitle="Preencha as informações para criar sua rota."
+          showBackButton
+        />
+      </View>
 
-      <View
-        style={[
-          styles.content_card,
-          {
-            marginBottom: -insets.bottom,
-            paddingBottom: 32 + insets.bottom,
-          },
-        ]}
-      >
+      <View style={styles.content_card}>
         <View>
           <Text style={styles.section_title}>Horário</Text>
 
@@ -84,22 +83,33 @@ export default function ScheduleScreen() {
           </View>
         </View>
       </View>
-    </SafeAreaView>
+    </AppScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  topSection: {
     backgroundColor: colors.accent,
+    marginTop: -24,
+    marginHorizontal: -24,
+    paddingHorizontal: 24,
+    paddingTop: 36,
+    paddingBottom: 52,
+    gap: 16,
   },
   content_card: {
     flex: 1,
     paddingHorizontal: 24,
     paddingTop: 72,
+    paddingBottom: 64,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     backgroundColor: colors.light,
+    marginHorizontal: -24,
+    marginBottom: -80,
     justifyContent: 'space-between',
   },
   section_title: {
