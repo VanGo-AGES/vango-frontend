@@ -33,6 +33,9 @@ export default function RootLayout() {
             <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen name="exemplo" options={{ headerShown: false }} />
             <Stack.Screen name="edit-profile-screen" options={{ headerShown: false }} />
+            <Stack.Screen name="register-success" options={{ headerShown: false }} />
+            <Stack.Screen name="register-basic-info-screen" options={{ headerShown: false }} />
+            <Stack.Screen name="create-route/schedule" options={{ headerShown: false }} />
           </Stack>
           <StatusBar style="auto" />
         </PaperProvider>
