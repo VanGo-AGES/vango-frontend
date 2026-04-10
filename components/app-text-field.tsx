@@ -13,7 +13,7 @@ const INPUT_THEME = {
   },
 };
 
-type AppTextFieldProps = ComponentProps<typeof TextInput> & {
+type AppTextFieldProps = Omit<ComponentProps<typeof TextInput>, 'error'> & {
   label: string;
   error?: string;
 };

@@ -1,17 +1,26 @@
+import { ReactNode } from 'react';
 import { StyleSheet, ViewStyle } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Edge, SafeAreaView } from 'react-native-safe-area-context';
 
 import { colors } from '@/styles/colors';
 
 type Props = {
-  children: React.ReactNode;
+  children: ReactNode;
   backgroundColor?: string;
   style?: ViewStyle;
+  edges?: Edge[];
 };
 
-export function AppScreenContainer({ children, backgroundColor = colors.light, style }: Props) {
+export function AppScreenContainer({
+  children,
+  backgroundColor = colors.light,
+  style,
+  edges = ['top', 'right', 'bottom', 'left'],
+}: Props) {
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor }, style]}>{children}</SafeAreaView>
+    <SafeAreaView edges={edges} style={[styles.container, { backgroundColor }, style]}>
+      {children}
+    </SafeAreaView>
   );
 }
 
