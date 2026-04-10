@@ -36,11 +36,7 @@ export default function DriverHomeScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.headerSpacing}>
           <HomeHeaderCard
             name="João Silva"
@@ -50,42 +46,50 @@ export default function DriverHomeScreen() {
           />
         </View>
 
-        <View style={styles.nextRouteSection}>
+        <View style={styles.section}>
           <Text style={styles.sectionTitle}>Próxima rota</Text>
 
-          {nextRoute ? (
-            <View style={styles.routeCard}>
-              <Text style={styles.routeTitle}>{nextRoute.name}</Text>
-              <Text style={styles.routeSubtitle}>{nextRoute.time}</Text>
+          <View style={styles.fullWidthLightSection}>
+            <View style={styles.innerContent}>
+              {nextRoute ? (
+                <View style={styles.routeCard}>
+                  <Text style={styles.routeTitle}>{nextRoute.name}</Text>
+                  <Text style={styles.routeSubtitle}>{nextRoute.time}</Text>
+                </View>
+              ) : (
+                <EmptyState
+                  icon="event"
+                  text="Nenhuma rota agendada. Crie uma rota para começar a organizar seus trajetos."
+                />
+              )}
             </View>
-          ) : (
-            <EmptyState
-              icon="event"
-              text="Nenhuma rota agendada. Crie uma rota para começar a organizar seus trajetos."
-            />
-          )}
+          </View>
         </View>
 
-        <View style={styles.myRoutesSection}>
-          <Text style={styles.sectionTitle}>Minhas rotas</Text>
+        <View style={styles.sectionWithTopSpacing}>
+          <View style={styles.fullWidthLightSection}>
+            <View style={styles.innerContent}>
+              <Text style={styles.sectionTitle}>Minhas rotas</Text>
 
-          <View style={styles.buttonContainer}>
-            <CreateRouteButton onPress={handleCreateRoutePress} />
-          </View>
-
-          {myRoutes.length > 0 ? (
-            myRoutes.map((route) => (
-              <View key={route.id} style={styles.routeCard}>
-                <Text style={styles.routeTitle}>{route.name}</Text>
-                <Text style={styles.routeSubtitle}>{route.time}</Text>
+              <View style={styles.buttonContainer}>
+                <CreateRouteButton onPress={handleCreateRoutePress} />
               </View>
-            ))
-          ) : (
-            <EmptyState
-              icon="directions-car"
-              text="Você ainda não criou nenhuma rota. Toque em 'Criar rota' para começar."
-            />
-          )}
+
+              {myRoutes.length > 0 ? (
+                myRoutes.map((route) => (
+                  <View key={route.id} style={styles.routeCard}>
+                    <Text style={styles.routeTitle}>{route.name}</Text>
+                    <Text style={styles.routeSubtitle}>{route.time}</Text>
+                  </View>
+                ))
+              ) : (
+                <EmptyState
+                  icon="directions-car"
+                  text="Você ainda não criou nenhuma rota. Toque em 'Criar rota' para começar."
+                />
+              )}
+            </View>
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -95,11 +99,7 @@ export default function DriverHomeScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.light,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: colors.light,
+    backgroundColor: colors.white,
   },
   content: {
     padding: 16,
@@ -109,12 +109,21 @@ const styles = StyleSheet.create({
     marginTop: 15,
     marginBottom: 25,
   },
-  nextRouteSection: {
+  section: {
     gap: 12,
   },
-  myRoutesSection: {
+  sectionWithTopSpacing: {
     gap: 12,
     marginTop: 32,
+  },
+  fullWidthLightSection: {
+    backgroundColor: colors.light,
+    marginHorizontal: -16,
+    paddingVertical: 16,
+  },
+  innerContent: {
+    paddingHorizontal: 16,
+    gap: 12,
   },
   sectionTitle: {
     ...typography.body,
@@ -124,7 +133,6 @@ const styles = StyleSheet.create({
   routeCard: {
     padding: 16,
     borderRadius: 12,
-    backgroundColor: colors.light,
   },
   routeTitle: {
     ...typography.body,
@@ -140,7 +148,6 @@ const styles = StyleSheet.create({
     height: 56,
     alignSelf: 'center',
     justifyContent: 'center',
-    gap: 8,
   },
   createRouteText: {
     ...typography.caption,

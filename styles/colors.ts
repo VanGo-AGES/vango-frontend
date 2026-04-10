@@ -9,4 +9,5 @@ export const colors = {
   accent: '#ECF1F4', // Dorian - Accent color / Hairlines
   light: '#FAFCFE', // Cloud - Light mode backgrounds / Dialogs
   destructive: '#F06163', //  Red - Destructive actions such as deleting
+  white: '#FFFFFF', // Pure white - Screen background
 };
