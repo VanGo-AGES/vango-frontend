@@ -1,8 +1,8 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { HomeHeaderCard } from '@/components/home-header-card';
 import { EmptyState } from '@/components/empty-state';
+import { AppScreenContainer } from '@/components/ui/app-screen-container';
 import { CreateRouteButton } from '@/components/ui/create-route-button';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
@@ -16,8 +16,8 @@ type RouteItem = {
 export default function DriverHomeScreen() {
   const router = useRouter();
 
-  const nextRoute: RouteItem | null = null;
-  const myRoutes: RouteItem[] = [];
+  let nextRoute: RouteItem | null = null;
+  let myRoutes: RouteItem[] = [];
 
   // Substituir por rota para o perfil do motorista.
   const handleProfilePress = () => {
@@ -35,9 +35,13 @@ export default function DriverHomeScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <AppScreenContainer
+      backgroundColor={colors.white}
+      edges={['top', 'bottom']}
+      style={styles.container}
+    >
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.headerSpacing}>
+        <View style={[styles.headerSpacing, styles.horizontalPadding]}>
           <HomeHeaderCard
             name="João Silva"
             location="Porto Alegre, RS"
@@ -47,7 +51,7 @@ export default function DriverHomeScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Próxima rota</Text>
+          <Text style={[styles.sectionTitle, styles.horizontalPadding]}>Próxima rota</Text>
 
           <View style={styles.fullWidthLightSection}>
             <View style={styles.innerContent}>
@@ -92,25 +96,25 @@ export default function DriverHomeScreen() {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </AppScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.white,
+  container: {
+    paddingHorizontal: 0,
   },
   content: {
-    padding: 16,
     paddingBottom: 32,
   },
+  horizontalPadding: {
+    paddingHorizontal: 24,
+  },
   headerSpacing: {
-    marginTop: 15,
-    marginBottom: 25,
+    marginBottom: 32,
   },
   section: {
-    gap: 12,
+    gap: 4,
   },
   sectionWithTopSpacing: {
     gap: 12,
@@ -118,17 +122,15 @@ const styles = StyleSheet.create({
   },
   fullWidthLightSection: {
     backgroundColor: colors.light,
-    marginHorizontal: -16,
     paddingVertical: 16,
   },
   innerContent: {
-    paddingHorizontal: 16,
-    gap: 12,
+    paddingHorizontal: 24,
+    gap: 8,
   },
   sectionTitle: {
     ...typography.body,
     color: colors.dark,
-    height: 48,
   },
   routeCard: {
     padding: 16,
@@ -143,7 +145,6 @@ const styles = StyleSheet.create({
     color: colors.subtleText,
   },
   buttonContainer: {
-    marginTop: 8,
     width: '90%',
     height: 56,
     alignSelf: 'center',
