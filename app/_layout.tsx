@@ -29,11 +29,12 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <PaperProvider>
-          <Stack initialRouteName="create-route-origin-screen">
+          <Stack initialRouteName="index">
             <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen name="splash" options={{ headerShown: false }} />
             <Stack.Screen name="exemplo" options={{ headerShown: false }} />
             <Stack.Screen name="create-route-origin-screen" options={{ headerShown: false }} />
+            <Stack.Screen name="create-route-destination-screen" options={{ headerShown: false }} />
             <Stack.Screen name="edit-profile-screen" options={{ headerShown: false }} />
             <Stack.Screen name="driver-home" options={{ headerShown: false }} />
             <Stack.Screen name="register-success" options={{ headerShown: false }} />
