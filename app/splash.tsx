@@ -12,7 +12,7 @@ export default function SplashScreen() {
         <AppLogo variant="light" width={180} height={180} />
       </View>
 
-      <BottomVersionInfo theme="dark" style={styles.bottomInfo} brandName="VanGO" />
+      <BottomVersionInfo theme="dark" brandName="VanGO" />
     </AppScreenContainer>
   );
 }
@@ -25,8 +25,5 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  bottomInfo: {
-    paddingBottom: 4,
   },
 });
