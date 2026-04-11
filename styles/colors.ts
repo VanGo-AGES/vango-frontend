@@ -10,5 +10,4 @@ export const colors = {
   light: '#FAFCFE', // Cloud - Light mode backgrounds / Dialogs
   white: '#FFFFFF', // White - Pure white for backgrounds and elements
   destructive: '#F06163', //  Red - Destructive actions such as deleting
-  white: '#FFFFFF', // Pure white - Screen background
 };
