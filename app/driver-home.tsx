@@ -57,8 +57,9 @@ export default function DriverHomeScreen() {
             <View style={styles.innerContent}>
               {nextRoute ? (
                 <View style={styles.routeCard}>
-                  <Text style={styles.routeTitle}>{nextRoute.name}</Text>
-                  <Text style={styles.routeSubtitle}>{nextRoute.time}</Text>
+                  {/* Replace with nextRoute.name & nextRoute.time */}
+                  <Text style={styles.routeTitle}>{''}</Text>
+                  <Text style={styles.routeSubtitle}>{''}</Text>
                 </View>
               ) : (
                 <EmptyState
