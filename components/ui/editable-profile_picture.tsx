@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Image, Pressable, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import GenericAvatar from '@/assets/images/generic-avatar.svg';
 import { colors } from '@/styles/colors';
 
 export interface EditableProfilePictureProps {
@@ -30,7 +31,6 @@ export function EditableProfilePicture({
 
   const badgeSize = Math.max(24, Math.round(size * 0.32));
   const badgeIconSize = Math.round(size * 0.175);
-  const avatarIconSize = Math.round(size * 0.55);
 
   const requestPermission = async (source: 'camera' | 'gallery') => {
     try {
@@ -130,7 +130,7 @@ export function EditableProfilePicture({
             resizeMode="cover"
           />
         ) : (
-          <MaterialCommunityIcons name="account" size={avatarIconSize} color={colors.subtleText} />
+          <GenericAvatar width={size} height={size} />
         )}
 
         {loading && (
