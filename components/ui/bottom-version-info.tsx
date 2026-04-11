@@ -5,7 +5,7 @@ import Constants from 'expo-constants';
 
 export interface BottomVersionInfoProps {
   theme?: 'light' | 'dark';
-  style: StyleProp<ViewStyle>;
+  style?: StyleProp<ViewStyle>;
   brandName?: string;
 }
 

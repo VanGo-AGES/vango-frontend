@@ -69,7 +69,7 @@ export function AddressFormSection({
         label="CEP"
         value={value.cep.length > 5 ? `${value.cep.slice(0, 5)}-${value.cep.slice(5)}` : value.cep}
         onChangeText={handleCepChange}
-        error={cepError ?? errors.cep}
+        errorMessage={cepError ?? errors.cep}
         keyboardType="numeric"
         placeholder="00000-000"
         maxLength={9}
@@ -79,15 +79,25 @@ export function AddressFormSection({
         label="Número"
         value={value.numero}
         onChangeText={(text) => onChange('numero', text.replace(/\D/g, ''))}
-        error={errors.numero}
+        errorMessage={errors.numero}
         keyboardType="numeric"
       />
 
-      <AppTextField label="Rua" value={value.rua} editable={false} error={errors.rua} />
+      <AppTextField label="Rua" value={value.rua} editable={false} errorMessage={errors.rua} />
 
-      <AppTextField label="Bairro" value={value.bairro} editable={false} error={errors.bairro} />
+      <AppTextField
+        label="Bairro"
+        value={value.bairro}
+        editable={false}
+        errorMessage={errors.bairro}
+      />
 
-      <AppTextField label="Cidade" value={value.cidade} editable={false} error={errors.cidade} />
+      <AppTextField
+        label="Cidade"
+        value={value.cidade}
+        editable={false}
+        errorMessage={errors.cidade}
+      />
     </View>
   );
 }
