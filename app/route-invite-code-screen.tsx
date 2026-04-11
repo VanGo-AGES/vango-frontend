@@ -1,5 +1,6 @@
-import { Share, StyleSheet, Text, View } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import { Feather, MaterialIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 
 import { InviteCodeDisplay } from '@/components/invite-code-display';
 import { PrimaryButton } from '@/components/primary-button';
@@ -8,6 +9,7 @@ import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
 export default function ShareRouteCodeScreen() {
+  const router = useRouter();
   // TODO: Substituir por dado real do backend
   const routeCode = '1A6BF';
 
@@ -24,6 +26,15 @@ export default function ShareRouteCodeScreen() {
 
   return (
     <AppScreenContainer style={styles.container}>
+      <Pressable
+        onPress={() => router.back()}
+        accessibilityRole="button"
+        accessibilityLabel="voltar"
+        style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
+      >
+        <MaterialIcons name="arrow-back" size={24} color={colors.dark} />
+      </Pressable>
+
       <View style={styles.content}>
         <View style={styles.header}>
           <Text style={styles.title}>Código da Rota</Text>
@@ -58,7 +69,6 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     gap: 8,
-    paddingHorizontal: 24,
   },
   title: {
     ...typography.header3,
@@ -66,11 +76,21 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   subtitle: {
-    ...typography.body,
+    ...typography.subtitle,
     color: colors.subtleText,
     textAlign: 'center',
   },
   button: {
     width: '100%',
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  backButtonPressed: {
+    opacity: 0.6,
   },
 });
