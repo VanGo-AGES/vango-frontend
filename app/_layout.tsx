@@ -44,6 +44,10 @@ export default function RootLayout() {
             <Stack.Screen name="route-invite-code-screen" options={{ headerShown: false }} />
             <Stack.Screen name="create-route/schedule" options={{ headerShown: false }} />
             <Stack.Screen name="register-passenger-details" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="register-profile-selection-screen"
+              options={{ headerShown: false }}
+            />
           </Stack>
           <StatusBar style="auto" />
         </PaperProvider>

@@ -10,7 +10,7 @@ import AppDialog from '@/components/app-dialog';
 import { AppScreenContainer } from '@/components/ui/app-screen-container';
 import { AppTextField } from '@/components/app-text-field';
 import { PrimaryButton } from '@/components/primary-button';
-import { SectionHeader } from '@/components/ui/section-header';
+import { AuthHeader } from '@/components/ui/auth-header';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
@@ -156,7 +156,7 @@ export default function RegisterBasicInfoScreen() {
       edges={['right', 'bottom', 'left']}
     >
       <View style={styles.topSection}>
-        <SectionHeader title="Cadastro" subtitle="Comece sua jornada na VanGO" showBackButton />
+        <AuthHeader title="Cadastro" subtitle="Comece sua jornada na VanGO" showBackButton />
       </View>
 
       <View style={styles.contentCard}>
