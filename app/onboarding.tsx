@@ -93,7 +93,7 @@ export default function OnboardingScreen() {
   };
 
   const handleSignUp = () => {
-    router.push('./register-basic-info-screen');
+    router.push('/register-basic-info-screen');
   };
 
   return (
