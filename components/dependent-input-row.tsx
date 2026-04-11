@@ -1,22 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text as RNText } from 'react-native';
-import { TextInput, Icon } from 'react-native-paper';
+import { Icon } from 'react-native-paper';
 
+import { DependentList, type Dependent } from '@/components/dependent-list';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
-import { AppTextField } from '@/components/app-text-field';
-
-export interface Dependent {
-  id: string;
-  name: string;
-}
 
 interface DependentInputRowProps {
   dependents: Dependent[];
   onChangeDependents: (dependents: Dependent[]) => void;
   hasDependents: boolean;
   onChangeHasDependents: (has: boolean) => void;
-  maxDependents?: number; // Limite opcional, sem default
+  maxDependents?: number;
   errors?: any;
 }
 
@@ -46,7 +41,6 @@ export function DependentInputRow({
   const handleToggleNao = () => {
     onChangeHasDependents(false);
     setIsExpanded(false);
-    // Aqui acontece a limpeza: reseta a lista de dependentes para um campo vazio
     onChangeDependents([{ id: Math.random().toString(), name: '' }]);
   };
 
@@ -75,7 +69,6 @@ export function DependentInputRow({
 
   return (
     <View style={styles.container}>
-      {/* Opção SIM */}
       <View style={styles.cardWrapper}>
         <TouchableOpacity style={styles.header} activeOpacity={0.7} onPress={handleToggleSim}>
           <View style={styles.radioWrapper}>
@@ -98,38 +91,18 @@ export function DependentInputRow({
 
         {isExpanded && (
           <View style={styles.dropdownContent}>
-            {dependents.map((dep, index) => (
-              <View key={dep.id} style={styles.inputRow}>
-                <AppTextField
-                  label="Nome"
-                  placeholder="Nome Sobrenome"
-                  value={dep.name}
-                  onChangeText={(txt) => handleChangeName(dep.id, txt)}
-                  error={errors?.[index]?.name?.message}
-                  outlineColor={colors.subtleText}
-                  activeOutlineColor={colors.subtleText}
-                  right={
-                    <TextInput.Icon
-                      icon="close-circle-outline"
-                      color={colors.subtleText}
-                      onPress={() => handleRemove(dep.id)}
-                    />
-                  }
-                />
-              </View>
-            ))}
-
-            {showAddButton && (
-              <TouchableOpacity style={styles.addButton} onPress={handleAdd}>
-                <Icon source="plus" size={20} color={colors.subtleText} />
-                <RNText style={styles.addButtonText}>Adicionar</RNText>
-              </TouchableOpacity>
-            )}
+            <DependentList
+              dependents={dependents}
+              onChangeName={handleChangeName}
+              onRemoveRequest={handleRemove}
+              onAdd={handleAdd}
+              showAddButton={showAddButton}
+              errors={errors}
+            />
           </View>
         )}
       </View>
 
-      {/* Opção NÃO */}
       <View style={styles.cardWrapper}>
         <TouchableOpacity style={styles.header} activeOpacity={0.7} onPress={handleToggleNao}>
           <View style={styles.radioWrapper}>
@@ -147,9 +120,7 @@ export function DependentInputRow({
 }
 
 const styles = StyleSheet.create({
-  container: {
-    gap: 8,
-  },
+  container: { gap: 8 },
   cardWrapper: {
     borderRadius: 8,
     overflow: 'hidden',
@@ -169,7 +140,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   iconWrapper: {
-    backgroundColor: 'rgba(0,0,0,0.05)',
+    backgroundColor: colors.accent,
     borderRadius: 16,
     padding: 4,
   },
@@ -178,28 +149,9 @@ const styles = StyleSheet.create({
     color: colors.dark,
   },
   dropdownContent: {
-    paddingLeft: 64,
+    paddingLeft: 16,
     paddingRight: 16,
     paddingBottom: 16,
     gap: 8,
-  },
-  inputRow: {
-    width: '100%',
-  },
-  addButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    borderWidth: 1,
-    borderColor: colors.subtleText,
-    borderRadius: 8,
-    gap: 8,
-    marginTop: 8,
-    backgroundColor: 'transparent',
-  },
-  addButtonText: {
-    ...typography.buttonText,
-    color: colors.subtleText,
   },
 });
