@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -118,12 +118,20 @@ export default function PassengerDependentsScreen() {
             Isso nos ajuda a ajustar recomendações para você
           </Text>
 
-          <DependentInputRow
-            dependents={dependents}
-            onChangeDependents={handleChangeDependents}
-            hasDependents={hasDependents}
-            onChangeHasDependents={handleChangeHasDependents}
-          />
+          <View style={styles.dependentsScrollWrapper}>
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              nestedScrollEnabled
+              contentContainerStyle={styles.dependentsScrollContent}
+            >
+              <DependentInputRow
+                dependents={dependents}
+                onChangeDependents={handleChangeDependents}
+                hasDependents={hasDependents}
+                onChangeHasDependents={handleChangeHasDependents}
+              />
+            </ScrollView>
+          </View>
         </View>
 
         <View style={styles.button_wrapper}>
@@ -203,6 +211,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: colors.text,
     ...typography.body,
+  },
+
+  dependentsScrollWrapper: {
+    maxHeight: 320,
+  },
+
+  dependentsScrollContent: {
+    paddingBottom: 8,
   },
 
   button_wrapper: {
