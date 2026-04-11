@@ -16,7 +16,7 @@ export default function SplashScreen() {
     }, 3000);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [router]);
 
   return (
     <AppScreenContainer backgroundColor={colors.dark} style={styles.container}>

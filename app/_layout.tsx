@@ -35,6 +35,7 @@ export default function RootLayout() {
             <Stack.Screen name="exemplo" options={{ headerShown: false }} />
             <Stack.Screen name="create-route-origin-screen" options={{ headerShown: false }} />
             <Stack.Screen name="edit-profile-screen" options={{ headerShown: false }} />
+            <Stack.Screen name="driver-home" options={{ headerShown: false }} />
             <Stack.Screen name="register-success" options={{ headerShown: false }} />
             <Stack.Screen name="register-basic-info-screen" options={{ headerShown: false }} />
             <Stack.Screen name="route-invite-code-screen" options={{ headerShown: false }} />
