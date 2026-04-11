@@ -67,7 +67,12 @@ const styles = StyleSheet.create({
   },
 
   backButton: {
-    padding: 8,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(250, 252, 254, 0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   backButtonPressed: {
