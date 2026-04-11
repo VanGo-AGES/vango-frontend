@@ -29,9 +29,10 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <PaperProvider>
-          <Stack initialRouteName="index">
+          <Stack initialRouteName="registerDriver">
             <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen name="exemplo" options={{ headerShown: false }} />
+            <Stack.Screen name="registerDriver" options={{ headerShown: false }} />
           </Stack>
           <StatusBar style="auto" />
         </PaperProvider>
