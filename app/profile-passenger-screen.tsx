@@ -1,17 +1,17 @@
 import { View, StyleSheet } from 'react-native';
-import { SectionHeader } from '@/components/ui/section-header';
 import { CircleIconButton } from '@/components/ui/circle-icon-button';
 import { ProfileSummaryCard } from '@/components/ui/profile-summary-card';
 import { ProfileMenuSection } from '@/components/profile/profile-menu-section';
 import { colors } from '@/styles/colors';
 import { useRouter } from 'expo-router';
 import { AppScreenContainer } from '@/components/ui/app-screen-container';
+import { AuthHeader } from '@/components/ui/auth-header';
 
-export function ProfilePassengerScreen() {
+export default function ProfilePassengerScreen() {
   const router = useRouter();
 
   return (
-    <AppScreenContainer style={styles.container}>
+    <AppScreenContainer backgroundColor={colors.accent} style={styles.container}>
       <View style={styles.topSection}>
         <CircleIconButton
           icon="arrow-back"
@@ -20,10 +20,7 @@ export function ProfilePassengerScreen() {
         />
 
         <View style={styles.titleWrapper}>
-          <SectionHeader
-            title="Perfil"
-            subtitle="Gerencie suas informações e personalize sua conta"
-          />
+          <AuthHeader title="Perfil" subtitle="Gerencie suas informações e personalize sua conta" />
         </View>
       </View>
 
@@ -45,13 +42,13 @@ export function ProfilePassengerScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: colors.accent,
+    padding: 0,
   },
   topSection: {
     position: 'relative',
     paddingTop: 60,
     paddingBottom: 40,
+    paddingHorizontal: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -70,7 +67,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.light,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    marginHorizontal: -24,
     marginBottom: -60,
     paddingHorizontal: 55,
     paddingTop: 32,
