@@ -197,10 +197,6 @@ const styles = StyleSheet.create({
     marginTop: 16,
     width: '100%',
   },
-  emptyStateAddButtonText: {
-    ...typography.buttonText,
-    color: colors.subtleText,
-  },
   actionsContainer: {
     alignItems: 'center',
     gap: 16,

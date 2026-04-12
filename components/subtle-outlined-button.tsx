@@ -30,7 +30,6 @@ const styles = StyleSheet.create({
     borderColor: colors.subtleText,
     borderRadius: 8,
     gap: 8,
-    marginTop: 8,
     backgroundColor: 'transparent',
   },
   text: {
