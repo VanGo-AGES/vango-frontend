@@ -13,6 +13,8 @@ import { PrimaryButton } from '@/components/general/primary-button';
 import { AuthHeader } from '@/components/auth/auth-header';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
+import { useCreateUser } from '@/hooks/use-create-user';
+import { ApiError } from '@/services/api';
 
 enum RegisterBasicInfoErrorMessage {
   EMAIL_EMPTY = 'E-mail não pode ser vazio',
@@ -59,6 +61,7 @@ type UserType = 'driver' | 'passenger';
 export default function RegisterBasicInfoScreen() {
   const router = useRouter();
   const { userType } = useLocalSearchParams<{ userType?: string }>();
+  const { mutateAsync, isPending } = useCreateUser();
 
   const [requiredDialogVisible, setRequiredDialogVisible] = useState(false);
 
@@ -133,33 +136,44 @@ export default function RegisterBasicInfoScreen() {
     }
   };
 
-  const onSubmit = async (data: RegisterBasicInfoFormData) => {
-    const normalizedEmail = data.email.trim().toLowerCase();
-    const normalizedPhone = data.phone.trim();
+  const stripPhone = (phone: string) => phone.replace(/\D/g, '');
 
-    // Temporary mock validation to simulate existing email and phone in the system - change when backend is ready
-    if (normalizedEmail === 'teste@gmail.com') {
+  const onSubmit = async (data: RegisterBasicInfoFormData) => {
+    try {
+      const response = await mutateAsync({
+        name: data.name.trim(),
+        email: data.email.trim().toLowerCase(),
+        phone: stripPhone(data.phone),
+        password: data.password,
+        role: resolvedUserType,
+      });
+
+      const nextRoute =
+        resolvedUserType === 'driver'
+          ? '/register-driver-details-screen'
+          : '/register-passenger-details';
+
+      router.push({
+        pathname: nextRoute,
+        params: { userId: response.id },
+      } as never);
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 400) {
+        setError('email', {
+          type: 'manual',
+          message: RegisterBasicInfoErrorMessage.EMAIL_ALREADY_EXISTS,
+        });
+        return;
+      }
+
+      const errorMessage =
+        error instanceof ApiError && error.detail ? error.detail : 'Erro ao criar usuário';
+
       setError('email', {
         type: 'manual',
-        message: RegisterBasicInfoErrorMessage.EMAIL_ALREADY_EXISTS,
+        message: errorMessage,
       });
-      return;
     }
-
-    if (normalizedPhone === '+55 51 99999-9999') {
-      setError('phone', {
-        type: 'manual',
-        message: RegisterBasicInfoErrorMessage.PHONE_ALREADY_EXISTS,
-      });
-      return;
-    }
-
-    const nextRoute =
-      resolvedUserType === 'driver'
-        ? '/register-driver-details-screen'
-        : '/register-passenger-details';
-
-    router.push(nextRoute as never);
   };
 
   return (
@@ -256,7 +270,7 @@ export default function RegisterBasicInfoScreen() {
           <PrimaryButton
             label="Continuar"
             onPress={handleSubmit(onSubmit, onInvalid)}
-            disabled={isSubmitting}
+            disabled={isPending}
             icon={<MaterialIcons name="arrow-forward" size={18} color={colors.light} />}
             labelColor={colors.light}
             style={styles.continueButton}
