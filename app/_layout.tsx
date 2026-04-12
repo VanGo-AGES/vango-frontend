@@ -33,22 +33,26 @@ export default function RootLayout() {
             <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen name="driver-home" options={{ headerShown: false }} />
             <Stack.Screen name="profile-passenger-screen" options={{ headerShown: false }} />
-            <Stack.Screen name="profile-driver-screen" options={{ headerShown: false }} />
             <Stack.Screen name="onboarding" options={{ headerShown: false }} />
             <Stack.Screen name="exemplo" options={{ headerShown: false }} />
             <Stack.Screen name="login" options={{ headerShown: false }} />
             <Stack.Screen name="splash" options={{ headerShown: false }} />
             <Stack.Screen name="create-route-origin-screen" options={{ headerShown: false }} />
+            <Stack.Screen name="register-driver-details-screen" options={{ headerShown: false }} />
+            <Stack.Screen name="profile-driver-screen" options={{ headerShown: false }} />
             <Stack.Screen name="create-route-destination-screen" options={{ headerShown: false }} />
-            <Stack.Screen name="create-route-info-screen" options={{ headerShown: false }} />
             <Stack.Screen name="edit-profile-screen" options={{ headerShown: false }} />
+            <Stack.Screen name="create-route-info-screen" options={{ headerShown: false }} />
             <Stack.Screen name="register-success" options={{ headerShown: false }} />
             <Stack.Screen name="register-basic-info-screen" options={{ headerShown: false }} />
-            <Stack.Screen name="register-driver-details-screen" options={{ headerShown: false }} />
             <Stack.Screen name="route-invite-code-screen" options={{ headerShown: false }} />
             <Stack.Screen name="create-route/schedule" options={{ headerShown: false }} />
             <Stack.Screen name="dependent-details-screen" options={{ headerShown: false }} />
             <Stack.Screen name="register-passenger-details" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="register-profile-selection-screen"
+              options={{ headerShown: false }}
+            />
           </Stack>
           <StatusBar style="auto" />
         </PaperProvider>
