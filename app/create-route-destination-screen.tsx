@@ -14,15 +14,15 @@ import { RouteStepIndicator } from '@/components/ui/route-step-indicator';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
-export default function CreateRouteOriginScreen() {
+export default function CreateRouteDestinationScreen() {
   const router = useRouter();
 
   const [address, setAddress] = useState<AddressFields>({
-    cep: '90619900',
-    numero: '6681',
-    rua: 'Av. Ipiranga',
+    cep: '',
+    numero: '',
+    rua: '',
     bairro: '',
-    cidade: 'Porto Alegre',
+    cidade: '',
   });
   const [errors, setErrors] = useState<AddressErrors>({});
 
@@ -45,7 +45,7 @@ export default function CreateRouteOriginScreen() {
 
   const handleContinue = () => {
     if (!validateForm()) return;
-    router.push('/create-route-destination-screen');
+    // continuar fluxo quando a validação estiver ok
   };
 
   return (
@@ -72,7 +72,7 @@ export default function CreateRouteOriginScreen() {
         <View style={styles.cardContent}>
           <ScrollView showsVerticalScrollIndicator={false}>
             <AddressFormSection
-              title="Endereço de Origem"
+              title="Endereço de Destino"
               value={address}
               onChange={handleChange}
               errors={errors}
@@ -81,7 +81,7 @@ export default function CreateRouteOriginScreen() {
 
           <View style={styles.footer}>
             <View style={styles.routeStepIndicatorWrapper}>
-              <RouteStepIndicator currentStep={2} totalSteps={4} />
+              <RouteStepIndicator currentStep={3} totalSteps={4} />
             </View>
 
             <PrimaryButton

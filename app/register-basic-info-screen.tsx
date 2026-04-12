@@ -3,7 +3,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
 import { z } from 'zod';
 
 import AppDialog from '@/components/app-dialog';
@@ -175,7 +175,7 @@ export default function RegisterBasicInfoScreen() {
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
-                error={errors.email?.message as never}
+                errorMessage={errors.email?.message}
               />
             )}
           />
@@ -194,7 +194,7 @@ export default function RegisterBasicInfoScreen() {
                 value={value}
                 onChangeText={onChange}
                 autoCapitalize="words"
-                error={errors.name?.message as never}
+                errorMessage={errors.name?.message}
               />
             )}
           />
@@ -207,9 +207,16 @@ export default function RegisterBasicInfoScreen() {
                 label="Telefone"
                 placeholder="+55 51 99999-9999"
                 value={value}
-                onChangeText={(text) => onChange(formatPhone(text))}
+                onChangeText={(text) => {
+                  const formatted = formatPhone(text);
+                  onChange(formatted);
+
+                  if (formatted.length === 17) {
+                    Keyboard.dismiss();
+                  }
+                }}
                 keyboardType="phone-pad"
-                error={errors.phone?.message as never}
+                errorMessage={errors.phone?.message}
               />
             )}
           />
