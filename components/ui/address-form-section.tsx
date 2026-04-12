@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Keyboard, StyleSheet, Text, View } from 'react-native';
 
 import { AppTextField } from '@/components/app-text-field';
 import { colors } from '@/styles/colors';
@@ -41,16 +41,21 @@ export function AddressFormSection({
       onChange('bairro', '');
       onChange('cidade', '');
     }
+
     setCepError(undefined);
 
     if (digits.length === 8) {
+      Keyboard.dismiss();
+
       try {
         const response = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
         const data = await response.json();
+
         if (data.erro) {
           setCepError('CEP não encontrado');
           return;
         }
+
         onChange('rua', data.logradouro || '');
         onChange('bairro', data.bairro || '');
         onChange('cidade', data.localidade || '');
@@ -69,9 +74,9 @@ export function AddressFormSection({
         label="CEP"
         value={value.cep.length > 5 ? `${value.cep.slice(0, 5)}-${value.cep.slice(5)}` : value.cep}
         onChangeText={handleCepChange}
-        error={cepError ?? errors.cep}
+        errorMessage={cepError ?? errors.cep}
         keyboardType="numeric"
-        placeholder="00000-000"
+        placeholder="CEP"
         maxLength={9}
       />
 
@@ -79,15 +84,34 @@ export function AddressFormSection({
         label="Número"
         value={value.numero}
         onChangeText={(text) => onChange('numero', text.replace(/\D/g, ''))}
-        error={errors.numero}
+        errorMessage={errors.numero}
         keyboardType="numeric"
+        placeholder="Número"
       />
 
-      <AppTextField label="Rua" value={value.rua} editable={false} error={errors.rua} />
+      <AppTextField
+        label="Rua"
+        value={value.rua}
+        editable={false}
+        errorMessage={errors.rua}
+        placeholder="Rua"
+      />
 
-      <AppTextField label="Bairro" value={value.bairro} editable={false} error={errors.bairro} />
+      <AppTextField
+        label="Bairro"
+        value={value.bairro}
+        editable={false}
+        errorMessage={errors.bairro}
+        placeholder="Bairro"
+      />
 
-      <AppTextField label="Cidade" value={value.cidade} editable={false} error={errors.cidade} />
+      <AppTextField
+        label="Cidade"
+        value={value.cidade}
+        editable={false}
+        errorMessage={errors.cidade}
+        placeholder="Cidade"
+      />
     </View>
   );
 }

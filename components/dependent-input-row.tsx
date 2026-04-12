@@ -9,7 +9,7 @@ import { typography } from '@/styles/typography';
 interface DependentInputRowProps {
   dependents: Dependent[];
   onChangeDependents: (dependents: Dependent[]) => void;
-  hasDependents: boolean;
+  hasDependents: boolean | null;
   onChangeHasDependents: (has: boolean) => void;
   maxDependents?: number;
   errors?: any;
@@ -23,14 +23,18 @@ export function DependentInputRow({
   maxDependents,
   errors,
 }: DependentInputRowProps) {
-  const [isExpanded, setIsExpanded] = useState(hasDependents);
+  const [isExpanded, setIsExpanded] = useState(hasDependents === true);
 
   useEffect(() => {
-    if (hasDependents) setIsExpanded(true);
+    if (hasDependents === true) {
+      setIsExpanded(true);
+    } else {
+      setIsExpanded(false);
+    }
   }, [hasDependents]);
 
   const handleToggleSim = () => {
-    if (hasDependents) {
+    if (hasDependents === true) {
       setIsExpanded(!isExpanded);
     } else {
       onChangeHasDependents(true);
@@ -63,9 +67,10 @@ export function DependentInputRow({
   };
 
   const showAlertIcon =
-    hasDependents && dependents.some((_, index) => !!errors?.[index]?.name?.message);
+    hasDependents === true && dependents.some((_, index) => !!errors?.[index]?.name?.message);
 
-  const showAddButton = maxDependents === undefined || dependents.length < maxDependents;
+  const showAddButton =
+    hasDependents === true && (maxDependents === undefined || dependents.length < maxDependents);
 
   return (
     <View style={styles.container}>
@@ -73,13 +78,14 @@ export function DependentInputRow({
         <TouchableOpacity style={styles.header} activeOpacity={0.7} onPress={handleToggleSim}>
           <View style={styles.radioWrapper}>
             <Icon
-              source={hasDependents ? 'radiobox-marked' : 'radiobox-blank'}
+              source="radiobox-marked"
               size={24}
-              color={colors.dark}
+              color={hasDependents === true ? colors.dark : colors.subtleText}
             />
             <RNText style={styles.optionText}>Sim</RNText>
             {showAlertIcon && <Icon source="alert-circle" size={20} color={colors.destructive} />}
           </View>
+
           <View style={styles.iconWrapper}>
             <Icon
               source={isExpanded ? 'chevron-up' : 'chevron-down'}
@@ -107,9 +113,9 @@ export function DependentInputRow({
         <TouchableOpacity style={styles.header} activeOpacity={0.7} onPress={handleToggleNao}>
           <View style={styles.radioWrapper}>
             <Icon
-              source={!hasDependents ? 'radiobox-marked' : 'radiobox-blank'}
+              source="radiobox-marked"
               size={24}
-              color={colors.dark}
+              color={hasDependents === false ? colors.dark : colors.subtleText}
             />
             <RNText style={styles.optionText}>Não</RNText>
           </View>
