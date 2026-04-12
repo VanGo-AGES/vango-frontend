@@ -34,7 +34,7 @@ export default function ProfileDriverScreen() {
 
         <ProfileMenuSection
           variant="driver"
-          onProfilePress={() => router.push('/')}
+          onProfilePress={() => router.push('/edit-profile-screen')}
           onVehiclePress={() => router.push('/')}
           onReportsPress={() => router.push('/')}
         />

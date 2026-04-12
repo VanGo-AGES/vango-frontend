@@ -135,7 +135,7 @@ export default function RegisterDriverDetailsScreen() {
       return;
     }
 
-    // TODO: integrar com o próximo passo do fluxo de cadastro
+    router.push({ pathname: '/register-success', params: { userType: 'driver' } });
   };
 
   return (

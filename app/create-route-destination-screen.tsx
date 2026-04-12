@@ -45,7 +45,7 @@ export default function CreateRouteDestinationScreen() {
 
   const handleContinue = () => {
     if (!validateForm()) return;
-    // continuar fluxo quando a validação estiver ok
+    router.push('/create-route/schedule');
   };
 
   return (

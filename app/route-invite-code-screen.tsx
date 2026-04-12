@@ -15,9 +15,13 @@ export default function ShareRouteCodeScreen() {
 
   const handleShare = async () => {
     try {
-      await Share.share({
+      const result = await Share.share({
         message: `Junte-se à minha rota no VanGo! Use o código: ${routeCode}`,
       });
+
+      if (result.action !== Share.dismissedAction) {
+        router.push('/driver-home');
+      }
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Erro ao compartilhar o código da rota:', error);

@@ -19,19 +19,17 @@ export default function DriverHomeScreen() {
   let nextRoute: RouteItem | null = null;
   let myRoutes: RouteItem[] = [];
 
-  // Substituir por rota para o perfil do motorista.
   const handleProfilePress = () => {
-    router.push('/exemplo');
+    router.push('/profile-driver-screen');
   };
 
-  // Substituir por rota para config do motorista.
+  // TODO: substituir por rota de configurações quando a tela existir.
   const handleSettingsPress = () => {
-    router.push('/exemplo');
+    router.push('/profile-driver-screen');
   };
 
-  // Substituir por rota para criar rota.
   const handleCreateRoutePress = () => {
-    router.push('/exemplo');
+    router.push('/create-route-info-screen');
   };
 
   return (

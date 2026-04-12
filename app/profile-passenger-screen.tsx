@@ -31,9 +31,9 @@ export default function ProfilePassengerScreen() {
 
         <ProfileMenuSection
           variant="passenger"
-          onProfilePress={() => router.push('/')}
-          onPersonalDataPress={() => router.push('/')}
-          onDependentsPress={() => router.push('/')}
+          onProfilePress={() => router.push('/edit-profile-screen')}
+          onPersonalDataPress={() => router.push('/edit-profile-screen')}
+          onDependentsPress={() => router.push('/dependent-details-screen')}
         />
       </View>
     </AppScreenContainer>

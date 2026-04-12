@@ -108,8 +108,8 @@ export default function RegisterBasicInfoScreen() {
   };
 
   const handleLoginPress = () => {
-    // eslint-disable-next-line no-console
-    console.log('entrou pro login');
+    // TODO: substituir por /login quando o fluxo de login for implementado
+    router.push('/register-profile-selection-screen');
   };
 
   const onInvalid = () => {
@@ -144,7 +144,7 @@ export default function RegisterBasicInfoScreen() {
     const nextRoute =
       resolvedUserType === 'driver'
         ? '/register-driver-details-screen'
-        : '/register-passenger-details-screen';
+        : '/register-passenger-details';
 
     router.push(nextRoute as never);
   };

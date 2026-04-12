@@ -31,8 +31,7 @@ export default function ScheduleScreen() {
 
     if (!can_continue) return;
 
-    // Substituir pela rota correta na integracao.
-    router.push('/exemplo');
+    router.push('/route-invite-code-screen');
   };
 
   return (

@@ -138,7 +138,12 @@ export default function OnboardingScreen() {
             </View>
 
             <View style={styles.lastActionsRow}>
-              <PrimaryButton label="Login" onPress={() => {}} variant="primary" />
+              {/* TODO: substituir por /login quando o fluxo de login for implementado */}
+              <PrimaryButton
+                label="Login"
+                onPress={() => router.push('/register-profile-selection-screen')}
+                variant="primary"
+              />
 
               <SecondaryOutlinedButton label="Cadastre-se" onPress={handleSignUp} />
             </View>

@@ -14,7 +14,7 @@ export default function PassengerDependentsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const [hasDependents, setHasDependents] = useState<boolean | null>(null);
+  const [hasDependents, setHasDependents] = useState<boolean | null>(false);
   const [dependents, setDependents] = useState<Dependent[]>([]);
   const [showRequiredDialog, setShowRequiredDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -74,10 +74,6 @@ export default function PassengerDependentsScreen() {
     hasDependents === true && dependents.some((dep) => dep.name.trim() === '');
 
   const getDialogMessage = () => {
-    if (hasDependents === null) {
-      return 'Selecione "Sim" ou "Não" para continuar.';
-    }
-
     if (hasInvalidDependents) {
       return 'Preencha o nome de todos os dependentes para continuar.';
     }
@@ -86,17 +82,12 @@ export default function PassengerDependentsScreen() {
   };
 
   const handleSubmit = () => {
-    if (hasDependents === null) {
-      setShowRequiredDialog(true);
-      return;
-    }
-
     if (hasInvalidDependents) {
       setShowRequiredDialog(true);
       return;
     }
 
-    router.push('/exemplo');
+    router.push({ pathname: '/register-success', params: { userType: 'passenger' } });
   };
 
   return (

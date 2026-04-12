@@ -25,8 +25,8 @@ export default function RegisterProfileSelectionScreen() {
   };
 
   const handleLoginPress = () => {
-    // eslint-disable-next-line no-console
-    console.log('entrou pro login');
+    // TODO: substituir por /login quando o fluxo de login for implementado
+    router.push('/register-profile-selection-screen');
   };
 
   return (

@@ -13,7 +13,7 @@ import { fonts } from '@/styles/typography';
 SplashScreen.preventAutoHideAsync();
 
 export const unstable_settings = {
-  anchor: 'exemplo',
+  anchor: 'index',
 };
 
 export default function RootLayout() {
