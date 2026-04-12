@@ -13,13 +13,13 @@ const INPUT_THEME = {
   },
 };
 
-type AppTextFieldProps = ComponentProps<typeof TextInput> & {
+type AppTextFieldProps = Omit<ComponentProps<typeof TextInput>, 'error'> & {
   label: string;
-  error?: string;
+  errorMessage?: string;
 };
 
-export function AppTextField({ label, error, style, ...props }: AppTextFieldProps) {
-  const hasError = !!error;
+export function AppTextField({ label, errorMessage, style, ...props }: AppTextFieldProps) {
+  const hasError = !!errorMessage;
 
   return (
     <View style={styles.wrapper}>
@@ -44,7 +44,7 @@ export function AppTextField({ label, error, style, ...props }: AppTextFieldProp
 
       {hasError && (
         <HelperText type="error" style={styles.errorText}>
-          {error}
+          {errorMessage}
         </HelperText>
       )}
     </View>
