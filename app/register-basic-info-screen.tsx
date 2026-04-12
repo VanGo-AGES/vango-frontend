@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
