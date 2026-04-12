@@ -31,8 +31,6 @@ export default function RootLayout() {
         <PaperProvider>
           <Stack initialRouteName="index">
             <Stack.Screen name="index" options={{ headerShown: false }} />
-            <Stack.Screen name="splash" options={{ headerShown: false }} />
-            <Stack.Screen name="exemplo" options={{ headerShown: false }} />
             <Stack.Screen name="profile-passenger-screen" options={{ headerShown: false }} />
             <Stack.Screen name="onboarding" options={{ headerShown: false }} />
             <Stack.Screen name="exemplo" options={{ headerShown: false }} />
