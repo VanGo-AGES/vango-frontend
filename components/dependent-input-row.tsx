@@ -78,7 +78,7 @@ export function DependentInputRow({
         <TouchableOpacity style={styles.header} activeOpacity={0.7} onPress={handleToggleSim}>
           <View style={styles.radioWrapper}>
             <Icon
-              source="radiobox-marked"
+              source={hasDependents === true ? 'radiobox-marked' : 'radiobox-blank'}
               size={24}
               color={hasDependents === true ? colors.dark : colors.subtleText}
             />
@@ -113,7 +113,7 @@ export function DependentInputRow({
         <TouchableOpacity style={styles.header} activeOpacity={0.7} onPress={handleToggleNao}>
           <View style={styles.radioWrapper}>
             <Icon
-              source="radiobox-marked"
+              source={hasDependents === false ? 'radiobox-marked' : 'radiobox-blank'}
               size={24}
               color={hasDependents === false ? colors.dark : colors.subtleText}
             />
