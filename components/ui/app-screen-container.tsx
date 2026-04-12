@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { StyleSheet, ViewStyle } from 'react-native';
+import { Keyboard, StyleSheet, TouchableWithoutFeedback, ViewStyle } from 'react-native';
 import { Edge, SafeAreaView } from 'react-native-safe-area-context';
 
 import { colors } from '@/styles/colors';
@@ -18,9 +18,11 @@ export function AppScreenContainer({
   edges = ['top', 'right', 'bottom', 'left'],
 }: Props) {
   return (
-    <SafeAreaView edges={edges} style={[styles.container, { backgroundColor }, style]}>
-      {children}
-    </SafeAreaView>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <SafeAreaView edges={edges} style={[styles.container, { backgroundColor }, style]}>
+        {children}
+      </SafeAreaView>
+    </TouchableWithoutFeedback>
   );
 }
 

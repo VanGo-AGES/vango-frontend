@@ -1,6 +1,7 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { zodResolver } from '@hookform/resolvers/zod';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import {
   Keyboard,
   Pressable,
@@ -10,50 +11,47 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
+import { z } from 'zod';
 
-import { PrimaryButton } from '@/components/primary-button';
-import {
-  AddressFormSection,
-  type AddressFields,
-  type AddressErrors,
-} from '@/components/ui/address-form-section';
 import { AppScreenContainer } from '@/components/ui/app-screen-container';
+import { AppTextField } from '@/components/app-text-field';
+import { PrimaryButton } from '@/components/primary-button';
 import { RouteStepIndicator } from '@/components/ui/route-step-indicator';
+import { RouteTypeSelectField, type RouteType } from '@/components/route-type-select-field';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
-export default function CreateRouteOriginScreen() {
+enum CreateRouteInfoErrorMessage {
+  ROUTE_NAME_EMPTY = 'Nome não pode ser vazio',
+  ROUTE_TYPE_EMPTY = 'Tipo de rota é obrigatório',
+}
+
+const schema = z.object({
+  routeName: z.string().trim().min(1, CreateRouteInfoErrorMessage.ROUTE_NAME_EMPTY),
+  routeType: z.enum(['Ida', 'Volta'], {
+    message: CreateRouteInfoErrorMessage.ROUTE_TYPE_EMPTY,
+  }),
+});
+
+type FormData = z.infer<typeof schema>;
+
+export default function CreateRouteInfoScreen() {
   const router = useRouter();
 
-  const [address, setAddress] = useState<AddressFields>({
-    cep: '',
-    numero: '',
-    rua: '',
-    bairro: '',
-    cidade: '',
+  const {
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<FormData>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      routeName: '',
+      routeType: undefined as unknown as RouteType,
+    },
   });
-  const [errors, setErrors] = useState<AddressErrors>({});
 
-  const handleChange = (field: keyof AddressFields, text: string) => {
-    setAddress((prev) => ({ ...prev, [field]: text }));
-  };
-
-  const validateForm = () => {
-    const nextErrors: AddressErrors = {};
-
-    (Object.keys(address) as (keyof AddressFields)[]).forEach((field) => {
-      if (!address[field].trim()) {
-        nextErrors[field] = 'Este campo é obrigatório.';
-      }
-    });
-
-    setErrors(nextErrors);
-    return Object.keys(nextErrors).length === 0;
-  };
-
-  const handleContinue = () => {
-    if (!validateForm()) return;
-    router.push('/create-route-destination-screen');
+  const onSubmit = (data: FormData) => {
+    router.push('/create-route-origin-screen');
   };
 
   return (
@@ -80,25 +78,51 @@ export default function CreateRouteOriginScreen() {
         <View style={styles.card}>
           <View style={styles.cardContent}>
             <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-              <AddressFormSection
-                title="Endereço de Origem"
-                value={address}
-                onChange={handleChange}
-                errors={errors}
-              />
+              <View style={styles.formContent}>
+                <Text style={styles.sectionTitle}>Informações da rota</Text>
+
+                <Controller
+                  control={control}
+                  name="routeName"
+                  render={({ field: { onChange, value } }) => (
+                    <AppTextField
+                      label="Nome"
+                      placeholder="Nome da rota"
+                      value={value}
+                      onChangeText={onChange}
+                      autoCapitalize="words"
+                      autoCorrect={false}
+                      errorMessage={errors.routeName?.message}
+                    />
+                  )}
+                />
+
+                <Controller
+                  control={control}
+                  name="routeType"
+                  render={({ field: { onChange, value } }) => (
+                    <RouteTypeSelectField
+                      value={value}
+                      onChange={onChange}
+                      error={errors.routeType?.message}
+                    />
+                  )}
+                />
+              </View>
             </ScrollView>
 
             <View style={styles.footer}>
               <View style={styles.routeStepIndicatorWrapper}>
-                <RouteStepIndicator currentStep={2} totalSteps={4} />
+                <RouteStepIndicator currentStep={1} totalSteps={4} />
               </View>
 
               <PrimaryButton
                 label="Continuar"
-                onPress={handleContinue}
-                labelColor={colors.light}
+                onPress={handleSubmit(onSubmit)}
+                disabled={isSubmitting}
                 icon={<MaterialIcons name="arrow-forward" size={18} color={colors.light} />}
-                style={styles.nextButton}
+                labelColor={colors.light}
+                style={styles.continueButton}
               />
             </View>
           </View>
@@ -154,6 +178,14 @@ const styles = StyleSheet.create({
   cardContent: {
     flex: 1,
   },
+  formContent: {
+    gap: 16,
+  },
+  sectionTitle: {
+    ...typography.bodyBold,
+    color: colors.dark,
+    textAlign: 'center',
+  },
   footer: {
     alignItems: 'center',
     paddingTop: 36,
@@ -164,7 +196,7 @@ const styles = StyleSheet.create({
     marginBottom: -6,
     transform: [{ scale: 0.75 }],
   },
-  nextButton: {
+  continueButton: {
     alignSelf: 'center',
     marginBottom: 24,
   },

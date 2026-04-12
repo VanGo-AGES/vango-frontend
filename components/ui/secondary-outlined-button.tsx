@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
   },
 
   text: {
-    ...typography.buttonText,
+    ...typography.body,
     color: colors.dark,
   },
 });

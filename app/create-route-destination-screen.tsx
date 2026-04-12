@@ -1,15 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import {
-  Keyboard,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableWithoutFeedback,
-  View,
-} from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { PrimaryButton } from '@/components/primary-button';
 import {
@@ -22,7 +14,7 @@ import { RouteStepIndicator } from '@/components/ui/route-step-indicator';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
-export default function CreateRouteOriginScreen() {
+export default function CreateRouteDestinationScreen() {
   const router = useRouter();
 
   const [address, setAddress] = useState<AddressFields>({
@@ -53,58 +45,56 @@ export default function CreateRouteOriginScreen() {
 
   const handleContinue = () => {
     if (!validateForm()) return;
-    router.push('/create-route-destination-screen');
+    // continuar fluxo quando a validação estiver ok
   };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <AppScreenContainer
-        backgroundColor={colors.accent}
-        edges={['top', 'left', 'right']}
-        style={styles.container}
-      >
-        <View style={styles.headerArea}>
-          <Pressable
-            onPress={() => router.back()}
-            accessibilityRole="button"
-            accessibilityLabel="voltar"
-            style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
-          >
-            <MaterialIcons name="arrow-back" size={22} color={colors.dark} />
-          </Pressable>
+    <AppScreenContainer
+      backgroundColor={colors.accent}
+      edges={['top', 'left', 'right']}
+      style={styles.container}
+    >
+      <View style={styles.headerArea}>
+        <Pressable
+          onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel="voltar"
+          style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
+        >
+          <MaterialIcons name="arrow-back" size={22} color={colors.dark} />
+        </Pressable>
 
-          <Text style={styles.title}>Criar Rota</Text>
-          <Text style={styles.subtitle}>Preencha as informações{`\n`}para criar sua rota.</Text>
-        </View>
+        <Text style={styles.title}>Criar Rota</Text>
+        <Text style={styles.subtitle}>Preencha as informações{`\n`}para criar sua rota.</Text>
+      </View>
 
-        <View style={styles.card}>
-          <View style={styles.cardContent}>
-            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-              <AddressFormSection
-                title="Endereço de Origem"
-                value={address}
-                onChange={handleChange}
-                errors={errors}
-              />
-            </ScrollView>
+      <View style={styles.card}>
+        <View style={styles.cardContent}>
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <AddressFormSection
+              title="Endereço de Destino"
+              value={address}
+              onChange={handleChange}
+              errors={errors}
+            />
+          </ScrollView>
 
-            <View style={styles.footer}>
-              <View style={styles.routeStepIndicatorWrapper}>
-                <RouteStepIndicator currentStep={2} totalSteps={4} />
-              </View>
-
-              <PrimaryButton
-                label="Continuar"
-                onPress={handleContinue}
-                labelColor={colors.light}
-                icon={<MaterialIcons name="arrow-forward" size={18} color={colors.light} />}
-                style={styles.nextButton}
-              />
+          <View style={styles.footer}>
+            <View style={styles.routeStepIndicatorWrapper}>
+              <RouteStepIndicator currentStep={3} totalSteps={4} />
             </View>
+
+            <PrimaryButton
+              label="Continuar"
+              onPress={handleContinue}
+              labelColor={colors.light}
+              icon={<MaterialIcons name="arrow-forward" size={18} color={colors.light} />}
+              style={styles.nextButton}
+            />
           </View>
         </View>
-      </AppScreenContainer>
-    </TouchableWithoutFeedback>
+      </View>
+    </AppScreenContainer>
   );
 }
 
