@@ -18,7 +18,7 @@ import { AppScreenContainer } from '@/components/ui/app-screen-container';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
-export type FieldName = 'cpf' | 'passengerCount' | 'plate' | 'vehicleModel';
+type FieldName = 'cpf' | 'passengerCount' | 'plate' | 'vehicleModel';
 
 const MAX_PASSENGERS = 20;
 
@@ -44,7 +44,7 @@ const isValidBrazilianPlate = (value: string) => {
   return oldPattern.test(plate) || mercosulPattern.test(plate);
 };
 
-export default function RegisterDriverScreen() {
+export default function RegisterDriverDetailsScreen() {
   const router = useRouter();
 
   const [cpf, setCpf] = useState('');
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   subtitle: {
-    ...typography.bodyBold,
+    ...typography.body,
     color: colors.dark,
     textAlign: 'center',
   },
@@ -280,6 +280,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.light,
     borderTopLeftRadius: 26,
     borderTopRightRadius: 26,
+    marginBottom: -50,
     paddingHorizontal: 24,
     paddingTop: 48,
     paddingBottom: 14,
