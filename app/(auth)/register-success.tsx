@@ -2,8 +2,8 @@ import { StyleSheet, Text, View } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import SuccessShape from '@/assets/images/success-flower-shape.svg';
-import { AppScreenContainer } from '@/components/ui/app-screen-container';
-import { PrimaryButton } from '@/components/primary-button';
+import { AppScreenContainer } from '@/components/general/app-screen-container';
+import { PrimaryButton } from '@/components/general/primary-button';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 

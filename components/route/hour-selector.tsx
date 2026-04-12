@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Pressable, StyleProp, View, ViewStyle } from 'react-native';
 import { TextInput } from 'react-native-paper';
 import { TimePickerModal } from 'react-native-paper-dates';
-import { AppTextField } from '@/components/app-text-field';
+import { AppTextField } from '@/components/general/app-text-field';
 import { colors } from '@/styles/colors';
 
 export interface HourSelectorProps {

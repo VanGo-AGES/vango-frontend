@@ -15,7 +15,7 @@ import { Button, HelperText, TextInput } from 'react-native-paper';
 
 // 4. Imports internos sempre com o alias @/ — nunca com caminhos relativos (../../).
 import { exampleFormSchema, type ExampleFormData } from '@/schemas/example-form';
-import { AppScreenContainer } from '@/components/ui/app-screen-container';
+import { AppScreenContainer } from '@/components/general/app-screen-container';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 

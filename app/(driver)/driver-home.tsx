@@ -1,9 +1,9 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { HomeHeaderCard } from '@/components/home-header-card';
-import { EmptyState } from '@/components/empty-state';
-import { AppScreenContainer } from '@/components/ui/app-screen-container';
-import { CreateRouteButton } from '@/components/ui/create-route-button';
+import { HomeHeaderCard } from '@/components/route/home-header-card';
+import { EmptyState } from '@/components/general/empty-state';
+import { AppScreenContainer } from '@/components/general/app-screen-container';
+import { CreateRouteButton } from '@/components/route/create-route-button';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 

@@ -2,9 +2,9 @@ import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
-import { InviteCodeDisplay } from '@/components/invite-code-display';
-import { PrimaryButton } from '@/components/primary-button';
-import { AppScreenContainer } from '@/components/ui/app-screen-container';
+import { InviteCodeDisplay } from '@/components/route/invite-code-display';
+import { PrimaryButton } from '@/components/general/primary-button';
+import { AppScreenContainer } from '@/components/general/app-screen-container';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 

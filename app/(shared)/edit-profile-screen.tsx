@@ -5,11 +5,11 @@ import { Controller, useForm } from 'react-hook-form';
 import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { TextInput } from 'react-native-paper';
 
-import { AppTextField } from '@/components/app-text-field';
-import { CircleIconButton } from '@/components/ui/circle-icon-button';
-import { EditableProfilePicture } from '@/components/ui/editable-profile_picture';
-import { PrimaryButton } from '@/components/primary-button';
-import { AppScreenContainer } from '@/components/ui/app-screen-container';
+import { AppTextField } from '@/components/general/app-text-field';
+import { CircleIconButton } from '@/components/general/circle-icon-button';
+import { EditableProfilePicture } from '@/components/profile/editable-profile_picture';
+import { PrimaryButton } from '@/components/general/primary-button';
+import { AppScreenContainer } from '@/components/general/app-screen-container';
 import { editProfileSchema, type EditProfileFormData } from '@/schemas/edit-profile.schema';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';

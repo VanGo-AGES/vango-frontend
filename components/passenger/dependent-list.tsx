@@ -1,8 +1,8 @@
 import { StyleSheet, View } from 'react-native';
 import { TextInput } from 'react-native-paper';
 
-import { AppTextField } from '@/components/app-text-field';
-import { SubtleOutlinedButton } from '@/components/subtle-outlined-button';
+import { AppTextField } from '@/components/general/app-text-field';
+import { SubtleOutlinedButton } from '@/components/general/subtle-outlined-button';
 import { colors } from '@/styles/colors';
 
 export interface Dependent {

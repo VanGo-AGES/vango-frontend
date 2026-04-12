@@ -1,11 +1,11 @@
 import { View, StyleSheet } from 'react-native';
-import { CircleIconButton } from '@/components/ui/circle-icon-button';
-import { ProfileSummaryCard } from '@/components/ui/profile-summary-card';
+import { CircleIconButton } from '@/components/general/circle-icon-button';
+import { ProfileSummaryCard } from '@/components/profile/profile-summary-card';
 import { ProfileMenuSection } from '@/components/profile/profile-menu-section';
 import { colors } from '@/styles/colors';
 import { useRouter } from 'expo-router';
-import { AppScreenContainer } from '@/components/ui/app-screen-container';
-import { AuthHeader } from '@/components/ui/auth-header';
+import { AppScreenContainer } from '@/components/general/app-screen-container';
+import { AuthHeader } from '@/components/auth/auth-header';
 
 export default function ProfileDriverScreen() {
   const router = useRouter();

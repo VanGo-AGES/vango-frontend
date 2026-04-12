@@ -1,9 +1,9 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
-import { AppLogo } from '@/components/ui/app-logo';
-import { AppScreenContainer } from '@/components/ui/app-screen-container';
-import { ProfileCard } from '@/components/ui/profile-card';
+import { AppLogo } from '@/components/general/app-logo';
+import { AppScreenContainer } from '@/components/general/app-screen-container';
+import { ProfileCard } from '@/components/auth/profile-card';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 

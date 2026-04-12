@@ -11,14 +11,14 @@ import {
   View,
 } from 'react-native';
 
-import { PrimaryButton } from '@/components/primary-button';
+import { PrimaryButton } from '@/components/general/primary-button';
 import {
   AddressFormSection,
   type AddressFields,
   type AddressErrors,
-} from '@/components/ui/address-form-section';
-import { AppScreenContainer } from '@/components/ui/app-screen-container';
-import { RouteStepIndicator } from '@/components/ui/route-step-indicator';
+} from '@/components/route/address-form-section';
+import { AppScreenContainer } from '@/components/general/app-screen-container';
+import { RouteStepIndicator } from '@/components/route/route-step-indicator';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 

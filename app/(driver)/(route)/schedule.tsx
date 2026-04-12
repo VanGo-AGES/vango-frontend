@@ -3,12 +3,12 @@ import { StyleSheet, Text, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AppScreenContainer } from '@/components/ui/app-screen-container';
-import { PrimaryButton } from '@/components/primary-button';
-import { HourSelector } from '@/components/ui/hour-selector';
-import { RouteStepIndicator } from '@/components/ui/route-step-indicator';
-import { SectionHeader } from '@/components/ui/section-header';
-import { WeekdaySelector } from '@/components/ui/weekday-selector';
+import { AppScreenContainer } from '@/components/general/app-screen-container';
+import { PrimaryButton } from '@/components/general/primary-button';
+import { HourSelector } from '@/components/route/hour-selector';
+import { RouteStepIndicator } from '@/components/route/route-step-indicator';
+import { SectionHeader } from '@/components/route/section-header';
+import { WeekdaySelector } from '@/components/route/weekday-selector';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Keyboard, StyleSheet, Text, View } from 'react-native';
 
-import { AppTextField } from '@/components/app-text-field';
+import { AppTextField } from '@/components/general/app-text-field';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 

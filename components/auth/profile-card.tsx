@@ -3,7 +3,7 @@ import { Image, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-nativ
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
-import { CircleIconButton } from './circle-icon-button';
+import { CircleIconButton } from '@/components/general/circle-icon-button';
 
 export type ProfileCardVariant = 'motorista' | 'passageiro';
 

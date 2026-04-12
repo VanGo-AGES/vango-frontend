@@ -6,11 +6,11 @@ import { Controller, useForm } from 'react-hook-form';
 import { Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
 import { z } from 'zod';
 
-import AppDialog from '@/components/app-dialog';
-import { AppScreenContainer } from '@/components/ui/app-screen-container';
-import { AppTextField } from '@/components/app-text-field';
-import { PrimaryButton } from '@/components/primary-button';
-import { AuthHeader } from '@/components/ui/auth-header';
+import AppDialog from '@/components/general/app-dialog';
+import { AppScreenContainer } from '@/components/general/app-screen-container';
+import { AppTextField } from '@/components/general/app-text-field';
+import { PrimaryButton } from '@/components/general/primary-button';
+import { AuthHeader } from '@/components/auth/auth-header';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 

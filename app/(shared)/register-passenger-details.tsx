@@ -3,10 +3,11 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AuthHeader } from '@/components/ui/auth-header';
-import AppDialog from '@/components/app-dialog';
-import { PrimaryButton } from '@/components/primary-button';
-import { DependentInputRow, Dependent } from '@/components/dependent-input-row';
+import { AuthHeader } from '@/components/auth/auth-header';
+import AppDialog from '@/components/general/app-dialog';
+import { PrimaryButton } from '@/components/general/primary-button';
+import { DependentInputRow } from '@/components/passenger/dependent-input-row';
+import { type Dependent } from '@/components/passenger/dependent-list';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
