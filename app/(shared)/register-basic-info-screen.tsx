@@ -22,6 +22,8 @@ enum RegisterBasicInfoErrorMessage {
   PHONE_EMPTY = 'Telefone não pode ser vazio',
   PHONE_INVALID = 'Telefone incorreto',
   PHONE_ALREADY_EXISTS = 'Telefone já cadastrado',
+  PASSWORD_EMPTY = 'Senha não pode ser vazia',
+  PASSWORD_TOO_SHORT = 'Senha deve ter pelo menos 6 caracteres',
 }
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -35,6 +37,11 @@ const registerBasicInfoSchema = z.object({
     .refine((value) => EMAIL_REGEX.test(value), {
       message: RegisterBasicInfoErrorMessage.EMAIL_INVALID,
     }),
+  password: z
+    .string()
+    .trim()
+    .min(1, RegisterBasicInfoErrorMessage.PASSWORD_EMPTY)
+    .min(6, RegisterBasicInfoErrorMessage.PASSWORD_TOO_SHORT),
   name: z.string().trim().min(1, RegisterBasicInfoErrorMessage.NAME_EMPTY),
   phone: z
     .string()
@@ -67,12 +74,14 @@ export default function RegisterBasicInfoScreen() {
     resolver: zodResolver(registerBasicInfoSchema),
     defaultValues: {
       email: '',
+      password: '',
       name: '',
       phone: '',
     },
   });
 
   const watchedEmail = watch('email');
+  const watchedPassword = watch('password');
   const watchedName = watch('name');
   const watchedPhone = watch('phone');
 
@@ -113,7 +122,11 @@ export default function RegisterBasicInfoScreen() {
   };
 
   const onInvalid = () => {
-    const allFieldsEmpty = !watchedEmail.trim() && !watchedName.trim() && !watchedPhone.trim();
+    const allFieldsEmpty =
+      !watchedEmail.trim() &&
+      !watchedPassword.trim() &&
+      !watchedName.trim() &&
+      !watchedPhone.trim();
 
     if (allFieldsEmpty) {
       setRequiredDialogVisible(true);
@@ -176,6 +189,23 @@ export default function RegisterBasicInfoScreen() {
                 autoCapitalize="none"
                 autoCorrect={false}
                 errorMessage={errors.email?.message}
+              />
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="password"
+            render={({ field: { onChange, value } }) => (
+              <AppTextField
+                label="Senha"
+                placeholder="Mínimo 6 caracteres"
+                value={value}
+                onChangeText={onChange}
+                secureTextEntry
+                autoCapitalize="none"
+                autoCorrect={false}
+                errorMessage={errors.password?.message}
               />
             )}
           />
