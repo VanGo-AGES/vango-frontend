@@ -13,11 +13,11 @@ import {
 } from 'react-native';
 import { z } from 'zod';
 
-import { AppScreenContainer } from '@/components/ui/app-screen-container';
-import { AppTextField } from '@/components/app-text-field';
-import { PrimaryButton } from '@/components/primary-button';
-import { RouteStepIndicator } from '@/components/ui/route-step-indicator';
-import { RouteTypeSelectField, type RouteType } from '@/components/route-type-select-field';
+import { AppScreenContainer } from '@/components/general/app-screen-container';
+import { AppTextField } from '@/components/general/app-text-field';
+import { PrimaryButton } from '@/components/general/primary-button';
+import { RouteStepIndicator } from '@/components/route/route-step-indicator';
+import { RouteTypeSelectField, type RouteType } from '@/components/route/route-type-select-field';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 

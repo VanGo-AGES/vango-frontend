@@ -15,11 +15,11 @@ import {
 } from 'react-native';
 import { z } from 'zod';
 
-import AppDialog from '@/components/app-dialog';
-import { AppTextField } from '@/components/app-text-field';
-import { PrimaryButton } from '@/components/primary-button';
-import { AppScreenContainer } from '@/components/ui/app-screen-container';
-import { SectionHeader } from '@/components/ui/section-header';
+import AppDialog from '@/components/general/app-dialog';
+import { AppTextField } from '@/components/general/app-text-field';
+import { PrimaryButton } from '@/components/general/primary-button';
+import { AppScreenContainer } from '@/components/general/app-screen-container';
+import { SectionHeader } from '@/components/route/section-header';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 

@@ -1,13 +1,13 @@
 import { View, StyleSheet } from 'react-native';
-import { CircleIconButton } from '@/components/ui/circle-icon-button';
-import { ProfileSummaryCard } from '@/components/ui/profile-summary-card';
+import { CircleIconButton } from '@/components/general/circle-icon-button';
+import { ProfileSummaryCard } from '@/components/profile/profile-summary-card';
 import { ProfileMenuSection } from '@/components/profile/profile-menu-section';
 import { colors } from '@/styles/colors';
 import { useRouter } from 'expo-router';
-import { AppScreenContainer } from '@/components/ui/app-screen-container';
-import { AuthHeader } from '@/components/ui/auth-header';
+import { AppScreenContainer } from '@/components/general/app-screen-container';
+import { AuthHeader } from '@/components/auth/auth-header';
 
-export default function ProfilePassengerScreen() {
+export default function ProfileDriverScreen() {
   const router = useRouter();
 
   return (
@@ -20,7 +20,10 @@ export default function ProfilePassengerScreen() {
         />
 
         <View style={styles.titleWrapper}>
-          <AuthHeader title="Perfil" subtitle="Gerencie suas informações e personalize sua conta" />
+          <AuthHeader
+            title="Perfil"
+            subtitle="Gerencie suas informações e acompanhe sua atividade"
+          />
         </View>
       </View>
 
@@ -30,10 +33,11 @@ export default function ProfilePassengerScreen() {
         <View style={styles.divider} />
 
         <ProfileMenuSection
-          variant="passenger"
-          onProfilePress={() => router.push('/')}
-          onPersonalDataPress={() => router.push('/')}
-          onDependentsPress={() => router.push('/')}
+          variant="driver"
+          onProfilePress={() => router.push('/edit-profile-screen')}
+          onVehiclePress={() => router.push('/vehicle-details-screen')}
+          // TODO: substituir por tela de metricas
+          onReportsPress={() => router.push('/vehicle-details-screen')}
         />
       </View>
     </AppScreenContainer>

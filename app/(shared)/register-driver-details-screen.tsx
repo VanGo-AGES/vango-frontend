@@ -11,10 +11,10 @@ import {
   View,
 } from 'react-native';
 
-import AppDialog from '@/components/app-dialog';
-import { AppTextField } from '@/components/app-text-field';
-import { PrimaryButton } from '@/components/primary-button';
-import { AppScreenContainer } from '@/components/ui/app-screen-container';
+import AppDialog from '@/components/general/app-dialog';
+import { AppTextField } from '@/components/general/app-text-field';
+import { PrimaryButton } from '@/components/general/primary-button';
+import { AppScreenContainer } from '@/components/general/app-screen-container';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
@@ -135,7 +135,7 @@ export default function RegisterDriverDetailsScreen() {
       return;
     }
 
-    // TODO: integrar com o próximo passo do fluxo de cadastro
+    router.push({ pathname: '/register-success', params: { userType: 'driver' } });
   };
 
   return (

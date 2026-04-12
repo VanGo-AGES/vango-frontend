@@ -6,11 +6,11 @@ import { Controller, useForm } from 'react-hook-form';
 import { Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
 import { z } from 'zod';
 
-import AppDialog from '@/components/app-dialog';
-import { AppScreenContainer } from '@/components/ui/app-screen-container';
-import { AppTextField } from '@/components/app-text-field';
-import { PrimaryButton } from '@/components/primary-button';
-import { AuthHeader } from '@/components/ui/auth-header';
+import AppDialog from '@/components/general/app-dialog';
+import { AppScreenContainer } from '@/components/general/app-screen-container';
+import { AppTextField } from '@/components/general/app-text-field';
+import { PrimaryButton } from '@/components/general/primary-button';
+import { AuthHeader } from '@/components/auth/auth-header';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
@@ -108,8 +108,8 @@ export default function RegisterBasicInfoScreen() {
   };
 
   const handleLoginPress = () => {
-    // eslint-disable-next-line no-console
-    console.log('entrou pro login');
+    // TODO: substituir por /login quando o fluxo de login for implementado
+    router.push('/register-profile-selection-screen');
   };
 
   const onInvalid = () => {
@@ -144,7 +144,7 @@ export default function RegisterBasicInfoScreen() {
     const nextRoute =
       resolvedUserType === 'driver'
         ? '/register-driver-details-screen'
-        : '/register-passenger-details-screen';
+        : '/register-passenger-details';
 
     router.push(nextRoute as never);
   };

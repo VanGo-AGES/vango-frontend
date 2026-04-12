@@ -2,12 +2,12 @@ import { useMemo, useRef, useState } from 'react';
 import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
-import { PrimaryButton } from '@/components/primary-button';
-import { BottomVersionInfo } from '@/components/ui/bottom-version-info';
-import { CircleIconButton } from '@/components/ui/circle-icon-button';
-import { AppLogo } from '@/components/ui/app-logo';
-import { SecondaryOutlinedButton } from '@/components/ui/secondary-outlined-button';
-import { AppScreenContainer } from '@/components/ui/app-screen-container';
+import { PrimaryButton } from '@/components/general/primary-button';
+import { BottomVersionInfo } from '@/components/general/bottom-version-info';
+import { CircleIconButton } from '@/components/general/circle-icon-button';
+import { AppLogo } from '@/components/general/app-logo';
+import { SecondaryOutlinedButton } from '@/components/general/secondary-outlined-button';
+import { AppScreenContainer } from '@/components/general/app-screen-container';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
@@ -138,7 +138,12 @@ export default function OnboardingScreen() {
             </View>
 
             <View style={styles.lastActionsRow}>
-              <PrimaryButton label="Login" onPress={() => {}} variant="primary" />
+              {/* TODO: substituir por /login quando o fluxo de login for implementado */}
+              <PrimaryButton
+                label="Login"
+                onPress={() => router.push('/register-profile-selection-screen')}
+                variant="primary"
+              />
 
               <SecondaryOutlinedButton label="Cadastre-se" onPress={handleSignUp} />
             </View>

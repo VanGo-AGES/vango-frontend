@@ -1,17 +1,22 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import SuccessShape from '@/assets/images/success-flower-shape.svg';
-import { AppScreenContainer } from '@/components/ui/app-screen-container';
-import { PrimaryButton } from '@/components/primary-button';
+import { AppScreenContainer } from '@/components/general/app-screen-container';
+import { PrimaryButton } from '@/components/general/primary-button';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
 export default function RegisterSuccessScreen() {
   const router = useRouter();
+  const { userType } = useLocalSearchParams<{ userType?: string }>();
 
   const handleEnter = () => {
-    router.replace('/login');
+    if (userType === 'driver') {
+      router.replace('/driver-home');
+    } else {
+      router.replace('/profile-passenger-screen');
+    }
   };
 
   return (

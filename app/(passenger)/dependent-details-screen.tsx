@@ -6,15 +6,15 @@ import { useForm } from 'react-hook-form';
 import { Icon } from 'react-native-paper';
 import * as z from 'zod';
 
-import AppDialog from '@/components/app-dialog';
-import { PrimaryButton } from '@/components/primary-button';
-import { AppScreenContainer } from '@/components/ui/app-screen-container';
-import { SectionHeader } from '@/components/ui/section-header';
-import { SecondaryOutlinedButton } from '@/components/ui/secondary-outlined-button';
-import { DependentList } from '@/components/dependent-list';
+import AppDialog from '@/components/general/app-dialog';
+import { PrimaryButton } from '@/components/general/primary-button';
+import { AppScreenContainer } from '@/components/general/app-screen-container';
+import { SectionHeader } from '@/components/route/section-header';
+import { SecondaryOutlinedButton } from '@/components/general/secondary-outlined-button';
+import { DependentList } from '@/components/passenger/dependent-list';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
-import { SubtleOutlinedButton } from '@/components/subtle-outlined-button';
+import { SubtleOutlinedButton } from '@/components/general/subtle-outlined-button';
 
 const dependentSchema = z.object({
   dependents: z.array(

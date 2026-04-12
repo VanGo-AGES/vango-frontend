@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text as RNText } from 'react-native';
 import { Icon } from 'react-native-paper';
 
-import { DependentList, type Dependent } from '@/components/dependent-list';
+import { DependentList, type Dependent } from '@/components/passenger/dependent-list';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
@@ -78,7 +78,7 @@ export function DependentInputRow({
         <TouchableOpacity style={styles.header} activeOpacity={0.7} onPress={handleToggleSim}>
           <View style={styles.radioWrapper}>
             <Icon
-              source="radiobox-marked"
+              source={hasDependents === true ? 'radiobox-marked' : 'radiobox-blank'}
               size={24}
               color={hasDependents === true ? colors.dark : colors.subtleText}
             />
@@ -113,7 +113,7 @@ export function DependentInputRow({
         <TouchableOpacity style={styles.header} activeOpacity={0.7} onPress={handleToggleNao}>
           <View style={styles.radioWrapper}>
             <Icon
-              source="radiobox-marked"
+              source={hasDependents === false ? 'radiobox-marked' : 'radiobox-blank'}
               size={24}
               color={hasDependents === false ? colors.dark : colors.subtleText}
             />
