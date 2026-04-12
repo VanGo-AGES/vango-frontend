@@ -34,6 +34,25 @@ const formatCpf = (value: string) => {
   return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
 };
 
+const isValidCpf = (value: string) => {
+  const digits = onlyDigits(value);
+
+  if (digits.length !== 11) return false;
+  if (/^(\d)\1{10}$/.test(digits)) return false;
+
+  const calcDigit = (slice: string, weights: number[]) => {
+    const sum = slice.split('').reduce((acc, d, i) => acc + Number(d) * weights[i], 0);
+    const remainder = sum % 11;
+    return remainder < 2 ? 0 : 11 - remainder;
+  };
+
+  const first = calcDigit(digits.slice(0, 9), [10, 9, 8, 7, 6, 5, 4, 3, 2]);
+  if (first !== Number(digits[9])) return false;
+
+  const second = calcDigit(digits.slice(0, 10), [11, 10, 9, 8, 7, 6, 5, 4, 3, 2]);
+  return second === Number(digits[10]);
+};
+
 const normalizePlate = (value: string) => value.toUpperCase().replace(/\s/g, '');
 
 const isValidBrazilianPlate = (value: string) => {
@@ -61,7 +80,7 @@ export default function RegisterDriverDetailsScreen() {
       return 'Este campo é obrigatório.';
     }
 
-    if (field === 'cpf' && onlyDigits(trimmedValue).length !== 11) {
+    if (field === 'cpf' && !isValidCpf(trimmedValue)) {
       return 'CPF inválido';
     }
 
@@ -73,7 +92,7 @@ export default function RegisterDriverDetailsScreen() {
       }
 
       if (parsed > MAX_PASSENGERS) {
-        return `O número máximo permitido é ${MAX_PASSENGERS}`;
+        return `O número máximo de passageiros é ${MAX_PASSENGERS}`;
       }
     }
 
@@ -158,7 +177,7 @@ export default function RegisterDriverDetailsScreen() {
                 keyboardType="number-pad"
                 placeholder="999.999.999-99"
                 maxLength={14}
-                error={fieldErrors.cpf}
+                errorMessage={fieldErrors.cpf}
               />
 
               <AppTextField
@@ -174,7 +193,7 @@ export default function RegisterDriverDetailsScreen() {
                 keyboardType="number-pad"
                 placeholder="Número de passageiros"
                 maxLength={2}
-                error={fieldErrors.passengerCount}
+                errorMessage={fieldErrors.passengerCount}
               />
 
               <AppTextField
@@ -190,7 +209,7 @@ export default function RegisterDriverDetailsScreen() {
                 autoCapitalize="characters"
                 placeholder="Placa do veículo"
                 maxLength={8}
-                error={fieldErrors.plate}
+                errorMessage={fieldErrors.plate}
               />
 
               <AppTextField
@@ -204,7 +223,7 @@ export default function RegisterDriverDetailsScreen() {
                   }))
                 }
                 placeholder="Modelo do veículo"
-                error={fieldErrors.vehicleModel}
+                errorMessage={fieldErrors.vehicleModel}
               />
             </View>
 
