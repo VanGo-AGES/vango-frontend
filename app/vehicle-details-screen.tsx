@@ -1,9 +1,18 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, type FieldErrors, useForm } from 'react-hook-form';
-import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { z } from 'zod';
 
 import AppDialog from '@/components/app-dialog';
@@ -94,10 +103,26 @@ export default function VehicleDetailsScreen() {
   });
 
   const [dialog, setDialog] = useState<DialogState>(initialDialogState);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
   const closeDialog = () => {
     setDialog(initialDialogState);
   };
+
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
+      setIsKeyboardVisible(true);
+    });
+
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+      setIsKeyboardVisible(false);
+    });
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
 
   const onInvalid = (fieldErrors: FieldErrors<VehicleDetailsFormData>) => {
     if (
@@ -147,7 +172,8 @@ export default function VehicleDetailsScreen() {
     >
       <KeyboardAvoidingView
         style={styles.keyboardAvoidingView}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 24 : 0}
       >
         <View style={styles.topArea}>
           <SectionHeader
@@ -158,86 +184,102 @@ export default function VehicleDetailsScreen() {
         </View>
 
         <View style={styles.formCard}>
-          <View style={styles.formContent}>
-            <Text style={styles.sectionTitle}>Informações adicionais</Text>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="interactive"
+            contentContainerStyle={styles.formScrollContent}
+          >
+            <View style={styles.formContent}>
+              <Text style={styles.sectionTitle}>Informações adicionais</Text>
 
-            <View style={styles.fields}>
-              <Controller
-                control={control}
-                name="passengerCount"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <AppTextField
-                    label="Número de passageiros"
-                    value={value}
-                    onBlur={onBlur}
-                    onChangeText={(text) => onChange(formatPassengerCount(text))}
-                    onSubmitEditing={() => setFocus('vehiclePlate')}
-                    keyboardType="numeric"
-                    maxLength={2}
-                    returnKeyType="next"
-                    errorMessage={errors.passengerCount?.message}
-                  />
-                )}
-              />
+              <View style={styles.fields}>
+                <Controller
+                  control={control}
+                  name="passengerCount"
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <AppTextField
+                      label="Número de passageiros"
+                      value={value}
+                      onBlur={onBlur}
+                      onChangeText={(text) => onChange(formatPassengerCount(text))}
+                      onSubmitEditing={() => setFocus('vehiclePlate')}
+                      keyboardType="numeric"
+                      maxLength={2}
+                      returnKeyType="next"
+                      placeholder="0"
+                      errorMessage={errors.passengerCount?.message}
+                    />
+                  )}
+                />
 
-              <Controller
-                control={control}
-                name="vehiclePlate"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <AppTextField
-                    label="Placa do veículo"
-                    value={value}
-                    onBlur={onBlur}
-                    onChangeText={(text) => onChange(normalizePlate(text))}
-                    onSubmitEditing={() => setFocus('vehicleModel')}
-                    autoCapitalize="characters"
-                    autoCorrect={false}
-                    maxLength={7}
-                    returnKeyType="next"
-                    errorMessage={errors.vehiclePlate?.message}
-                  />
-                )}
-              />
+                <Controller
+                  control={control}
+                  name="vehiclePlate"
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <AppTextField
+                      label="Placa do veículo"
+                      value={value}
+                      onBlur={onBlur}
+                      onChangeText={(text) => onChange(normalizePlate(text))}
+                      onSubmitEditing={() => setFocus('vehicleModel')}
+                      autoCapitalize="characters"
+                      autoCorrect={false}
+                      maxLength={7}
+                      returnKeyType="next"
+                      placeholder="Placa do veículo"
+                      errorMessage={errors.vehiclePlate?.message}
+                    />
+                  )}
+                />
 
-              <Controller
-                control={control}
-                name="vehicleModel"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <AppTextField
-                    label="Modelo do veículo"
-                    value={value}
-                    onBlur={onBlur}
-                    onChangeText={onChange}
-                    autoCapitalize="words"
-                    returnKeyType="done"
-                    errorMessage={errors.vehicleModel?.message}
-                  />
-                )}
-              />
+                <Controller
+                  control={control}
+                  name="vehicleModel"
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <AppTextField
+                      label="Modelo do veículo"
+                      value={value}
+                      onBlur={onBlur}
+                      onChangeText={onChange}
+                      autoCapitalize="words"
+                      returnKeyType="done"
+                      placeholder="Modelo do veículo"
+                      errorMessage={errors.vehicleModel?.message}
+                    />
+                  )}
+                />
+              </View>
             </View>
-          </View>
+          </ScrollView>
         </View>
 
-        {isDirty && (
+        {!isKeyboardVisible && (
           <View style={styles.actions}>
-            <PrimaryButton
-              label="Salvar Mudanças"
-              onPress={handleSubmit(onSubmit, onInvalid)}
-              disabled={isSubmitting}
-              icon={<MaterialIcons name="check" size={18} color={colors.light} />}
-              labelColor={colors.light}
-              style={styles.saveButton}
-            />
+            {isDirty ? (
+              <>
+                <PrimaryButton
+                  label="Salvar Mudanças"
+                  onPress={handleSubmit(onSubmit, onInvalid)}
+                  disabled={isSubmitting}
+                  icon={<MaterialIcons name="check" size={18} color={colors.light} />}
+                  labelColor={colors.light}
+                  style={styles.saveButton}
+                />
 
-            <Pressable
-              onPress={handleCancel}
-              accessibilityRole="button"
-              accessibilityLabel="cancelar alterações"
-              disabled={isSubmitting}
-              style={({ pressed }) => pressed && styles.cancelPressed}
-            >
-              <Text style={styles.cancelText}>Cancelar</Text>
-            </Pressable>
+                <Pressable
+                  onPress={handleCancel}
+                  accessibilityRole="button"
+                  accessibilityLabel="cancelar alterações"
+                  disabled={isSubmitting}
+                  style={({ pressed }) => pressed && styles.cancelPressed}
+                >
+                  <Text style={styles.cancelText}>Cancelar</Text>
+                </Pressable>
+              </>
+            ) : (
+              <View style={styles.actionsPlaceholder} />
+            )}
           </View>
         )}
       </KeyboardAvoidingView>
@@ -275,11 +317,17 @@ const styles = StyleSheet.create({
   },
   formCard: {
     flex: 1,
+    minHeight: 0,
     backgroundColor: colors.light,
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     paddingHorizontal: 24,
     paddingTop: 62,
+    paddingBottom: 24,
+  },
+  formScrollContent: {
+    flexGrow: 1,
+    paddingBottom: 24,
   },
   formContent: {
     width: '100%',
@@ -300,6 +348,10 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingBottom: 82,
     backgroundColor: colors.light,
+    justifyContent: 'center',
+  },
+  actionsPlaceholder: {
+    height: 0,
   },
   saveButton: {
     alignSelf: 'center',
