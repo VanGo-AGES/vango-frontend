@@ -7,7 +7,7 @@ import { TextInput } from 'react-native-paper';
 
 import { AppTextField } from '@/components/general/app-text-field';
 import { CircleIconButton } from '@/components/general/circle-icon-button';
-import { EditableProfilePicture } from '@/components/profile/editable-profile_picture';
+import { EditableProfilePicture } from '@/components/profile/editable-profile-picture';
 import { PrimaryButton } from '@/components/general/primary-button';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
 import { editProfileSchema, type EditProfileFormData } from '@/schemas/edit-profile.schema';
