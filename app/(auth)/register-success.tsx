@@ -56,7 +56,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   innerContent: {
-    width: 255,
+    width: '100%',
+    maxWidth: 320,
     alignItems: 'center',
     gap: 32,
   },
@@ -70,6 +71,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
   textBlock: {
+    width: '100%',
     alignItems: 'center',
     gap: 16,
   },
@@ -81,7 +83,6 @@ const styles = StyleSheet.create({
   subtitle: {
     ...typography.subtitle,
     color: colors.dark,
-    width: 350,
     textAlign: 'center',
   },
   button: {
