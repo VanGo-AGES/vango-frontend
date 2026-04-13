@@ -1,4 +1,12 @@
-import { Image, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import {
+  Image,
+  ImageSourcePropType,
+  StyleProp,
+  StyleSheet,
+  Text,
+  View,
+  ViewStyle,
+} from 'react-native';
 
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
@@ -7,33 +15,35 @@ import { CircleIconButton } from '@/components/general/circle-icon-button';
 
 export type ProfileCardVariant = 'motorista' | 'passageiro';
 
-const CARD_CONTENT: Record<ProfileCardVariant, { title: string; description: string }> = {
+const CARD_CONTENT: Record<
+  ProfileCardVariant,
+  { title: string; description: string; image: ImageSourcePropType }
+> = {
   motorista: {
     title: 'Motorista',
     description: 'Crie rotas, gerencie passageiros e acompanhe suas viagens.',
+    image: require('@/assets/images/driver-card.png'),
   },
   passageiro: {
     title: 'Passageiro',
     description: 'Entre em rotas, acompanhe o trajeto e receba notificações.',
+    image: require('@/assets/images/passanger-card.png'),
   },
 };
 
 export type ProfileCardProps = {
   variant: ProfileCardVariant;
   onPress: () => void;
-  imageUri?: string;
   style?: StyleProp<ViewStyle>;
 };
 
-export function ProfileCard({ variant, onPress, imageUri, style }: ProfileCardProps) {
+export function ProfileCard({ variant, onPress, style }: ProfileCardProps) {
   const content = CARD_CONTENT[variant];
 
   return (
     <View style={[styles.card, style]}>
       <View style={styles.imagePlaceholder}>
-        {imageUri ? (
-          <Image source={{ uri: imageUri }} style={styles.image} resizeMode="cover" />
-        ) : null}
+        <Image source={content.image} style={styles.image} resizeMode="cover" />
       </View>
 
       <View style={styles.footer}>
