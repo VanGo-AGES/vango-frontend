@@ -13,6 +13,8 @@ import { PrimaryButton } from '@/components/general/primary-button';
 import { AuthHeader } from '@/components/auth/auth-header';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
+import { useCreateUser } from '@/hooks/use-create-user';
+import { ApiError } from '@/services/api';
 
 enum RegisterBasicInfoErrorMessage {
   EMAIL_EMPTY = 'E-mail não pode ser vazio',
@@ -22,6 +24,8 @@ enum RegisterBasicInfoErrorMessage {
   PHONE_EMPTY = 'Telefone não pode ser vazio',
   PHONE_INVALID = 'Telefone incorreto',
   PHONE_ALREADY_EXISTS = 'Telefone já cadastrado',
+  PASSWORD_EMPTY = 'Senha não pode ser vazia',
+  PASSWORD_TOO_SHORT = 'Senha deve ter pelo menos 6 caracteres',
 }
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -35,6 +39,11 @@ const registerBasicInfoSchema = z.object({
     .refine((value) => EMAIL_REGEX.test(value), {
       message: RegisterBasicInfoErrorMessage.EMAIL_INVALID,
     }),
+  password: z
+    .string()
+    .trim()
+    .min(1, RegisterBasicInfoErrorMessage.PASSWORD_EMPTY)
+    .min(6, RegisterBasicInfoErrorMessage.PASSWORD_TOO_SHORT),
   name: z.string().trim().min(1, RegisterBasicInfoErrorMessage.NAME_EMPTY),
   phone: z
     .string()
@@ -52,6 +61,7 @@ type UserType = 'driver' | 'passenger';
 export default function RegisterBasicInfoScreen() {
   const router = useRouter();
   const { userType } = useLocalSearchParams<{ userType?: string }>();
+  const { mutateAsync, isPending } = useCreateUser();
 
   const [requiredDialogVisible, setRequiredDialogVisible] = useState(false);
 
@@ -67,12 +77,14 @@ export default function RegisterBasicInfoScreen() {
     resolver: zodResolver(registerBasicInfoSchema),
     defaultValues: {
       email: '',
+      password: '',
       name: '',
       phone: '',
     },
   });
 
   const watchedEmail = watch('email');
+  const watchedPassword = watch('password');
   const watchedName = watch('name');
   const watchedPhone = watch('phone');
 
@@ -113,40 +125,55 @@ export default function RegisterBasicInfoScreen() {
   };
 
   const onInvalid = () => {
-    const allFieldsEmpty = !watchedEmail.trim() && !watchedName.trim() && !watchedPhone.trim();
+    const allFieldsEmpty =
+      !watchedEmail.trim() &&
+      !watchedPassword.trim() &&
+      !watchedName.trim() &&
+      !watchedPhone.trim();
 
     if (allFieldsEmpty) {
       setRequiredDialogVisible(true);
     }
   };
 
-  const onSubmit = async (data: RegisterBasicInfoFormData) => {
-    const normalizedEmail = data.email.trim().toLowerCase();
-    const normalizedPhone = data.phone.trim();
+  const stripPhone = (phone: string) => phone.replace(/\D/g, '');
 
-    // Temporary mock validation to simulate existing email and phone in the system - change when backend is ready
-    if (normalizedEmail === 'teste@gmail.com') {
+  const onSubmit = async (data: RegisterBasicInfoFormData) => {
+    try {
+      const response = await mutateAsync({
+        name: data.name.trim(),
+        email: data.email.trim().toLowerCase(),
+        phone: stripPhone(data.phone),
+        password: data.password,
+        role: resolvedUserType,
+      });
+
+      const nextRoute =
+        resolvedUserType === 'driver'
+          ? '/register-driver-details-screen'
+          : '/register-passenger-details';
+
+      router.push({
+        pathname: nextRoute,
+        params: { userId: response.id },
+      } as never);
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 400) {
+        setError('email', {
+          type: 'manual',
+          message: RegisterBasicInfoErrorMessage.EMAIL_ALREADY_EXISTS,
+        });
+        return;
+      }
+
+      const errorMessage =
+        error instanceof ApiError && error.detail ? error.detail : 'Erro ao criar usuário';
+
       setError('email', {
         type: 'manual',
-        message: RegisterBasicInfoErrorMessage.EMAIL_ALREADY_EXISTS,
+        message: errorMessage,
       });
-      return;
     }
-
-    if (normalizedPhone === '+55 51 99999-9999') {
-      setError('phone', {
-        type: 'manual',
-        message: RegisterBasicInfoErrorMessage.PHONE_ALREADY_EXISTS,
-      });
-      return;
-    }
-
-    const nextRoute =
-      resolvedUserType === 'driver'
-        ? '/register-driver-details-screen'
-        : '/register-passenger-details';
-
-    router.push(nextRoute as never);
   };
 
   return (
@@ -176,6 +203,23 @@ export default function RegisterBasicInfoScreen() {
                 autoCapitalize="none"
                 autoCorrect={false}
                 errorMessage={errors.email?.message}
+              />
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="password"
+            render={({ field: { onChange, value } }) => (
+              <AppTextField
+                label="Senha"
+                placeholder="Mínimo 6 caracteres"
+                value={value}
+                onChangeText={onChange}
+                secureTextEntry
+                autoCapitalize="none"
+                autoCorrect={false}
+                errorMessage={errors.password?.message}
               />
             )}
           />
@@ -226,7 +270,7 @@ export default function RegisterBasicInfoScreen() {
           <PrimaryButton
             label="Continuar"
             onPress={handleSubmit(onSubmit, onInvalid)}
-            disabled={isSubmitting}
+            disabled={isPending}
             icon={<MaterialIcons name="arrow-forward" size={18} color={colors.light} />}
             labelColor={colors.light}
             style={styles.continueButton}
