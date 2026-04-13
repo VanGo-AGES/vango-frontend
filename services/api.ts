@@ -3,10 +3,14 @@ const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 export class ApiError extends Error {
   constructor(
     public status: number,
-    public detail: string,
+    public detail: string | string[],
   ) {
-    super(detail);
+    super(typeof detail === 'string' ? detail : detail.join(', '));
     this.name = 'ApiError';
+  }
+
+  get detailAsString(): string {
+    return typeof this.detail === 'string' ? this.detail : this.detail.join(', ');
   }
 }
 
@@ -26,7 +30,8 @@ export async function apiPost<TBody, TResponse>(
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ detail: 'Erro inesperado' }));
-    throw new ApiError(response.status, error.detail ?? 'Erro inesperado');
+    const detail = error.detail ?? error.message ?? 'Erro inesperado';
+    throw new ApiError(response.status, detail);
   }
 
   return await response.json();

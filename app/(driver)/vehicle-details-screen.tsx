@@ -22,6 +22,9 @@ import { AppScreenContainer } from '@/components/general/app-screen-container';
 import { SectionHeader } from '@/components/route/section-header';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
+import { useCreateVehicle } from '@/hooks/use-create-vehicle';
+import { useSessionStore } from '@/store/session.store';
+import { ApiError } from '@/services/api';
 
 enum VehicleDetailsErrorMessage {
   PASSENGERS_REQUIRED = 'Número de passageiros é obrigatório',
@@ -89,12 +92,15 @@ function normalizePlate(value: string) {
 
 export default function VehicleDetailsScreen() {
   const router = useRouter();
+  const driver = useSessionStore((state) => state.driver);
+  const { mutateAsync: createVehicle, isPending } = useCreateVehicle(driver?.id || '');
 
   const {
     control,
     handleSubmit,
     setFocus,
     reset,
+    setError,
     formState: { errors, isDirty, isSubmitting },
   } = useForm<VehicleDetailsFormData>({
     resolver: zodResolver(vehicleDetailsSchema),
@@ -156,8 +162,33 @@ export default function VehicleDetailsScreen() {
     }
   };
 
-  const onSubmit = (data: VehicleDetailsFormData) => {
-    reset(data);
+  const onSubmit = async (data: VehicleDetailsFormData) => {
+    try {
+      const response = await createVehicle({
+        plate: data.vehiclePlate.toUpperCase(),
+        capacity: Number(data.passengerCount),
+        notes: null,
+      });
+
+      setDialog({
+        visible: true,
+        title: 'Sucesso!',
+        description: `Veículo ${response.plate} cadastrado com sucesso.`,
+      });
+
+      reset(data);
+      setTimeout(() => {
+        router.back();
+      }, 1500);
+    } catch (error) {
+      const errorMessage =
+        error instanceof ApiError && error.detail ? error.detailAsString : 'Erro ao criar veículo';
+
+      setError('vehiclePlate', {
+        type: 'manual',
+        message: errorMessage,
+      });
+    }
   };
 
   const handleCancel = () => {
@@ -261,7 +292,7 @@ export default function VehicleDetailsScreen() {
                 <PrimaryButton
                   label="Salvar Mudanças"
                   onPress={handleSubmit(onSubmit, onInvalid)}
-                  disabled={isSubmitting}
+                  disabled={isPending}
                   icon={<MaterialIcons name="check" size={18} color={colors.light} />}
                   labelColor={colors.light}
                   style={styles.saveButton}
@@ -271,7 +302,7 @@ export default function VehicleDetailsScreen() {
                   onPress={handleCancel}
                   accessibilityRole="button"
                   accessibilityLabel="cancelar alterações"
-                  disabled={isSubmitting}
+                  disabled={isPending}
                   style={({ pressed }) => pressed && styles.cancelPressed}
                 >
                   <Text style={styles.cancelText}>Cancelar</Text>
