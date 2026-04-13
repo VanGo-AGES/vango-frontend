@@ -11,6 +11,7 @@ export type AddressFields = {
   rua: string;
   bairro: string;
   cidade: string;
+  estado: string;
 };
 
 export type AddressErrors = Partial<Record<keyof AddressFields, string>>;
@@ -40,6 +41,7 @@ export function AddressFormSection({
       onChange('rua', '');
       onChange('bairro', '');
       onChange('cidade', '');
+      onChange('estado', '');
     }
 
     setCepError(undefined);
@@ -59,6 +61,7 @@ export function AddressFormSection({
         onChange('rua', data.logradouro || '');
         onChange('bairro', data.bairro || '');
         onChange('cidade', data.localidade || '');
+        onChange('estado', data.uf || '');
         setAddressFilled(true);
       } catch {
         setCepError('Erro ao buscar CEP');

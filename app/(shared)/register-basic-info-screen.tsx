@@ -15,6 +15,7 @@ import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 import { useCreateUser } from '@/hooks/use-create-user';
 import { ApiError } from '@/services/api';
+import { useSessionStore } from '@/store/session.store';
 
 enum RegisterBasicInfoErrorMessage {
   EMAIL_EMPTY = 'E-mail não pode ser vazio',
@@ -62,6 +63,7 @@ export default function RegisterBasicInfoScreen() {
   const router = useRouter();
   const { userType } = useLocalSearchParams<{ userType?: string }>();
   const { mutateAsync, isPending } = useCreateUser();
+  const setDriver = useSessionStore((state) => state.setDriver);
 
   const [requiredDialogVisible, setRequiredDialogVisible] = useState(false);
 
@@ -147,6 +149,8 @@ export default function RegisterBasicInfoScreen() {
         password: data.password,
         role: resolvedUserType,
       });
+
+      setDriver({ id: response.id, name: response.name, token: '' });
 
       const nextRoute =
         resolvedUserType === 'driver'

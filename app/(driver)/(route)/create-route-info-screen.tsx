@@ -18,6 +18,7 @@ import { AppTextField } from '@/components/general/app-text-field';
 import { PrimaryButton } from '@/components/general/primary-button';
 import { RouteStepIndicator } from '@/components/route/route-step-indicator';
 import { RouteTypeSelectField, type RouteType } from '@/components/route/route-type-select-field';
+import { useRouteFormStore } from '@/store/route-form.store';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
@@ -37,6 +38,7 @@ type FormData = z.infer<typeof schema>;
 
 export default function CreateRouteInfoScreen() {
   const router = useRouter();
+  const setRouteInfo = useRouteFormStore((state) => state.setRouteInfo);
 
   const {
     control,
@@ -51,6 +53,7 @@ export default function CreateRouteInfoScreen() {
   });
 
   const onSubmit = (data: FormData) => {
+    setRouteInfo({ routeName: data.routeName, routeType: data.routeType });
     router.push('/create-route-origin-screen');
   };
 

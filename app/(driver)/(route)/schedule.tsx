@@ -1,20 +1,34 @@
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
 import { PrimaryButton } from '@/components/general/primary-button';
 import { HourSelector } from '@/components/route/hour-selector';
 import { RouteStepIndicator } from '@/components/route/route-step-indicator';
 import { SectionHeader } from '@/components/route/section-header';
 import { WeekdaySelector } from '@/components/route/weekday-selector';
+import { useCreateRoute } from '@/hooks/use-create-route';
+import { useRouteFormStore } from '@/store/route-form.store';
+import { ApiError } from '@/services/api';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
+import type { CreateRouteRequest, RouteType } from '@/types/route.types';
+
+function mapRouteType(type: 'Ida' | 'Volta' | ''): RouteType {
+  return type === 'Volta' ? 'inbound' : 'outbound';
+}
+
+function formatCep(cep: string): string {
+  const digits = cep.replace(/\D/g, '');
+  return digits.length === 8 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : cep;
+}
 
 export default function ScheduleScreen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
+
+  const { routeName, routeType, origin, destination, clearForm } = useRouteFormStore();
+  const { mutateAsync, isPending } = useCreateRoute();
 
   const [arrival_time, set_arrival_time] = useState('');
   const [selected_days, set_selected_days] = useState<string[]>([]);
@@ -26,12 +40,52 @@ export default function ScheduleScreen() {
   const weekday_error =
     show_errors && !has_selected_days ? 'Pelo menos um dia deve ser selecionado' : undefined;
 
-  const handle_continue = () => {
+  const handle_continue = async () => {
     set_show_errors(true);
 
     if (!can_continue) return;
 
-    router.push('/route-invite-code-screen');
+    const payload: CreateRouteRequest = {
+      name: routeName,
+      route_type: mapRouteType(routeType),
+      origin: {
+        label: `${origin.rua}, ${origin.numero}`,
+        street: origin.rua,
+        number: origin.numero,
+        neighborhood: origin.bairro,
+        zip: formatCep(origin.cep),
+        city: origin.cidade,
+        state: origin.estado || 'RS',
+      },
+      destination: {
+        label: `${destination.rua}, ${destination.numero}`,
+        street: destination.rua,
+        number: destination.numero,
+        neighborhood: destination.bairro,
+        zip: formatCep(destination.cep),
+        city: destination.cidade,
+        state: destination.estado || 'RS',
+      },
+      expected_time: `${arrival_time}:00`,
+      recurrence: selected_days.map((d) => d.toLowerCase()).join(','),
+    };
+
+    try {
+      const response = await mutateAsync(payload);
+      clearForm();
+
+      router.push({
+        pathname: '/route-invite-code-screen',
+        params: { inviteCode: response.invite_code },
+      } as never);
+    } catch (error) {
+      const message =
+        error instanceof ApiError && error.detail
+          ? error.detail
+          : 'Não foi possível criar a rota. Tente novamente.';
+
+      Alert.alert('Erro ao criar rota', message, [{ text: 'OK' }]);
+    }
   };
 
   return (
@@ -74,9 +128,10 @@ export default function ScheduleScreen() {
 
           <View style={styles.button_wrapper}>
             <PrimaryButton
-              label="Continuar"
+              label={isPending ? 'Criando rota...' : 'Continuar'}
               variant="secondary"
               onPress={handle_continue}
+              disabled={isPending}
               icon={<MaterialIcons name="arrow-forward" size={20} color={colors.light} />}
             />
           </View>

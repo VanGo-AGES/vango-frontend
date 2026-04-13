@@ -19,11 +19,13 @@ import {
 } from '@/components/route/address-form-section';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
 import { RouteStepIndicator } from '@/components/route/route-step-indicator';
+import { useRouteFormStore } from '@/store/route-form.store';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
 export default function CreateRouteOriginScreen() {
   const router = useRouter();
+  const setOrigin = useRouteFormStore((state) => state.setOrigin);
 
   const [address, setAddress] = useState<AddressFields>({
     cep: '',
@@ -31,6 +33,7 @@ export default function CreateRouteOriginScreen() {
     rua: '',
     bairro: '',
     cidade: '',
+    estado: '',
   });
   const [errors, setErrors] = useState<AddressErrors>({});
 
@@ -40,8 +43,9 @@ export default function CreateRouteOriginScreen() {
 
   const validateForm = () => {
     const nextErrors: AddressErrors = {};
+    const requiredFields: (keyof AddressFields)[] = ['cep', 'numero', 'rua', 'bairro', 'cidade'];
 
-    (Object.keys(address) as (keyof AddressFields)[]).forEach((field) => {
+    requiredFields.forEach((field) => {
       if (!address[field].trim()) {
         nextErrors[field] = 'Este campo é obrigatório.';
       }
@@ -53,6 +57,7 @@ export default function CreateRouteOriginScreen() {
 
   const handleContinue = () => {
     if (!validateForm()) return;
+    setOrigin(address);
     router.push('/create-route-destination-screen');
   };
 
