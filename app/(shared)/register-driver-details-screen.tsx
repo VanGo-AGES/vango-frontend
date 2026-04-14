@@ -1,5 +1,5 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -15,6 +15,9 @@ import AppDialog from '@/components/general/app-dialog';
 import { AppTextField } from '@/components/general/app-text-field';
 import { PrimaryButton } from '@/components/general/primary-button';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
+import { useCreateVehicle } from '@/hooks/use-create-vehicle';
+import { useUpdateUser } from '@/hooks/use-update-user';
+import { ApiError } from '@/services/api';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
@@ -65,6 +68,10 @@ const isValidBrazilianPlate = (value: string) => {
 
 export default function RegisterDriverDetailsScreen() {
   const router = useRouter();
+  const { userId } = useLocalSearchParams<{ userId?: string }>();
+
+  const { mutateAsync: updateUserMutate, isPending: isUpdatingUser } = useUpdateUser();
+  const { mutateAsync: createVehicleMutate, isPending: isCreatingVehicle } = useCreateVehicle();
 
   const [cpf, setCpf] = useState('');
   const [passengerCount, setPassengerCount] = useState('');
@@ -72,6 +79,9 @@ export default function RegisterDriverDetailsScreen() {
   const [vehicleModel, setVehicleModel] = useState('');
   const [showRequiredFieldsDialog, setShowRequiredFieldsDialog] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<FieldName, string>>>({});
+  const [requestError, setRequestError] = useState<string | null>(null);
+
+  const isSubmitting = isUpdatingUser || isCreatingVehicle;
 
   const validateField = (field: FieldName, value: string) => {
     const trimmedValue = value.trim();
@@ -120,22 +130,55 @@ export default function RegisterDriverDetailsScreen() {
     return Object.keys(onlyErrors).length === 0;
   };
 
-  const handleContinue = () => {
-    const isFormValid = validateForm();
-
-    if (!isFormValid) {
-      const hasRequiredFieldError = [cpf, passengerCount, plate, vehicleModel].some(
-        (value) => !value.trim(),
-      );
-
-      if (hasRequiredFieldError) {
-        setShowRequiredFieldsDialog(true);
-      }
-
+  const handleContinue = async () => {
+    if (!validateForm()) {
+      const hasEmpty = [cpf, passengerCount, plate, vehicleModel].some((v) => !v.trim());
+      if (hasEmpty) setShowRequiredFieldsDialog(true);
       return;
     }
 
-    router.push({ pathname: '/register-success', params: { userType: 'driver' } });
+    if (!userId) {
+      setRequestError('Não foi possível identificar o usuário do cadastro.');
+      return;
+    }
+
+    try {
+      setRequestError(null);
+
+      await updateUserMutate({
+        userId,
+        data: { cpf: onlyDigits(cpf) },
+      });
+
+      await createVehicleMutate({
+        userId,
+        data: {
+          plate: normalizePlate(plate),
+          capacity: Number(passengerCount),
+          notes: vehicleModel.trim(),
+        },
+      });
+
+      router.push({ pathname: '/register-success', params: { userType: 'driver' } });
+    } catch (error) {
+      let message = 'Erro ao finalizar cadastro do motorista.';
+
+      if (error instanceof ApiError) {
+        if (typeof error.detail === 'string') {
+          message = error.detail;
+        } else if (Array.isArray(error.detail) && error.detail.length > 0) {
+          const first = error.detail[0];
+          message =
+            first && typeof first === 'object' && 'msg' in first
+              ? String(first.msg)
+              : 'Dados inválidos enviados ao servidor.';
+        } else {
+          message = 'Não foi possível finalizar o cadastro.';
+        }
+      }
+
+      setRequestError(message);
+    }
   };
 
   return (
@@ -229,8 +272,9 @@ export default function RegisterDriverDetailsScreen() {
 
             <View style={styles.footer}>
               <PrimaryButton
-                label="Finalizar"
+                label={isSubmitting ? 'Finalizando...' : 'Finalizar'}
                 onPress={handleContinue}
+                disabled={isSubmitting}
                 labelColor={colors.light}
                 icon={<MaterialIcons name="arrow-forward" size={18} color={colors.light} />}
                 style={styles.nextButton}
@@ -250,6 +294,20 @@ export default function RegisterDriverDetailsScreen() {
             label: 'Ok',
             icon: 'check',
             onPress: () => setShowRequiredFieldsDialog(false),
+          },
+        ]}
+      />
+
+      <AppDialog
+        visible={!!requestError}
+        title="Erro ao finalizar"
+        description={requestError ?? ''}
+        onRequestClose={() => setRequestError(null)}
+        actions={[
+          {
+            label: 'Ok',
+            icon: 'check',
+            onPress: () => setRequestError(null),
           },
         ]}
       />
