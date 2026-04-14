@@ -7,7 +7,7 @@ import { AuthHeader } from '@/components/auth/auth-header';
 import AppDialog from '@/components/general/app-dialog';
 import { PrimaryButton } from '@/components/general/primary-button';
 import { DependentInputRow } from '@/components/passenger/dependent-input-row';
-import { type Dependent } from '@/components/passenger/dependent-list';
+import type { Dependent } from '@/types/dependents.types';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 

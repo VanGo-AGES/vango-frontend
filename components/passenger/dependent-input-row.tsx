@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text as RNText } from 'react-native';
 import { Icon } from 'react-native-paper';
 
-import { DependentList, type Dependent } from '@/components/passenger/dependent-list';
+import { DependentList } from '@/components/passenger/dependent-list';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
+import type { Dependent } from '@/types/dependents.types';
 
 interface DependentInputRowProps {
   dependents: Dependent[];

@@ -21,3 +21,9 @@ export interface CreateUserResponse {
   created_at: string;
   updated_at: string;
 }
+
+// User context for headers (TEMP)
+export interface UserContext {
+  id: string;
+  role: UserRole;
+}
