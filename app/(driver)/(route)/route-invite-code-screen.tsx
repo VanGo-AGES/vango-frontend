@@ -1,6 +1,6 @@
 import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import { Feather, MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 
 import { InviteCodeDisplay } from '@/components/route/invite-code-display';
 import { PrimaryButton } from '@/components/general/primary-button';
@@ -9,9 +9,8 @@ import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
 export default function ShareRouteCodeScreen() {
-  const router = useRouter();
-  // TODO: Substituir por dado real do backend
-  const routeCode = '1A6BF';
+  const { inviteCode } = useLocalSearchParams<{ inviteCode: string }>();
+  const routeCode = inviteCode ?? '-----';
 
   const handleShare = async () => {
     try {
@@ -22,10 +21,7 @@ export default function ShareRouteCodeScreen() {
       if (result.action !== Share.dismissedAction) {
         router.push('/driver-home');
       }
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Erro ao compartilhar o código da rota:', error);
-    }
+    } catch {}
   };
 
   return (
@@ -67,8 +63,9 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    justifyContent: 'center',
-    gap: 48,
+    justifyContent: 'flex-start',
+    paddingTop: 64,
+    gap: 90,
   },
   header: {
     alignItems: 'center',

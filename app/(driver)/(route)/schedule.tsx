@@ -1,37 +1,84 @@
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
 import { PrimaryButton } from '@/components/general/primary-button';
 import { HourSelector } from '@/components/route/hour-selector';
 import { RouteStepIndicator } from '@/components/route/route-step-indicator';
 import { SectionHeader } from '@/components/route/section-header';
 import { WeekdaySelector } from '@/components/route/weekday-selector';
+import { useCreateRoute } from '@/hooks/use-create-route';
+import { useRouteFormStore } from '@/store/route-form.store';
+import { ApiError } from '@/services/api';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
+import type { CreateRouteRequest } from '@/types/route.types';
+
+function formatCep(cep: string): string {
+  const digits = cep.replace(/\D/g, '');
+  return digits.length === 8 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : cep;
+}
 
 export default function ScheduleScreen() {
-  const router = useRouter();
-  const insets = useSafeAreaInsets();
+  const { routeName, routeType, origin, destination, clearForm } = useRouteFormStore();
+  const { mutateAsync, isPending } = useCreateRoute();
 
-  const [arrival_time, set_arrival_time] = useState('');
-  const [selected_days, set_selected_days] = useState<string[]>([]);
-  const [show_errors, set_show_errors] = useState(false);
+  const [arrivalTime, setArrivalTime] = useState('');
+  const [selectedDays, setSelectedDays] = useState<string[]>([]);
+  const [showErrors, setShowErrors] = useState(false);
 
-  const has_selected_days = selected_days.length > 0;
-  const can_continue = arrival_time.trim() !== '' && has_selected_days;
+  const hasSelectedDays = selectedDays.length > 0;
+  const canContinue = arrivalTime.trim() !== '' && hasSelectedDays;
+  const weekdayError =
+    showErrors && !hasSelectedDays ? 'Pelo menos um dia deve ser selecionado' : undefined;
 
-  const weekday_error =
-    show_errors && !has_selected_days ? 'Pelo menos um dia deve ser selecionado' : undefined;
+  const handleContinue = async () => {
+    setShowErrors(true);
 
-  const handle_continue = () => {
-    set_show_errors(true);
+    if (!canContinue) return;
 
-    if (!can_continue) return;
+    const payload: CreateRouteRequest = {
+      name: routeName,
+      route_type: routeType === 'Volta' ? 'inbound' : 'outbound',
+      origin: {
+        label: `${origin.rua}, ${origin.numero}`,
+        street: origin.rua,
+        number: origin.numero,
+        neighborhood: origin.bairro,
+        zip: formatCep(origin.cep),
+        city: origin.cidade,
+        state: origin.estado || 'RS',
+      },
+      destination: {
+        label: `${destination.rua}, ${destination.numero}`,
+        street: destination.rua,
+        number: destination.numero,
+        neighborhood: destination.bairro,
+        zip: formatCep(destination.cep),
+        city: destination.cidade,
+        state: destination.estado || 'RS',
+      },
+      expected_time: `${arrivalTime}:00`,
+      recurrence: selectedDays.map((d) => d.toLowerCase()).join(','),
+    };
 
-    router.push('/route-invite-code-screen');
+    try {
+      const response = await mutateAsync(payload);
+      clearForm();
+
+      router.push({
+        pathname: '/route-invite-code-screen',
+        params: { inviteCode: response.invite_code },
+      } as never);
+    } catch (error) {
+      const message =
+        error instanceof ApiError && typeof error.detail === 'string' && error.detail
+          ? error.detail
+          : 'Não foi possível criar a rota. Tente novamente.';
+
+      Alert.alert('Erro ao criar rota', message, [{ text: 'OK' }]);
+    }
   };
 
   return (
@@ -48,35 +95,36 @@ export default function ScheduleScreen() {
         />
       </View>
 
-      <View style={styles.content_card}>
+      <View style={styles.contentCard}>
         <View>
-          <Text style={styles.section_title}>Horário</Text>
+          <Text style={styles.sectionTitle}>Horário</Text>
 
           <HourSelector
-            value={arrival_time}
-            onChange={set_arrival_time}
-            showError={show_errors}
-            style={styles.hour_selector}
+            value={arrivalTime}
+            onChange={setArrivalTime}
+            showError={showErrors}
+            style={styles.hourSelector}
           />
 
           <WeekdaySelector
-            value={selected_days}
-            onChange={set_selected_days}
-            error={weekday_error}
-            style={styles.weekday_selector}
+            value={selectedDays}
+            onChange={setSelectedDays}
+            error={weekdayError}
+            style={styles.weekdaySelector}
           />
         </View>
 
         <View style={styles.footer}>
-          <View style={styles.step_indicator_wrapper}>
+          <View style={styles.stepIndicatorWrapper}>
             <RouteStepIndicator currentStep={4} totalSteps={4} />
           </View>
 
-          <View style={styles.button_wrapper}>
+          <View style={styles.buttonWrapper}>
             <PrimaryButton
-              label="Continuar"
+              label={isPending ? 'Criando rota...' : 'Continuar'}
               variant="secondary"
-              onPress={handle_continue}
+              onPress={handleContinue}
+              disabled={isPending}
               icon={<MaterialIcons name="arrow-forward" size={20} color={colors.light} />}
             />
           </View>
@@ -99,7 +147,7 @@ const styles = StyleSheet.create({
     paddingBottom: 52,
     gap: 16,
   },
-  content_card: {
+  contentCard: {
     flex: 1,
     paddingHorizontal: 24,
     paddingTop: 72,
@@ -111,16 +159,16 @@ const styles = StyleSheet.create({
     marginBottom: -80,
     justifyContent: 'space-between',
   },
-  section_title: {
+  sectionTitle: {
     marginBottom: 24,
     textAlign: 'center',
     color: colors.dark,
     ...typography.header3,
   },
-  hour_selector: {
+  hourSelector: {
     marginBottom: 20,
   },
-  weekday_selector: {
+  weekdaySelector: {
     marginBottom: 8,
   },
   footer: {
@@ -128,10 +176,10 @@ const styles = StyleSheet.create({
     gap: 28,
     paddingTop: 32,
   },
-  step_indicator_wrapper: {
+  stepIndicatorWrapper: {
     alignSelf: 'center',
   },
-  button_wrapper: {
+  buttonWrapper: {
     alignSelf: 'center',
   },
 });

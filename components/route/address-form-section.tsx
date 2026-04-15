@@ -4,21 +4,14 @@ import { Keyboard, StyleSheet, Text, View } from 'react-native';
 import { AppTextField } from '@/components/general/app-text-field';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
+import type { AddressErrors, RouteFormAddress } from '@/types/route.types';
 
-export type AddressFields = {
-  cep: string;
-  numero: string;
-  rua: string;
-  bairro: string;
-  cidade: string;
-};
-
-export type AddressErrors = Partial<Record<keyof AddressFields, string>>;
+export type { RouteFormAddress as AddressFields, AddressErrors };
 
 type AddressFormSectionProps = {
   title: string;
-  value: AddressFields;
-  onChange: (field: keyof AddressFields, text: string) => void;
+  value: RouteFormAddress;
+  onChange: (field: keyof RouteFormAddress, text: string) => void;
   errors?: AddressErrors;
 };
 
@@ -40,6 +33,7 @@ export function AddressFormSection({
       onChange('rua', '');
       onChange('bairro', '');
       onChange('cidade', '');
+      onChange('estado', '');
     }
 
     setCepError(undefined);
@@ -59,6 +53,7 @@ export function AddressFormSection({
         onChange('rua', data.logradouro || '');
         onChange('bairro', data.bairro || '');
         onChange('cidade', data.localidade || '');
+        onChange('estado', data.uf || '');
         setAddressFilled(true);
       } catch {
         setCepError('Erro ao buscar CEP');

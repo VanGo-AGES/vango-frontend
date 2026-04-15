@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { useRouter } from 'expo-router';
+import { router } from 'expo-router';
 import { Controller, useForm } from 'react-hook-form';
 import {
   Keyboard,
@@ -18,6 +18,7 @@ import { AppTextField } from '@/components/general/app-text-field';
 import { PrimaryButton } from '@/components/general/primary-button';
 import { RouteStepIndicator } from '@/components/route/route-step-indicator';
 import { RouteTypeSelectField, type RouteType } from '@/components/route/route-type-select-field';
+import { useRouteFormStore } from '@/store/route-form.store';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
@@ -36,7 +37,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export default function CreateRouteInfoScreen() {
-  const router = useRouter();
+  const setRouteInfo = useRouteFormStore((state) => state.setRouteInfo);
 
   const {
     control,
@@ -51,6 +52,7 @@ export default function CreateRouteInfoScreen() {
   });
 
   const onSubmit = (data: FormData) => {
+    setRouteInfo({ routeName: data.routeName, routeType: data.routeType });
     router.push('/create-route-origin-screen');
   };
 
