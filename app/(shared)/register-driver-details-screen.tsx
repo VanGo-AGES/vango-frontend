@@ -15,6 +15,7 @@ import AppDialog from '@/components/general/app-dialog';
 import { AppTextField } from '@/components/general/app-text-field';
 import { PrimaryButton } from '@/components/general/primary-button';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
+import { useCreateVehicle } from '@/hooks/use-create-vehicle';
 import { useUpdateUser } from '@/hooks/use-update-user';
 import { formatCpf, isValidCpf, onlyDigits } from '@/lib/formatters';
 import { ApiError } from '@/services/api';
@@ -41,6 +42,7 @@ export default function RegisterDriverDetailsScreen() {
   const { userId } = useLocalSearchParams<{ userId?: string }>();
   const updateSessionUser = useSessionStore((s) => s.updateUser);
   const { mutateAsync: updateUser, isPending: isUpdatingUser } = useUpdateUser();
+  const { mutateAsync: createVehicle, isPending: isCreatingVehicle } = useCreateVehicle();
 
   const [cpf, setCpf] = useState('');
   const [passengerCount, setPassengerCount] = useState('');
@@ -50,7 +52,7 @@ export default function RegisterDriverDetailsScreen() {
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<FieldName, string>>>({});
   const [requestError, setRequestError] = useState<string | null>(null);
 
-  const isSubmitting = isUpdatingUser;
+  const isSubmitting = isUpdatingUser || isCreatingVehicle;
 
   const validateField = (field: FieldName, value: string) => {
     const trimmedValue = value.trim();
@@ -120,6 +122,11 @@ export default function RegisterDriverDetailsScreen() {
     try {
       const updated = await updateUser({ id: userId, data: { cpf } });
       updateSessionUser({ cpf: updated.cpf });
+      await createVehicle({
+        plate,
+        capacity: Number(passengerCount),
+        notes: vehicleModel,
+      });
       router.push({ pathname: '/register-success', params: { userType: 'driver' } });
     } catch (error) {
       let message = 'Erro ao finalizar cadastro do motorista.';
