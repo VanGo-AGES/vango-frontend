@@ -40,8 +40,7 @@ export const editProfileSchema = z.object({
     }, 'Telefone inválido'),
   password: z
     .string()
-    .min(1, 'Senha obrigatória')
-    .min(6, 'A senha deve ter pelo menos 6 caracteres'),
+    .refine((val) => val === '' || val.length >= 6, 'A senha deve ter pelo menos 6 caracteres'),
 });
 
 export type EditProfileFormData = z.infer<typeof editProfileSchema>;

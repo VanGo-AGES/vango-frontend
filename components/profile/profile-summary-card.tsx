@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { View, Text, Image, StyleSheet, ViewStyle, StyleProp } from 'react-native';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import GenericAvatar from '@/assets/images/generic-avatar.svg';
+import { useSessionStore } from '@/store/session.store';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
 export interface ProfileSummaryCardUser {
   name: string;
-  location: string;
+  location?: string;
   avatarUri?: string;
 }
 
@@ -15,12 +16,6 @@ export interface ProfileSummaryCardProps {
   user?: ProfileSummaryCardUser;
   style?: StyleProp<ViewStyle>;
 }
-
-const DEFAULT_USER: ProfileSummaryCardUser = {
-  name: 'João Silva',
-  location: 'Porto Alegre, RS',
-  avatarUri: undefined,
-};
 
 const AVATAR_SIZE = 60;
 
@@ -57,7 +52,13 @@ const LocationRow: React.FC<{ location: string }> = ({ location }) => (
 );
 
 export function ProfileSummaryCard({ user, style }: ProfileSummaryCardProps) {
-  const resolvedUser = user ?? DEFAULT_USER;
+  const sessionUser = useSessionStore((s) => s.user);
+  const localPhotoUri = useSessionStore((s) => s.localPhotoUri);
+
+  const resolvedUser: ProfileSummaryCardUser = user ?? {
+    name: sessionUser?.name ?? '',
+    avatarUri: localPhotoUri ?? sessionUser?.photo_url ?? undefined,
+  };
 
   return (
     <View style={[styles.card, style]} accessible accessibilityRole="none">
@@ -66,7 +67,7 @@ export function ProfileSummaryCard({ user, style }: ProfileSummaryCardProps) {
         <Text style={styles.nameText} numberOfLines={1}>
           {resolvedUser.name}
         </Text>
-        <LocationRow location={resolvedUser.location} />
+        {resolvedUser.location && <LocationRow location={resolvedUser.location} />}
       </View>
     </View>
   );

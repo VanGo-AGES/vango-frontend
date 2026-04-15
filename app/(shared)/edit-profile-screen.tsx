@@ -1,8 +1,17 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { TextInput } from 'react-native-paper';
 
 import { AppTextField } from '@/components/general/app-text-field';
@@ -11,15 +20,11 @@ import { EditableProfilePicture } from '@/components/profile/editable-profile-pi
 import { PrimaryButton } from '@/components/general/primary-button';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
 import { editProfileSchema, type EditProfileFormData } from '@/schemas/edit-profile.schema';
+import { getUser, updateUser, uploadPhoto } from '@/services/user.service';
+import { ApiError } from '@/services/api';
+import { useSessionStore } from '@/store/session.store';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
-
-const defaultValues: EditProfileFormData = {
-  name: 'João Silva',
-  cpf: '60039877078',
-  phone: '11999999999',
-  password: '123456',
-};
 
 function onlyDigits(value: string) {
   return value.replace(/\D/g, '');
@@ -50,6 +55,13 @@ function formatPhone(value: string) {
 
 export default function EditProfileScreen() {
   const router = useRouter();
+  const sessionUser = useSessionStore((s) => s.user);
+  const updateSessionUser = useSessionStore((s) => s.updateUser);
+  const localPhotoUri = useSessionStore((s) => s.localPhotoUri);
+  const setLocalPhotoUri = useSessionStore((s) => s.setLocalPhotoUri);
+
+  const [isFetchingUser, setIsFetchingUser] = useState(false);
+  const [pendingPhotoUri, setPendingPhotoUri] = useState<string | null>(null);
 
   const {
     control,
@@ -58,15 +70,80 @@ export default function EditProfileScreen() {
     formState: { errors, isDirty, isSubmitting },
   } = useForm<EditProfileFormData>({
     resolver: zodResolver(editProfileSchema),
-    defaultValues,
+    defaultValues: {
+      name: sessionUser?.name ?? '',
+      cpf: formatCpf(sessionUser?.cpf ?? ''),
+      phone: formatPhone(sessionUser?.phone ?? ''),
+      password: '',
+    },
     mode: 'onChange',
   });
 
-  const onSubmit = (data: EditProfileFormData) => {
-    reset(data);
+  useEffect(() => {
+    if (!sessionUser) return;
+
+    setIsFetchingUser(true);
+    getUser(sessionUser.id)
+      .then((data) => {
+        reset({
+          name: data.name,
+          cpf: formatCpf(data.cpf ?? ''),
+          phone: formatPhone(data.phone),
+          password: '',
+        });
+      })
+      .catch(() => {
+        // Mantém os dados do store em caso de falha
+      })
+      .finally(() => {
+        setIsFetchingUser(false);
+      });
+  }, []);
+
+  const onSubmit = async (data: EditProfileFormData) => {
+    if (!sessionUser) return;
+
+    try {
+      let photo_url: string | undefined;
+      if (pendingPhotoUri) {
+        photo_url = await uploadPhoto(pendingPhotoUri);
+      }
+
+      const updated = await updateUser(sessionUser.id, {
+        name: data.name,
+        cpf: data.cpf,
+        phone: onlyDigits(data.phone),
+        ...(data.password ? { password: data.password } : {}),
+        ...(photo_url ? { photo_url } : {}),
+      });
+
+      updateSessionUser({
+        name: updated.name,
+        phone: updated.phone,
+        cpf: updated.cpf,
+        photo_url: updated.photo_url,
+      });
+
+      setPendingPhotoUri(null);
+      // localPhotoUri permanece no store para exibição ao navegar de volta
+      reset({
+        name: updated.name,
+        cpf: formatCpf(updated.cpf ?? ''),
+        phone: formatPhone(updated.phone),
+        password: '',
+      });
+
+      Alert.alert('Sucesso', 'Perfil atualizado com sucesso.');
+    } catch (error) {
+      const message =
+        error instanceof ApiError ? error.detail : 'Não foi possível salvar as alterações.';
+      Alert.alert('Erro', message);
+    }
   };
 
   const handleCancel = () => {
+    setPendingPhotoUri(null);
+    setLocalPhotoUri(null);
     reset();
   };
 
@@ -89,7 +166,16 @@ export default function EditProfileScreen() {
           />
 
           <View style={styles.avatarWrap}>
-            <EditableProfilePicture size={130} accessibilityLabel="Foto de perfil" />
+            <EditableProfilePicture
+              size={130}
+              accessibilityLabel="Foto de perfil"
+              imageUri={localPhotoUri ?? sessionUser?.photo_url}
+              onImageChange={(uri) => {
+                setPendingPhotoUri(uri);
+                setLocalPhotoUri(uri);
+              }}
+              disabled={isFetchingUser}
+            />
           </View>
         </View>
 
@@ -110,6 +196,7 @@ export default function EditProfileScreen() {
                     errorMessage={errors.name?.message}
                     autoCapitalize="words"
                     returnKeyType="next"
+                    editable={!isFetchingUser}
                   />
                 )}
               />
@@ -126,6 +213,7 @@ export default function EditProfileScreen() {
                     errorMessage={errors.cpf?.message}
                     keyboardType="numeric"
                     maxLength={14}
+                    editable={!isFetchingUser}
                   />
                 )}
               />
@@ -143,6 +231,7 @@ export default function EditProfileScreen() {
                     keyboardType="numeric"
                     maxLength={13}
                     left={<TextInput.Affix text="+55" textStyle={styles.phoneAffix} />}
+                    editable={!isFetchingUser}
                   />
                 )}
               />
@@ -152,13 +241,14 @@ export default function EditProfileScreen() {
                 name="password"
                 render={({ field: { onChange, onBlur, value } }) => (
                   <AppTextField
-                    label="Senha"
+                    label="Nova senha"
                     value={value}
                     onBlur={onBlur}
                     onChangeText={onChange}
                     errorMessage={errors.password?.message}
                     secureTextEntry
                     autoComplete="password"
+                    editable={!isFetchingUser}
                   />
                 )}
               />
@@ -166,12 +256,12 @@ export default function EditProfileScreen() {
           </View>
         </View>
 
-        {isDirty && (
+        {(isDirty || !!pendingPhotoUri) && (
           <View style={styles.actions}>
             <PrimaryButton
               label="Salvar mudanças"
               onPress={handleSubmit(onSubmit)}
-              disabled={isSubmitting}
+              disabled={isSubmitting || isFetchingUser}
               icon={<MaterialIcons name="check" size={18} color={colors.light} />}
               labelColor={colors.light}
               style={styles.saveButton}

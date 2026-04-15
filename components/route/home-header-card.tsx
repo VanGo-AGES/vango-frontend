@@ -9,7 +9,7 @@ import { typography } from '@/styles/typography';
 
 type HomeHeaderCardProps = {
   name: string;
-  location: string;
+  location?: string;
   avatarUri?: string;
   onProfilePress?: () => void;
   onSettingsPress?: () => void;
@@ -50,10 +50,12 @@ export function HomeHeaderCard({
           <Text style={styles.name}>{name}</Text>
         </Pressable>
 
-        <View style={styles.locationRow}>
-          <Icon source="map-marker-outline" size={16} color={colors.subtleText} />
-          <Text style={styles.location}>{location}</Text>
-        </View>
+        {location && (
+          <View style={styles.locationRow}>
+            <Icon source="map-marker-outline" size={16} color={colors.subtleText} />
+            <Text style={styles.location}>{location}</Text>
+          </View>
+        )}
       </View>
 
       <Pressable

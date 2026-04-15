@@ -1,5 +1,5 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -15,6 +15,8 @@ import AppDialog from '@/components/general/app-dialog';
 import { AppTextField } from '@/components/general/app-text-field';
 import { PrimaryButton } from '@/components/general/primary-button';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
+import { updateUser } from '@/services/user.service';
+import { useSessionStore } from '@/store/session.store';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
@@ -65,6 +67,8 @@ const isValidBrazilianPlate = (value: string) => {
 
 export default function RegisterDriverDetailsScreen() {
   const router = useRouter();
+  const { userId } = useLocalSearchParams<{ userId?: string }>();
+  const updateSessionUser = useSessionStore((s) => s.updateUser);
 
   const [cpf, setCpf] = useState('');
   const [passengerCount, setPassengerCount] = useState('');
@@ -120,7 +124,7 @@ export default function RegisterDriverDetailsScreen() {
     return Object.keys(onlyErrors).length === 0;
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     const isFormValid = validateForm();
 
     if (!isFormValid) {
@@ -133,6 +137,15 @@ export default function RegisterDriverDetailsScreen() {
       }
 
       return;
+    }
+
+    if (userId) {
+      try {
+        const updated = await updateUser(userId, { cpf });
+        updateSessionUser({ cpf: updated.cpf });
+      } catch {
+        // CPF não crítico para continuar o cadastro
+      }
     }
 
     router.push({ pathname: '/register-success', params: { userType: 'driver' } });

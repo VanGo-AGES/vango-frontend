@@ -31,3 +31,67 @@ export async function apiPost<TBody, TResponse>(
 
   return await response.json();
 }
+
+export async function apiGet<TResponse>(
+  path: string,
+  headers?: Record<string, string>,
+): Promise<TResponse> {
+  const response = await fetch(`${BASE_URL}${path}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...headers,
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Erro inesperado' }));
+    throw new ApiError(response.status, error.detail ?? 'Erro inesperado');
+  }
+
+  return await response.json();
+}
+
+export async function apiPatch<TBody, TResponse>(
+  path: string,
+  body: TBody,
+  headers?: Record<string, string>,
+): Promise<TResponse> {
+  const response = await fetch(`${BASE_URL}${path}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...headers,
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Erro inesperado' }));
+    throw new ApiError(response.status, error.detail ?? 'Erro inesperado');
+  }
+
+  return await response.json();
+}
+
+export async function apiPut<TBody, TResponse>(
+  path: string,
+  body: TBody,
+  headers?: Record<string, string>,
+): Promise<TResponse> {
+  const response = await fetch(`${BASE_URL}${path}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      ...headers,
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Erro inesperado' }));
+    throw new ApiError(response.status, error.detail ?? 'Erro inesperado');
+  }
+
+  return await response.json();
+}

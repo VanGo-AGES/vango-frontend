@@ -1,29 +1,45 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import type { UserRole } from '@/types/user.types';
 
-type Driver = {
+export type SessionUser = {
   id: string;
   name: string;
-  token: string;
+  email: string;
+  phone: string;
+  cpf: string | null;
+  role: UserRole;
+  photo_url: string | null;
+  token?: string;
 };
 
 type SessionState = {
-  driver: Driver | null;
-  setDriver: (driver: Driver) => void;
+  user: SessionUser | null;
+  localPhotoUri: string | null;
+  setUser: (user: SessionUser) => void;
+  updateUser: (data: Partial<Omit<SessionUser, 'id' | 'token' | 'role'>>) => void;
+  setLocalPhotoUri: (uri: string | null) => void;
   clearSession: () => void;
 };
 
 export const useSessionStore = create<SessionState>()(
   persist(
     (set) => ({
-      driver: null,
-      setDriver: (driver) => set({ driver }),
-      clearSession: () => set({ driver: null }),
+      user: null,
+      localPhotoUri: null,
+      setUser: (user) => set({ user }),
+      updateUser: (data) =>
+        set((state) => ({
+          user: state.user ? { ...state.user, ...data } : null,
+        })),
+      setLocalPhotoUri: (uri) => set({ localPhotoUri: uri }),
+      clearSession: () => set({ user: null, localPhotoUri: null }),
     }),
     {
       name: 'session',
       storage: createJSONStorage(() => AsyncStorage),
+      partialize: (state) => ({ user: state.user }),
     },
   ),
 );
