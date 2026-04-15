@@ -19,6 +19,7 @@ export default function ProfilePassengerScreen() {
           icon="arrow-back"
           onPress={() => router.back()}
           style={styles.backButton}
+          accessibilityLabel="voltar"
         />
 
         <View style={styles.titleWrapper}>
@@ -56,9 +57,14 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: 'absolute',
-    left: 8,
+    left: 24,
     top: 12,
     zIndex: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(250, 252, 254, 0.65)',
+    borderWidth: 0,
   },
   titleWrapper: {
     paddingHorizontal: 40,
