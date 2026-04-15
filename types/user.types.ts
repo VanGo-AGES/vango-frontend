@@ -10,7 +10,7 @@ export interface CreateUserRequest {
   photo_url?: string;
 }
 
-export interface CreateUserResponse {
+export interface UserResponse {
   id: string;
   name: string;
   email: string;
@@ -22,8 +22,14 @@ export interface CreateUserResponse {
   updated_at: string;
 }
 
-// User context for headers (TEMP)
-export interface UserContext {
-  id: string;
-  role: UserRole;
+export interface UpdateUserRequest {
+  name?: string;
+  phone?: string;
+  cpf?: string;
+  password?: string;
+  photo_url?: string;
 }
+
+export type UpdateUserResponse = UserResponse;
+
+export type CreateUserResponse = UserResponse;

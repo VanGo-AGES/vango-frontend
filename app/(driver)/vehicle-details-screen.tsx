@@ -1,6 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Controller, type FieldErrors, useForm } from 'react-hook-form';
 import {
@@ -14,6 +13,8 @@ import {
   View,
 } from 'react-native';
 import { z } from 'zod';
+
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import AppDialog from '@/components/general/app-dialog';
 import { AppTextField } from '@/components/general/app-text-field';
@@ -88,7 +89,7 @@ function normalizePlate(value: string) {
 }
 
 export default function VehicleDetailsScreen() {
-  const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const {
     control,
@@ -255,7 +256,7 @@ export default function VehicleDetailsScreen() {
         </View>
 
         {!isKeyboardVisible && (
-          <View style={styles.actions}>
+          <View style={[styles.actions, { paddingBottom: insets.bottom + 32 }]}>
             {isDirty ? (
               <>
                 <PrimaryButton
@@ -346,7 +347,7 @@ const styles = StyleSheet.create({
   actions: {
     alignItems: 'center',
     gap: 12,
-    paddingBottom: 82,
+    // paddingBottom é definido via inline style com insets.bottom + 32
     backgroundColor: colors.light,
     justifyContent: 'center',
   },

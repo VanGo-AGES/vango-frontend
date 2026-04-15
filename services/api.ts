@@ -29,10 +29,7 @@ export async function apiGet<TResponse>(
 ): Promise<TResponse> {
   const response = await fetch(`${BASE_URL}${path}`, {
     method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      ...headers,
-    },
+    headers: { ...headers },
   });
 
   return handleResponse<TResponse>(response);
@@ -78,10 +75,16 @@ export async function apiDelete<TResponse>(
 ): Promise<TResponse> {
   const response = await fetch(`${BASE_URL}${path}`, {
     method: 'DELETE',
-    headers: {
-      'Content-Type': 'application/json',
-      ...headers,
-    },
+    headers: { ...headers },
+  });
+
+  return handleResponse<TResponse>(response);
+}
+
+export async function apiUpload<TResponse>(path: string, formData: FormData): Promise<TResponse> {
+  const response = await fetch(`${BASE_URL}${path}`, {
+    method: 'POST',
+    body: formData,
   });
 
   return handleResponse<TResponse>(response);

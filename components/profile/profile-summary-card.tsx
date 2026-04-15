@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { View, Text, Image, StyleSheet, ViewStyle, StyleProp } from 'react-native';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import GenericAvatar from '@/assets/images/generic-avatar.svg';
+import { useSessionStore } from '@/store/session.store';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
 export interface ProfileSummaryCardUser {
   name: string;
-  location: string;
+  location?: string;
   avatarUri?: string;
 }
 
@@ -16,17 +17,16 @@ export interface ProfileSummaryCardProps {
   style?: StyleProp<ViewStyle>;
 }
 
-const DEFAULT_USER: ProfileSummaryCardUser = {
-  name: 'João Silva',
-  location: 'Porto Alegre, RS',
-  avatarUri: undefined,
-};
-
 const AVATAR_SIZE = 60;
 
-const Avatar: React.FC<{ uri?: string }> = ({ uri }) => {
-  const [imageError, setImageError] = useState(false);
-  const showPlaceholder = !uri || imageError;
+const Avatar: React.FC<{ uri?: string; fallbackUri?: string }> = ({ uri, fallbackUri }) => {
+  const [primaryError, setPrimaryError] = useState(false);
+  const [fallbackError, setFallbackError] = useState(false);
+
+  const activeUri =
+    !uri || primaryError ? (!fallbackUri || fallbackError ? undefined : fallbackUri) : uri;
+
+  const showPlaceholder = !activeUri;
 
   if (showPlaceholder) {
     return (
@@ -38,11 +38,17 @@ const Avatar: React.FC<{ uri?: string }> = ({ uri }) => {
 
   return (
     <Image
-      source={{ uri }}
+      source={{ uri: activeUri }}
       style={styles.avatarImage}
       accessibilityRole="image"
       accessibilityLabel="Foto de perfil"
-      onError={() => setImageError(true)}
+      onError={() => {
+        if (activeUri === uri) {
+          setPrimaryError(true);
+        } else {
+          setFallbackError(true);
+        }
+      }}
     />
   );
 };
@@ -57,16 +63,22 @@ const LocationRow: React.FC<{ location: string }> = ({ location }) => (
 );
 
 export function ProfileSummaryCard({ user, style }: ProfileSummaryCardProps) {
-  const resolvedUser = user ?? DEFAULT_USER;
+  const sessionUser = useSessionStore((s) => s.user);
+  const localPhotoUri = useSessionStore((s) => s.localPhotoUri);
+
+  const resolvedUser: ProfileSummaryCardUser = user ?? {
+    name: sessionUser?.name ?? '',
+    avatarUri: localPhotoUri ?? sessionUser?.photo_url ?? undefined,
+  };
 
   return (
     <View style={[styles.card, style]} accessible accessibilityRole="none">
-      <Avatar uri={resolvedUser.avatarUri} />
+      <Avatar uri={resolvedUser.avatarUri} fallbackUri={localPhotoUri ?? undefined} />
       <View style={styles.infoBlock}>
         <Text style={styles.nameText} numberOfLines={1}>
           {resolvedUser.name}
         </Text>
-        <LocationRow location={resolvedUser.location} />
+        {resolvedUser.location && <LocationRow location={resolvedUser.location} />}
       </View>
     </View>
   );
