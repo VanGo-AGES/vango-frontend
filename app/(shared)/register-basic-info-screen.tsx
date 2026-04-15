@@ -90,37 +90,6 @@ export default function RegisterBasicInfoScreen() {
   const watchedName = watch('name');
   const watchedPhone = watch('phone');
 
-  const formatPhone = (value: string) => {
-    const digits = value.replace(/\D/g, '').slice(0, 13);
-
-    if (!digits) {
-      return '';
-    }
-
-    const normalizedDigits = digits.startsWith('55') ? digits : `55${digits}`.slice(0, 13);
-
-    const country = normalizedDigits.slice(0, 2);
-    const areaCode = normalizedDigits.slice(2, 4);
-    const firstPart = normalizedDigits.slice(4, 9);
-    const secondPart = normalizedDigits.slice(9, 13);
-
-    let formatted = `+${country}`;
-
-    if (areaCode) {
-      formatted += ` ${areaCode}`;
-    }
-
-    if (firstPart) {
-      formatted += ` ${firstPart}`;
-    }
-
-    if (secondPart) {
-      formatted += `-${secondPart}`;
-    }
-
-    return formatted;
-  };
-
   const handleLoginPress = () => {
     // TODO: substituir por /login quando o fluxo de login for implementado
     router.push('/register-profile-selection-screen');
@@ -138,14 +107,12 @@ export default function RegisterBasicInfoScreen() {
     }
   };
 
-  const stripPhone = (phone: string) => phone.replace(/\D/g, '');
-
   const onSubmit = async (data: RegisterBasicInfoFormData) => {
     try {
       const response = await mutateAsync({
         name: data.name.trim(),
         email: data.email.trim().toLowerCase(),
-        phone: stripPhone(data.phone),
+        phone: onlyDigits(data.phone),
         password: data.password,
         role: resolvedUserType,
       });

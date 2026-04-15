@@ -67,7 +67,7 @@ export default function EditProfileScreen() {
     control,
     handleSubmit,
     reset,
-    formState: { errors, isDirty, isSubmitting },
+    formState: { errors, isDirty },
   } = useForm<EditProfileFormData>({
     resolver: zodResolver(editProfileSchema),
     defaultValues: {
@@ -338,10 +338,6 @@ const styles = StyleSheet.create({
   },
   fields: {
     gap: 16,
-  },
-  phoneAffix: {
-    ...typography.body,
-    color: colors.dark,
   },
   actions: {
     alignItems: 'center',

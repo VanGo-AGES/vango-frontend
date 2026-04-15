@@ -19,9 +19,14 @@ export interface ProfileSummaryCardProps {
 
 const AVATAR_SIZE = 60;
 
-const Avatar: React.FC<{ uri?: string }> = ({ uri }) => {
-  const [imageError, setImageError] = useState(false);
-  const showPlaceholder = !uri || imageError;
+const Avatar: React.FC<{ uri?: string; fallbackUri?: string }> = ({ uri, fallbackUri }) => {
+  const [primaryError, setPrimaryError] = useState(false);
+  const [fallbackError, setFallbackError] = useState(false);
+
+  const activeUri =
+    !uri || primaryError ? (!fallbackUri || fallbackError ? undefined : fallbackUri) : uri;
+
+  const showPlaceholder = !activeUri;
 
   if (showPlaceholder) {
     return (
@@ -33,11 +38,17 @@ const Avatar: React.FC<{ uri?: string }> = ({ uri }) => {
 
   return (
     <Image
-      source={{ uri }}
+      source={{ uri: activeUri }}
       style={styles.avatarImage}
       accessibilityRole="image"
       accessibilityLabel="Foto de perfil"
-      onError={() => setImageError(true)}
+      onError={() => {
+        if (activeUri === uri) {
+          setPrimaryError(true);
+        } else {
+          setFallbackError(true);
+        }
+      }}
     />
   );
 };
@@ -62,7 +73,7 @@ export function ProfileSummaryCard({ user, style }: ProfileSummaryCardProps) {
 
   return (
     <View style={[styles.card, style]} accessible accessibilityRole="none">
-      <Avatar uri={resolvedUser.avatarUri} />
+      <Avatar uri={resolvedUser.avatarUri} fallbackUri={localPhotoUri ?? undefined} />
       <View style={styles.infoBlock}>
         <Text style={styles.nameText} numberOfLines={1}>
           {resolvedUser.name}
