@@ -4,6 +4,7 @@ import { HomeHeaderCard } from '@/components/route/home-header-card';
 import { EmptyState } from '@/components/general/empty-state';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
 import { CreateRouteButton } from '@/components/route/create-route-button';
+import { useSessionStore } from '@/store/session.store';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
@@ -15,6 +16,8 @@ type RouteItem = {
 
 export default function DriverHomeScreen() {
   const router = useRouter();
+  const sessionUser = useSessionStore((s) => s.user);
+  const localPhotoUri = useSessionStore((s) => s.localPhotoUri);
 
   let nextRoute: RouteItem | null = null;
   let myRoutes: RouteItem[] = [];
@@ -41,8 +44,8 @@ export default function DriverHomeScreen() {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={[styles.headerSpacing, styles.horizontalPadding]}>
           <HomeHeaderCard
-            name="João Silva"
-            location="Porto Alegre, RS"
+            name={sessionUser?.name ?? ''}
+            avatarUri={localPhotoUri ?? sessionUser?.photo_url ?? undefined}
             onProfilePress={handleProfilePress}
             onSettingsPress={handleSettingsPress}
           />
