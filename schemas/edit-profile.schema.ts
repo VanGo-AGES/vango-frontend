@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { isValidCpf, onlyDigits } from '@/lib/formatters';
+import { isValidCpf } from '@/lib/formatters';
 
 // Mesma regex usada em register-basic-info-screen
 const PHONE_REGEX = /^\+55\s\d{2}\s\d{5}-\d{4}$/;
@@ -19,6 +19,3 @@ export const editProfileSchema = z.object({
 });
 
 export type EditProfileFormData = z.infer<typeof editProfileSchema>;
-
-// Re-exporta para uso nos campos controlados da tela
-export { onlyDigits };

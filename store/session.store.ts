@@ -11,14 +11,13 @@ export type SessionUser = {
   cpf: string | null;
   role: UserRole;
   photo_url: string | null;
-  token?: string;
 };
 
 type SessionState = {
   user: SessionUser | null;
   localPhotoUri: string | null;
   setUser: (user: SessionUser) => void;
-  updateUser: (data: Partial<Omit<SessionUser, 'id' | 'token' | 'role'>>) => void;
+  updateUser: (data: Partial<Omit<SessionUser, 'id' | 'role'>>) => void;
   setLocalPhotoUri: (uri: string | null) => void;
   clearSession: () => void;
 };

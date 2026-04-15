@@ -103,7 +103,9 @@ export default function EditProfileScreen() {
         password: '',
       });
 
-      Alert.alert('Sucesso', 'Perfil atualizado com sucesso.');
+      Alert.alert('Sucesso', 'Perfil atualizado com sucesso.', [
+        { text: 'Ok', onPress: () => router.back() },
+      ]);
     } catch {
       Alert.alert('Erro', 'Não foi possível salvar as alterações.');
     }
@@ -175,7 +177,7 @@ export default function EditProfileScreen() {
                 render={({ field: { onChange, onBlur, value } }) => (
                   <AppTextField
                     label="CPF"
-                    value={formatCpf(value)}
+                    value={value}
                     onBlur={onBlur}
                     onChangeText={(text) => onChange(formatCpf(text))}
                     errorMessage={errors.cpf?.message}
@@ -192,7 +194,7 @@ export default function EditProfileScreen() {
                 render={({ field: { onChange, onBlur, value } }) => (
                   <AppTextField
                     label="Telefone"
-                    value={formatPhone(value)}
+                    value={value}
                     onBlur={onBlur}
                     onChangeText={(text) => onChange(formatPhone(text))}
                     errorMessage={errors.phone?.message}

@@ -30,14 +30,6 @@ export interface UpdateUserRequest {
   photo_url?: string;
 }
 
-export interface UpdateUserResponse {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  role: UserRole;
-  cpf: string | null;
-  photo_url: string | null;
-  created_at: string;
-  updated_at: string;
-}
+export type UpdateUserResponse = UserResponse;
+
+export type CreateUserResponse = UserResponse;

@@ -240,6 +240,7 @@ export default function RegisterBasicInfoScreen() {
                   }
                 }}
                 keyboardType="phone-pad"
+                maxLength={17}
                 errorMessage={errors.phone?.message}
               />
             )}
