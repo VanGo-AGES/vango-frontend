@@ -21,6 +21,7 @@ import { AppTextField } from '@/components/general/app-text-field';
 import { PrimaryButton } from '@/components/general/primary-button';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
 import { SectionHeader } from '@/components/route/section-header';
+import { onlyDigits } from '@/lib/formatters';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
@@ -60,9 +61,9 @@ const vehicleDetailsSchema = z.object({
 type VehicleDetailsFormData = z.infer<typeof vehicleDetailsSchema>;
 
 const defaultValues: VehicleDetailsFormData = {
-  passengerCount: '00',
-  vehiclePlate: 'BRA2E26',
-  vehicleModel: 'Mercedes-Benz Sprinter 417',
+  passengerCount: '',
+  vehiclePlate: '',
+  vehicleModel: '',
 };
 
 type DialogState = {
@@ -76,10 +77,6 @@ const initialDialogState: DialogState = {
   title: '',
   description: '',
 };
-
-function formatPassengerCount(value: string) {
-  return value.replace(/\D/g, '').slice(0, 2);
-}
 
 function normalizePlate(value: string) {
   return value
@@ -158,6 +155,7 @@ export default function VehicleDetailsScreen() {
   };
 
   const onSubmit = (data: VehicleDetailsFormData) => {
+    // TODO: integrar com serviço de veículo quando o endpoint estiver disponível no backend
     reset(data);
   };
 
@@ -203,7 +201,7 @@ export default function VehicleDetailsScreen() {
                       label="Número de passageiros"
                       value={value}
                       onBlur={onBlur}
-                      onChangeText={(text) => onChange(formatPassengerCount(text))}
+                      onChangeText={(text) => onChange(onlyDigits(text).slice(0, 2))}
                       onSubmitEditing={() => setFocus('vehiclePlate')}
                       keyboardType="numeric"
                       maxLength={2}

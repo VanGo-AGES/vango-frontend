@@ -3,9 +3,9 @@ const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 export class ApiError extends Error {
   constructor(
     public status: number,
-    public detail: string,
+    public detail: unknown,
   ) {
-    super(detail);
+    super(typeof detail === 'string' ? detail : 'Erro inesperado');
     this.name = 'ApiError';
   }
 }
@@ -42,10 +42,7 @@ export async function apiPost<TBody, TResponse>(
 ): Promise<TResponse> {
   const response = await fetch(`${BASE_URL}${path}`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...headers,
-    },
+    headers: { 'Content-Type': 'application/json', ...headers },
     body: JSON.stringify(body),
   });
 

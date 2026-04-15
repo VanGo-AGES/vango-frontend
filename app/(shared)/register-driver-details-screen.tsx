@@ -17,6 +17,7 @@ import { PrimaryButton } from '@/components/general/primary-button';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
 import { useUpdateUser } from '@/hooks/use-update-user';
 import { formatCpf, isValidCpf, onlyDigits } from '@/lib/formatters';
+import { ApiError } from '@/services/api';
 import { useSessionStore } from '@/store/session.store';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
@@ -39,7 +40,7 @@ export default function RegisterDriverDetailsScreen() {
   const router = useRouter();
   const { userId } = useLocalSearchParams<{ userId?: string }>();
   const updateSessionUser = useSessionStore((s) => s.updateUser);
-  const { mutateAsync: updateUser } = useUpdateUser();
+  const { mutateAsync: updateUser, isPending: isUpdatingUser } = useUpdateUser();
 
   const [cpf, setCpf] = useState('');
   const [passengerCount, setPassengerCount] = useState('');
@@ -47,6 +48,9 @@ export default function RegisterDriverDetailsScreen() {
   const [vehicleModel, setVehicleModel] = useState('');
   const [showRequiredFieldsDialog, setShowRequiredFieldsDialog] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<FieldName, string>>>({});
+  const [requestError, setRequestError] = useState<string | null>(null);
+
+  const isSubmitting = isUpdatingUser;
 
   const validateField = (field: FieldName, value: string) => {
     const trimmedValue = value.trim();
@@ -102,24 +106,40 @@ export default function RegisterDriverDetailsScreen() {
       const hasRequiredFieldError = [cpf, passengerCount, plate, vehicleModel].some(
         (value) => !value.trim(),
       );
-
       if (hasRequiredFieldError) {
         setShowRequiredFieldsDialog(true);
       }
-
       return;
     }
 
-    if (userId) {
-      try {
-        const updated = await updateUser({ id: userId, data: { cpf } });
-        updateSessionUser({ cpf: updated.cpf });
-      } catch {
-        // CPF não crítico para continuar o cadastro
-      }
+    if (!userId) {
+      setRequestError('Não foi possível identificar o usuário do cadastro.');
+      return;
     }
 
-    router.push({ pathname: '/register-success', params: { userType: 'driver' } });
+    try {
+      const updated = await updateUser({ id: userId, data: { cpf } });
+      updateSessionUser({ cpf: updated.cpf });
+      router.push({ pathname: '/register-success', params: { userType: 'driver' } });
+    } catch (error) {
+      let message = 'Erro ao finalizar cadastro do motorista.';
+
+      if (error instanceof ApiError) {
+        if (typeof error.detail === 'string') {
+          message = error.detail;
+        } else if (Array.isArray(error.detail) && error.detail.length > 0) {
+          const first = error.detail[0];
+          message =
+            first && typeof first === 'object' && 'msg' in first
+              ? String(first.msg)
+              : 'Dados inválidos enviados ao servidor.';
+        } else {
+          message = 'Não foi possível finalizar o cadastro.';
+        }
+      }
+
+      setRequestError(message);
+    }
   };
 
   return (
@@ -213,8 +233,9 @@ export default function RegisterDriverDetailsScreen() {
 
             <View style={styles.footer}>
               <PrimaryButton
-                label="Finalizar"
+                label={isSubmitting ? 'Finalizando...' : 'Finalizar'}
                 onPress={handleContinue}
+                disabled={isSubmitting}
                 labelColor={colors.light}
                 icon={<MaterialIcons name="arrow-forward" size={18} color={colors.light} />}
                 style={styles.nextButton}
@@ -234,6 +255,20 @@ export default function RegisterDriverDetailsScreen() {
             label: 'Ok',
             icon: 'check',
             onPress: () => setShowRequiredFieldsDialog(false),
+          },
+        ]}
+      />
+
+      <AppDialog
+        visible={!!requestError}
+        title="Erro ao finalizar"
+        description={requestError ?? ''}
+        onRequestClose={() => setRequestError(null)}
+        actions={[
+          {
+            label: 'Ok',
+            icon: 'check',
+            onPress: () => setRequestError(null),
           },
         ]}
       />
