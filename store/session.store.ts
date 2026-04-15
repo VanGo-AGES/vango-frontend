@@ -36,7 +36,7 @@ export const useSessionStore = create<SessionState>()(
       clearSession: () => set({ user: null, localPhotoUri: null }),
     }),
     {
-      name: 'session-v2', // bump de versão: invalida sessões antigas com shape { driver: ... }
+      name: 'session-v2',
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({ user: state.user }),
     },
