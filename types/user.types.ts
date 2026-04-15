@@ -10,7 +10,7 @@ export interface CreateUserRequest {
   photo_url?: string;
 }
 
-export interface CreateUserResponse {
+export interface UserResponse {
   id: string;
   name: string;
   email: string;
@@ -21,3 +21,15 @@ export interface CreateUserResponse {
   created_at: string;
   updated_at: string;
 }
+
+export interface UpdateUserRequest {
+  name?: string;
+  phone?: string;
+  cpf?: string;
+  password?: string;
+  photo_url?: string;
+}
+
+export type UpdateUserResponse = UserResponse;
+
+export type CreateUserResponse = UserResponse;

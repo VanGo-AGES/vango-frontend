@@ -1,10 +1,14 @@
 import { useMutation } from '@tanstack/react-query';
-
 import { createVehicle } from '@/services/vehicle.service';
-import type { CreateVehicleRequest } from '@/types/vehicle.types';
+import type { CreateVehicleRequest } from '@/types/vehicles.types';
 
-export function useCreateVehicle(userId: string) {
+type CreateVehicleMutationInput = {
+  userId: string;
+  data: CreateVehicleRequest;
+};
+
+export function useCreateVehicle() {
   return useMutation({
-    mutationFn: (data: CreateVehicleRequest) => createVehicle(data, userId),
+    mutationFn: ({ userId, data }: CreateVehicleMutationInput) => createVehicle(data, userId),
   });
 }
