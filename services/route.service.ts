@@ -1,11 +1,12 @@
 import { apiPost } from './api';
+import { useSessionStore } from '@/store/session.store';
 import type { CreateRouteRequest, CreateRouteResponse } from '@/types/route.types';
 
-export async function createRoute(
-  data: CreateRouteRequest,
-  userId: string,
-): Promise<CreateRouteResponse> {
-  return apiPost<CreateRouteRequest, CreateRouteResponse>('/routes/', data, {
-    'X-User-Id': userId,
-  });
+function getDriverHeaders(): Record<string, string> {
+  const user = useSessionStore.getState().user;
+  return { 'X-User-Id': user?.id ?? '', 'X-User-Role': 'driver' };
+}
+
+export async function createRoute(data: CreateRouteRequest): Promise<CreateRouteResponse> {
+  return apiPost<CreateRouteRequest, CreateRouteResponse>('/routes/', data, getDriverHeaders());
 }

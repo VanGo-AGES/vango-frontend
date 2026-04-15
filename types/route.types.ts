@@ -1,3 +1,14 @@
+export type RouteFormAddress = {
+  cep: string;
+  numero: string;
+  rua: string;
+  bairro: string;
+  cidade: string;
+  estado: string;
+};
+
+export type AddressErrors = Partial<Record<keyof RouteFormAddress, string>>;
+
 export interface AddressRequest {
   label: string;
   street: string;
@@ -29,8 +40,8 @@ export interface CreateRouteRequest {
   route_type: RouteType;
   origin: AddressRequest;
   destination: AddressRequest;
-  expected_time: string; // HH:MM:SS
-  recurrence: string; // "seg,ter,qua"
+  expected_time: string;
+  recurrence: string;
 }
 
 export interface CreateRouteResponse {

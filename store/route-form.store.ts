@@ -1,13 +1,8 @@
 import { create } from 'zustand';
 
-export type RouteFormAddress = {
-  cep: string;
-  numero: string;
-  rua: string;
-  bairro: string;
-  cidade: string;
-  estado: string;
-};
+import type { RouteFormAddress } from '@/types/route.types';
+
+export type { RouteFormAddress };
 
 type RouteFormState = {
   routeName: string;
