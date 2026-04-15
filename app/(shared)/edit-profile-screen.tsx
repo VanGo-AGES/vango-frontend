@@ -66,7 +66,7 @@ export default function EditProfileScreen() {
       phone: formatPhone(freshUser.phone),
       password: '',
     });
-  }, [freshUser]);
+  }, [freshUser, reset]);
 
   const onSubmit = async (data: EditProfileFormData) => {
     if (!sessionUser) return;

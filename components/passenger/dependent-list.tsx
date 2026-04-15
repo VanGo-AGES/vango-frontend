@@ -4,11 +4,7 @@ import { TextInput } from 'react-native-paper';
 import { AppTextField } from '@/components/general/app-text-field';
 import { SubtleOutlinedButton } from '@/components/general/subtle-outlined-button';
 import { colors } from '@/styles/colors';
-
-export interface Dependent {
-  id: string;
-  name: string;
-}
+import type { Dependent } from '@/types/dependents.types';
 
 interface DependentListProps {
   dependents: Dependent[];

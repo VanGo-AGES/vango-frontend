@@ -75,7 +75,7 @@ export default function RegisterBasicInfoScreen() {
     handleSubmit,
     watch,
     setError,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<RegisterBasicInfoFormData>({
     resolver: zodResolver(registerBasicInfoSchema),
     defaultValues: {

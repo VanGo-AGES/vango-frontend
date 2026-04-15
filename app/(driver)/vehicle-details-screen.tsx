@@ -1,6 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Controller, type FieldErrors, useForm } from 'react-hook-form';
 import {
@@ -90,7 +89,6 @@ function normalizePlate(value: string) {
 }
 
 export default function VehicleDetailsScreen() {
-  const router = useRouter();
   const insets = useSafeAreaInsets();
 
   const {

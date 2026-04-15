@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,6 +15,13 @@ import { DependentList } from '@/components/passenger/dependent-list';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 import { SubtleOutlinedButton } from '@/components/general/subtle-outlined-button';
+import {
+  useDependents,
+  useDependentsMutation,
+  calculateDependentsDiff,
+} from '@/hooks/use-dependents';
+import { ApiError } from '@/services/api';
+import type { Dependent } from '@/types/dependents.types';
 
 const dependentSchema = z.object({
   dependents: z.array(
@@ -30,6 +37,12 @@ type DependentFormData = z.infer<typeof dependentSchema>;
 export default function DependentDetailsScreen() {
   const router = useRouter();
   const [dependentToDelete, setDependentToDelete] = useState<string | null>(null);
+  const [initialDependents, setInitialDependents] = useState<Dependent[]>([]);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const tempIdCounterRef = useRef(0);
+
+  const { data: loadedDependents, isLoading: isDependentsLoading } = useDependents();
+  const { applyDiff, isPending: isMutationPending } = useDependentsMutation();
 
   const {
     handleSubmit,
@@ -40,22 +53,75 @@ export default function DependentDetailsScreen() {
   } = useForm<DependentFormData>({
     resolver: zodResolver(dependentSchema),
     defaultValues: {
-      dependents: [{ id: '1', name: 'Valentina Fonseca' }],
+      dependents: [],
     },
   });
 
-  const dependents = watch('dependents');
+  // Load dependents from API on mount
+  useEffect(() => {
+    if (loadedDependents) {
+      // Transform DependentResponse to Dependent format for form
+      const formattedDependents: Dependent[] = loadedDependents.map((dep) => ({
+        id: dep.id,
+        name: dep.name,
+      }));
+      setInitialDependents(formattedDependents);
+      reset({ dependents: formattedDependents });
+    }
+  }, [loadedDependents, reset]);
 
-  const onSubmit = (data: DependentFormData) => {
-    reset(data);
+  const dependents = watch('dependents');
+  const isSubmitting = isMutationPending;
+
+  const onSubmit = async (data: DependentFormData) => {
+    setSubmitError(null);
+
+    try {
+      // Calculate diff between initial and current state
+      const diff = calculateDependentsDiff(initialDependents, data.dependents);
+
+      if (diff.toCreate.length === 0 && diff.toUpdate.length === 0 && diff.toDelete.length === 0) {
+        reset(data);
+        return;
+      }
+
+      const idMap = await applyDiff(diff);
+
+      const updatedDependents = data.dependents.map((dep) => ({
+        ...dep,
+        id: idMap.has(dep.id) ? idMap.get(dep.id)! : dep.id,
+      }));
+
+      setInitialDependents(updatedDependents);
+      reset({ dependents: updatedDependents });
+    } catch (error) {
+      let errorMessage = 'Erro ao salvar dependentes';
+
+      if (error instanceof ApiError) {
+        if (error.status === 403) {
+          errorMessage = 'Você não tem permissão para realizar esta ação';
+        } else if (error.status === 422) {
+          errorMessage = error.detail || 'Dados inválidos. Verifique os nomes dos dependentes';
+        } else if (error.detail) {
+          errorMessage = error.detail;
+        }
+      }
+
+      setSubmitError(errorMessage);
+    }
   };
 
   const handleCancel = () => {
+    setSubmitError(null);
     reset();
   };
 
   const handleAdd = () => {
-    setValue('dependents', [...dependents, { id: Math.random().toString(), name: '' }], {
+    // avoid field/key collisions.
+    const tempId = `temp-${Date.now()}-${tempIdCounterRef.current}`;
+    tempIdCounterRef.current += 1;
+
+    setValue('dependents', [...dependents, { id: tempId, name: '' }], {
       shouldDirty: true,
     });
   };
@@ -124,14 +190,25 @@ export default function DependentDetailsScreen() {
           <View style={styles.actionsContainer}>
             <View style={styles.primaryButtonWrapper}>
               <PrimaryButton
-                label="Salvar Mudanças"
+                label={isSubmitting ? 'Salvando...' : 'Salvar Mudanças'}
                 onPress={handleSubmit(onSubmit)}
-                icon={<Icon source="check" size={20} color={colors.primary} />}
+                disabled={isSubmitting || isDependentsLoading}
+                icon={
+                  <Icon
+                    source={isSubmitting ? 'loading' : 'check'}
+                    size={20}
+                    color={colors.primary}
+                  />
+                }
                 style={styles.saveButton}
               />
             </View>
 
-            <SecondaryOutlinedButton label="Cancelar" onPress={handleCancel} />
+            <SecondaryOutlinedButton
+              label="Cancelar"
+              onPress={handleCancel}
+              disabled={isSubmitting}
+            />
           </View>
         )}
       </ScrollView>
@@ -153,6 +230,20 @@ export default function DependentDetailsScreen() {
             variant: 'destructive',
             icon: 'check',
             onPress: handleConfirmDelete,
+          },
+        ]}
+      />
+
+      <AppDialog
+        visible={!!submitError}
+        title="Erro ao salvar"
+        description={submitError || ''}
+        onRequestClose={() => setSubmitError(null)}
+        actions={[
+          {
+            label: 'Ok',
+            icon: 'check',
+            onPress: () => setSubmitError(null),
           },
         ]}
       />
