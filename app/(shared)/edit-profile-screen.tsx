@@ -18,7 +18,7 @@ import { CircleIconButton } from '@/components/general/circle-icon-button';
 import { EditableProfilePicture } from '@/components/profile/editable-profile-picture';
 import { PrimaryButton } from '@/components/general/primary-button';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
-import { editProfileSchema, type EditProfileFormData } from '@/schemas/edit-profile.schema';
+import { createEditProfileSchema, type EditProfileFormData } from '@/schemas/edit-profile.schema';
 import { formatCpf, formatPhone, onlyDigits } from '@/lib/formatters';
 import { useUser } from '@/hooks/use-user';
 import { useUpdateUser } from '@/hooks/use-update-user';
@@ -30,6 +30,7 @@ import { typography } from '@/styles/typography';
 export default function EditProfileScreen() {
   const router = useRouter();
   const sessionUser = useSessionStore((s) => s.user);
+  const isDriver = sessionUser?.role === 'driver';
   const updateSessionUser = useSessionStore((s) => s.updateUser);
   const localPhotoUri = useSessionStore((s) => s.localPhotoUri);
   const setLocalPhotoUri = useSessionStore((s) => s.setLocalPhotoUri);
@@ -48,10 +49,10 @@ export default function EditProfileScreen() {
     reset,
     formState: { errors, isDirty },
   } = useForm<EditProfileFormData>({
-    resolver: zodResolver(editProfileSchema),
+    resolver: zodResolver(createEditProfileSchema(isDriver)),
     defaultValues: {
       name: sessionUser?.name ?? '',
-      cpf: formatCpf(sessionUser?.cpf ?? ''),
+      cpf: isDriver ? formatCpf(sessionUser?.cpf ?? '') : undefined,
       phone: formatPhone(sessionUser?.phone ?? ''),
       password: '',
     },
@@ -62,7 +63,7 @@ export default function EditProfileScreen() {
     if (!freshUser) return;
     reset({
       name: freshUser.name,
-      cpf: formatCpf(freshUser.cpf ?? ''),
+      cpf: isDriver ? formatCpf(freshUser.cpf ?? '') : undefined,
       phone: formatPhone(freshUser.phone),
       password: '',
     });
@@ -81,7 +82,7 @@ export default function EditProfileScreen() {
         id: sessionUser.id,
         data: {
           name: data.name,
-          cpf: data.cpf, // formatado (ex: 999.999.999-99) conforme esperado pelo backend
+          ...(isDriver ? { cpf: data.cpf } : {}),
           phone: onlyDigits(data.phone), // apenas dígitos (ex: 5551999999999)
           ...(data.password ? { password: data.password } : {}),
           ...(photo_url ? { photo_url } : {}),
@@ -98,7 +99,7 @@ export default function EditProfileScreen() {
       setPendingPhotoUri(null);
       reset({
         name: updated.name,
-        cpf: formatCpf(updated.cpf ?? ''),
+        cpf: isDriver ? formatCpf(updated.cpf ?? '') : undefined,
         phone: formatPhone(updated.phone),
         password: '',
       });
@@ -171,22 +172,24 @@ export default function EditProfileScreen() {
                 )}
               />
 
-              <Controller
-                control={control}
-                name="cpf"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <AppTextField
-                    label="CPF"
-                    value={value}
-                    onBlur={onBlur}
-                    onChangeText={(text) => onChange(formatCpf(text))}
-                    errorMessage={errors.cpf?.message}
-                    keyboardType="numeric"
-                    maxLength={14}
-                    editable={!isFetchingUser}
-                  />
-                )}
-              />
+              {isDriver && (
+                <Controller
+                  control={control}
+                  name="cpf"
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <AppTextField
+                      label="CPF"
+                      value={value ?? ''}
+                      onBlur={onBlur}
+                      onChangeText={(text) => onChange(formatCpf(text))}
+                      errorMessage={errors.cpf?.message}
+                      keyboardType="numeric"
+                      maxLength={14}
+                      editable={!isFetchingUser}
+                    />
+                  )}
+                />
+              )}
 
               <Controller
                 control={control}
@@ -211,6 +214,7 @@ export default function EditProfileScreen() {
                 render={({ field: { onChange, onBlur, value } }) => (
                   <AppTextField
                     label="Nova senha"
+                    placeholder="Mínimo 6 caracteres"
                     value={value}
                     onBlur={onBlur}
                     onChangeText={onChange}
