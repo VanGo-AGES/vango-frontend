@@ -14,7 +14,7 @@ import { AuthHeader } from '@/components/auth/auth-header';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 import { useCreateUser } from '@/hooks/use-create-user';
-import { formatPhone, onlyDigits } from '@/lib/formatters';
+import { formatPhone, onlyDigits, PHONE_REGEX } from '@/lib/formatters';
 import { ApiError } from '@/services/api';
 import { useSessionStore } from '@/store/session.store';
 
@@ -31,7 +31,6 @@ enum RegisterBasicInfoErrorMessage {
 }
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PHONE_REGEX = /^\+55\s\d{2}\s\d{5}-\d{4}$/;
 
 const registerBasicInfoSchema = z.object({
   email: z

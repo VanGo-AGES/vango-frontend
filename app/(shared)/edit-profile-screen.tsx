@@ -81,8 +81,8 @@ export default function EditProfileScreen() {
         id: sessionUser.id,
         data: {
           name: data.name,
-          cpf: data.cpf, // formatado (ex: 999.999.999-99) conforme esperado pelo backend
-          phone: onlyDigits(data.phone), // apenas dígitos (ex: 5551999999999)
+          cpf: data.cpf,
+          phone: onlyDigits(data.phone),
           ...(data.password ? { password: data.password } : {}),
           ...(photo_url ? { photo_url } : {}),
         },
