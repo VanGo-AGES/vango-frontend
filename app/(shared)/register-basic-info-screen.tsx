@@ -14,6 +14,7 @@ import { AuthHeader } from '@/components/auth/auth-header';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 import { useCreateUser } from '@/hooks/use-create-user';
+import { formatPhone, onlyDigits, PHONE_REGEX } from '@/lib/formatters';
 import { ApiError } from '@/services/api';
 import { useSessionStore } from '@/store/session.store';
 
@@ -30,7 +31,6 @@ enum RegisterBasicInfoErrorMessage {
 }
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PHONE_REGEX = /^\+55\s\d{2}\s\d{5}-\d{4}$/;
 
 const registerBasicInfoSchema = z.object({
   email: z
@@ -63,7 +63,7 @@ export default function RegisterBasicInfoScreen() {
   const router = useRouter();
   const { userType } = useLocalSearchParams<{ userType?: string }>();
   const { mutateAsync, isPending } = useCreateUser();
-  const setDriver = useSessionStore((state) => state.setDriver);
+  const setUser = useSessionStore((s) => s.setUser);
 
   const [requiredDialogVisible, setRequiredDialogVisible] = useState(false);
 
@@ -74,7 +74,7 @@ export default function RegisterBasicInfoScreen() {
     handleSubmit,
     watch,
     setError,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<RegisterBasicInfoFormData>({
     resolver: zodResolver(registerBasicInfoSchema),
     defaultValues: {
@@ -89,37 +89,6 @@ export default function RegisterBasicInfoScreen() {
   const watchedPassword = watch('password');
   const watchedName = watch('name');
   const watchedPhone = watch('phone');
-
-  const formatPhone = (value: string) => {
-    const digits = value.replace(/\D/g, '').slice(0, 13);
-
-    if (!digits) {
-      return '';
-    }
-
-    const normalizedDigits = digits.startsWith('55') ? digits : `55${digits}`.slice(0, 13);
-
-    const country = normalizedDigits.slice(0, 2);
-    const areaCode = normalizedDigits.slice(2, 4);
-    const firstPart = normalizedDigits.slice(4, 9);
-    const secondPart = normalizedDigits.slice(9, 13);
-
-    let formatted = `+${country}`;
-
-    if (areaCode) {
-      formatted += ` ${areaCode}`;
-    }
-
-    if (firstPart) {
-      formatted += ` ${firstPart}`;
-    }
-
-    if (secondPart) {
-      formatted += `-${secondPart}`;
-    }
-
-    return formatted;
-  };
 
   const handleLoginPress = () => {
     // TODO: substituir por /login quando o fluxo de login for implementado
@@ -138,19 +107,25 @@ export default function RegisterBasicInfoScreen() {
     }
   };
 
-  const stripPhone = (phone: string) => phone.replace(/\D/g, '');
-
   const onSubmit = async (data: RegisterBasicInfoFormData) => {
     try {
       const response = await mutateAsync({
         name: data.name.trim(),
         email: data.email.trim().toLowerCase(),
-        phone: stripPhone(data.phone),
+        phone: onlyDigits(data.phone),
         password: data.password,
         role: resolvedUserType,
       });
 
-      setDriver({ id: response.id, name: response.name, token: '' });
+      setUser({
+        id: response.id,
+        name: response.name,
+        email: response.email,
+        phone: response.phone,
+        cpf: response.cpf,
+        role: response.role,
+        photo_url: response.photo_url,
+      });
 
       const nextRoute =
         resolvedUserType === 'driver'
@@ -264,6 +239,7 @@ export default function RegisterBasicInfoScreen() {
                   }
                 }}
                 keyboardType="phone-pad"
+                maxLength={17}
                 errorMessage={errors.phone?.message}
               />
             )}

@@ -118,7 +118,12 @@ export default function OnboardingScreen() {
         <View style={styles.textBlock}>
           <Text style={styles.brand}>VanGO</Text>
 
-          <Text style={[styles[page.titleVariant], isLastPage && styles.lastTitle]}>
+          <Text
+            style={[styles[page.titleVariant], isLastPage && styles.lastTitle]}
+            adjustsFontSizeToFit={isLastPage}
+            minimumFontScale={0.6}
+            numberOfLines={isLastPage ? 3 : undefined}
+          >
             {page.title}
           </Text>
         </View>

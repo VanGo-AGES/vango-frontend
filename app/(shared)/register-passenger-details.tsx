@@ -1,29 +1,37 @@
 import { useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 import { AuthHeader } from '@/components/auth/auth-header';
 import AppDialog from '@/components/general/app-dialog';
+import { AppScreenContainer } from '@/components/general/app-screen-container';
 import { PrimaryButton } from '@/components/general/primary-button';
 import { DependentInputRow } from '@/components/passenger/dependent-input-row';
-import { type Dependent } from '@/components/passenger/dependent-list';
+import { useDependentsMutation } from '@/hooks/use-dependents';
+import { ApiError } from '@/services/api';
+import type { Dependent } from '@/types/dependents.types';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
 export default function PassengerDependentsScreen() {
-  const router = useRouter();
   const insets = useSafeAreaInsets();
 
   const [hasDependents, setHasDependents] = useState<boolean | null>(false);
   const [dependents, setDependents] = useState<Dependent[]>([]);
   const [showRequiredDialog, setShowRequiredDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [pendingDependentsAfterDelete, setPendingDependentsAfterDelete] = useState<
     Dependent[] | null
   >(null);
 
   const skipNextDeleteDialog = useRef(false);
+  const { applyDiff, isPending } = useDependentsMutation();
+
+  const hasInvalidDependents =
+    hasDependents === true && dependents.some((dep) => dep.name.trim() === '');
 
   const handleChangeHasDependents = (value: boolean) => {
     setHasDependents(value);
@@ -61,7 +69,6 @@ export default function PassengerDependentsScreen() {
     if (pendingDependentsAfterDelete) {
       setDependents(pendingDependentsAfterDelete);
     }
-
     setPendingDependentsAfterDelete(null);
     setShowDeleteDialog(false);
   };
@@ -71,33 +78,40 @@ export default function PassengerDependentsScreen() {
     setShowDeleteDialog(false);
   };
 
-  const hasInvalidDependents =
-    hasDependents === true && dependents.some((dep) => dep.name.trim() === '');
-
-  const getDialogMessage = () => {
-    if (hasInvalidDependents) {
-      return 'Preencha o nome de todos os dependentes para continuar.';
-    }
-
-    return '';
-  };
-
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (hasInvalidDependents) {
       setShowRequiredDialog(true);
       return;
+    }
+
+    if (hasDependents && dependents.length > 0) {
+      setSubmitError(null);
+      try {
+        await applyDiff({
+          toCreate: dependents.map((dep) => ({ ...dep, name: dep.name.trim() })),
+          toUpdate: [],
+          toDelete: [],
+        });
+      } catch (error) {
+        let errorMessage = 'Erro ao cadastrar dependentes.';
+        if (error instanceof ApiError && typeof error.detail === 'string' && error.detail) {
+          errorMessage = error.detail;
+        }
+        setSubmitError(errorMessage);
+        return;
+      }
     }
 
     router.push({ pathname: '/register-success', params: { userType: 'passenger' } });
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <AppScreenContainer backgroundColor={colors.primary} style={styles.container}>
       <AuthHeader title="Cadastro" subtitle="Comece sua jornada na VanGO" showBackButton />
 
       <View
         style={[
-          styles.content_card,
+          styles.contentCard,
           {
             marginBottom: -insets.bottom,
             paddingBottom: 32 + insets.bottom,
@@ -105,8 +119,8 @@ export default function PassengerDependentsScreen() {
         ]}
       >
         <View>
-          <Text style={styles.section_title}>Você possui dependentes?</Text>
-          <Text style={styles.section_subtitle}>
+          <Text style={styles.sectionTitle}>Você possui dependentes?</Text>
+          <Text style={styles.sectionSubtitle}>
             Isso nos ajuda a ajustar recomendações para você
           </Text>
 
@@ -126,11 +140,12 @@ export default function PassengerDependentsScreen() {
           </View>
         </View>
 
-        <View style={styles.button_wrapper}>
+        <View style={styles.buttonWrapper}>
           <PrimaryButton
-            label="Finalizar"
+            label={isPending ? 'Salvando...' : 'Finalizar'}
             variant="secondary"
             onPress={handleSubmit}
+            disabled={isPending}
             icon={<MaterialIcons name="arrow-forward" size={20} color={colors.light} />}
           />
         </View>
@@ -139,7 +154,7 @@ export default function PassengerDependentsScreen() {
       <AppDialog
         visible={showRequiredDialog}
         title="Campo obrigatório"
-        description={getDialogMessage()}
+        description="Preencha o nome de todos os dependentes para continuar."
         onRequestClose={() => setShowRequiredDialog(false)}
         actions={[
           {
@@ -170,17 +185,29 @@ export default function PassengerDependentsScreen() {
           },
         ]}
       />
-    </SafeAreaView>
+
+      <AppDialog
+        visible={!!submitError}
+        title="Erro ao salvar"
+        description={submitError ?? ''}
+        onRequestClose={() => setSubmitError(null)}
+        actions={[
+          {
+            label: 'Ok',
+            icon: 'check',
+            onPress: () => setSubmitError(null),
+          },
+        ]}
+      />
+    </AppScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: colors.primary,
+    padding: 0,
   },
-
-  content_card: {
+  contentCard: {
     flex: 1,
     paddingHorizontal: 24,
     marginTop: 44,
@@ -190,30 +217,25 @@ const styles = StyleSheet.create({
     backgroundColor: colors.light,
     justifyContent: 'space-between',
   },
-
-  section_title: {
+  sectionTitle: {
     marginBottom: 16,
     textAlign: 'center',
     color: colors.dark,
     ...typography.header3,
   },
-
-  section_subtitle: {
+  sectionSubtitle: {
     marginBottom: 32,
     textAlign: 'center',
     color: colors.text,
     ...typography.body,
   },
-
   dependentsScrollWrapper: {
     maxHeight: 320,
   },
-
   dependentsScrollContent: {
     paddingBottom: 8,
   },
-
-  button_wrapper: {
+  buttonWrapper: {
     alignSelf: 'center',
   },
 });

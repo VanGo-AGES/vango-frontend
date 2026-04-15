@@ -1,5 +1,5 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -15,6 +15,17 @@ import AppDialog from '@/components/general/app-dialog';
 import { AppTextField } from '@/components/general/app-text-field';
 import { PrimaryButton } from '@/components/general/primary-button';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
+import { useCreateVehicle } from '@/hooks/use-create-vehicle';
+import { useUpdateUser } from '@/hooks/use-update-user';
+import {
+  formatCpf,
+  isValidBrazilianPlate,
+  isValidCpf,
+  normalizePlate,
+  onlyDigits,
+} from '@/lib/formatters';
+import { ApiError } from '@/services/api';
+import { useSessionStore } from '@/store/session.store';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
@@ -22,49 +33,12 @@ type FieldName = 'cpf' | 'passengerCount' | 'plate' | 'vehicleModel';
 
 const MAX_PASSENGERS = 20;
 
-const onlyDigits = (value: string) => value.replace(/\D/g, '');
-
-const formatCpf = (value: string) => {
-  const digits = onlyDigits(value).slice(0, 11);
-
-  if (digits.length <= 3) return digits;
-  if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
-  if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
-
-  return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
-};
-
-const isValidCpf = (value: string) => {
-  const digits = onlyDigits(value);
-
-  if (digits.length !== 11) return false;
-  if (/^(\d)\1{10}$/.test(digits)) return false;
-
-  const calcDigit = (slice: string, weights: number[]) => {
-    const sum = slice.split('').reduce((acc, d, i) => acc + Number(d) * weights[i], 0);
-    const remainder = sum % 11;
-    return remainder < 2 ? 0 : 11 - remainder;
-  };
-
-  const first = calcDigit(digits.slice(0, 9), [10, 9, 8, 7, 6, 5, 4, 3, 2]);
-  if (first !== Number(digits[9])) return false;
-
-  const second = calcDigit(digits.slice(0, 10), [11, 10, 9, 8, 7, 6, 5, 4, 3, 2]);
-  return second === Number(digits[10]);
-};
-
-const normalizePlate = (value: string) => value.toUpperCase().replace(/\s/g, '');
-
-const isValidBrazilianPlate = (value: string) => {
-  const plate = normalizePlate(value).replace(/-/g, '');
-  const oldPattern = /^[A-Z]{3}[0-9]{4}$/;
-  const mercosulPattern = /^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/;
-
-  return oldPattern.test(plate) || mercosulPattern.test(plate);
-};
-
 export default function RegisterDriverDetailsScreen() {
   const router = useRouter();
+  const { userId } = useLocalSearchParams<{ userId?: string }>();
+  const updateSessionUser = useSessionStore((s) => s.updateUser);
+  const { mutateAsync: updateUser, isPending: isUpdatingUser } = useUpdateUser();
+  const { mutateAsync: createVehicle, isPending: isCreatingVehicle } = useCreateVehicle();
 
   const [cpf, setCpf] = useState('');
   const [passengerCount, setPassengerCount] = useState('');
@@ -72,6 +46,9 @@ export default function RegisterDriverDetailsScreen() {
   const [vehicleModel, setVehicleModel] = useState('');
   const [showRequiredFieldsDialog, setShowRequiredFieldsDialog] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<FieldName, string>>>({});
+  const [requestError, setRequestError] = useState<string | null>(null);
+
+  const isSubmitting = isUpdatingUser || isCreatingVehicle;
 
   const validateField = (field: FieldName, value: string) => {
     const trimmedValue = value.trim();
@@ -120,22 +97,52 @@ export default function RegisterDriverDetailsScreen() {
     return Object.keys(onlyErrors).length === 0;
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     const isFormValid = validateForm();
 
     if (!isFormValid) {
       const hasRequiredFieldError = [cpf, passengerCount, plate, vehicleModel].some(
         (value) => !value.trim(),
       );
-
       if (hasRequiredFieldError) {
         setShowRequiredFieldsDialog(true);
       }
-
       return;
     }
 
-    router.push({ pathname: '/register-success', params: { userType: 'driver' } });
+    if (!userId) {
+      setRequestError('Não foi possível identificar o usuário do cadastro.');
+      return;
+    }
+
+    try {
+      const updated = await updateUser({ id: userId, data: { cpf } });
+      updateSessionUser({ cpf: updated.cpf });
+      await createVehicle({
+        plate,
+        capacity: Number(passengerCount),
+        notes: vehicleModel,
+      });
+      router.push({ pathname: '/register-success', params: { userType: 'driver' } });
+    } catch (error) {
+      let message = 'Erro ao finalizar cadastro do motorista.';
+
+      if (error instanceof ApiError) {
+        if (typeof error.detail === 'string') {
+          message = error.detail;
+        } else if (Array.isArray(error.detail) && error.detail.length > 0) {
+          const first = error.detail[0];
+          message =
+            first && typeof first === 'object' && 'msg' in first
+              ? String(first.msg)
+              : 'Dados inválidos enviados ao servidor.';
+        } else {
+          message = 'Não foi possível finalizar o cadastro.';
+        }
+      }
+
+      setRequestError(message);
+    }
   };
 
   return (
@@ -208,7 +215,7 @@ export default function RegisterDriverDetailsScreen() {
                 }
                 autoCapitalize="characters"
                 placeholder="Placa do veículo"
-                maxLength={8}
+                maxLength={7}
                 errorMessage={fieldErrors.plate}
               />
 
@@ -229,8 +236,9 @@ export default function RegisterDriverDetailsScreen() {
 
             <View style={styles.footer}>
               <PrimaryButton
-                label="Finalizar"
+                label={isSubmitting ? 'Finalizando...' : 'Finalizar'}
                 onPress={handleContinue}
+                disabled={isSubmitting}
                 labelColor={colors.light}
                 icon={<MaterialIcons name="arrow-forward" size={18} color={colors.light} />}
                 style={styles.nextButton}
@@ -250,6 +258,20 @@ export default function RegisterDriverDetailsScreen() {
             label: 'Ok',
             icon: 'check',
             onPress: () => setShowRequiredFieldsDialog(false),
+          },
+        ]}
+      />
+
+      <AppDialog
+        visible={!!requestError}
+        title="Erro ao finalizar"
+        description={requestError ?? ''}
+        onRequestClose={() => setRequestError(null)}
+        actions={[
+          {
+            label: 'Ok',
+            icon: 'check',
+            onPress: () => setRequestError(null),
           },
         ]}
       />
