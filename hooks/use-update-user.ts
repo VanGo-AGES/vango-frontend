@@ -1,15 +1,15 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { updateUser } from '@/services/user.service';
 import type { UpdateUserRequest } from '@/types/user.types';
 
-type UpdateUserParams = {
-  userId: string;
-  data: UpdateUserRequest;
-};
-
 export function useUpdateUser() {
+  const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: ({ userId, data }: UpdateUserParams) => updateUser(userId, data),
+    mutationFn: ({ id, data }: { id: string; data: UpdateUserRequest }) => updateUser(id, data),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ['user', id] });
+    },
   });
 }

@@ -1,6 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Controller, type FieldErrors, useForm } from 'react-hook-form';
 import {
@@ -15,11 +14,14 @@ import {
 } from 'react-native';
 import { z } from 'zod';
 
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 import AppDialog from '@/components/general/app-dialog';
 import { AppTextField } from '@/components/general/app-text-field';
 import { PrimaryButton } from '@/components/general/primary-button';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
 import { SectionHeader } from '@/components/route/section-header';
+import { onlyDigits } from '@/lib/formatters';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
@@ -59,9 +61,9 @@ const vehicleDetailsSchema = z.object({
 type VehicleDetailsFormData = z.infer<typeof vehicleDetailsSchema>;
 
 const defaultValues: VehicleDetailsFormData = {
-  passengerCount: '00',
-  vehiclePlate: 'BRA2E26',
-  vehicleModel: 'Mercedes-Benz Sprinter 417',
+  passengerCount: '',
+  vehiclePlate: '',
+  vehicleModel: '',
 };
 
 type DialogState = {
@@ -76,10 +78,6 @@ const initialDialogState: DialogState = {
   description: '',
 };
 
-function formatPassengerCount(value: string) {
-  return value.replace(/\D/g, '').slice(0, 2);
-}
-
 function normalizePlate(value: string) {
   return value
     .replace(/[^A-Za-z0-9]/g, '')
@@ -88,7 +86,7 @@ function normalizePlate(value: string) {
 }
 
 export default function VehicleDetailsScreen() {
-  const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const {
     control,
@@ -157,6 +155,7 @@ export default function VehicleDetailsScreen() {
   };
 
   const onSubmit = (data: VehicleDetailsFormData) => {
+    // TODO: integrar com serviço de veículo quando o endpoint estiver disponível no backend
     reset(data);
   };
 
@@ -202,7 +201,7 @@ export default function VehicleDetailsScreen() {
                       label="Número de passageiros"
                       value={value}
                       onBlur={onBlur}
-                      onChangeText={(text) => onChange(formatPassengerCount(text))}
+                      onChangeText={(text) => onChange(onlyDigits(text).slice(0, 2))}
                       onSubmitEditing={() => setFocus('vehiclePlate')}
                       keyboardType="numeric"
                       maxLength={2}
@@ -255,7 +254,7 @@ export default function VehicleDetailsScreen() {
         </View>
 
         {!isKeyboardVisible && (
-          <View style={styles.actions}>
+          <View style={[styles.actions, { paddingBottom: insets.bottom + 32 }]}>
             {isDirty ? (
               <>
                 <PrimaryButton
@@ -346,7 +345,7 @@ const styles = StyleSheet.create({
   actions: {
     alignItems: 'center',
     gap: 12,
-    paddingBottom: 82,
+    // paddingBottom é definido via inline style com insets.bottom + 32
     backgroundColor: colors.light,
     justifyContent: 'center',
   },

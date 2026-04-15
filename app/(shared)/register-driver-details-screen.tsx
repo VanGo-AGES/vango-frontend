@@ -15,46 +15,16 @@ import AppDialog from '@/components/general/app-dialog';
 import { AppTextField } from '@/components/general/app-text-field';
 import { PrimaryButton } from '@/components/general/primary-button';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
-import { useCreateVehicle } from '@/hooks/use-create-vehicle';
 import { useUpdateUser } from '@/hooks/use-update-user';
+import { formatCpf, isValidCpf, onlyDigits } from '@/lib/formatters';
 import { ApiError } from '@/services/api';
+import { useSessionStore } from '@/store/session.store';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
 type FieldName = 'cpf' | 'passengerCount' | 'plate' | 'vehicleModel';
 
 const MAX_PASSENGERS = 20;
-
-const onlyDigits = (value: string) => value.replace(/\D/g, '');
-
-const formatCpf = (value: string) => {
-  const digits = onlyDigits(value).slice(0, 11);
-
-  if (digits.length <= 3) return digits;
-  if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
-  if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
-
-  return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
-};
-
-const isValidCpf = (value: string) => {
-  const digits = onlyDigits(value);
-
-  if (digits.length !== 11) return false;
-  if (/^(\d)\1{10}$/.test(digits)) return false;
-
-  const calcDigit = (slice: string, weights: number[]) => {
-    const sum = slice.split('').reduce((acc, d, i) => acc + Number(d) * weights[i], 0);
-    const remainder = sum % 11;
-    return remainder < 2 ? 0 : 11 - remainder;
-  };
-
-  const first = calcDigit(digits.slice(0, 9), [10, 9, 8, 7, 6, 5, 4, 3, 2]);
-  if (first !== Number(digits[9])) return false;
-
-  const second = calcDigit(digits.slice(0, 10), [11, 10, 9, 8, 7, 6, 5, 4, 3, 2]);
-  return second === Number(digits[10]);
-};
 
 const normalizePlate = (value: string) => value.toUpperCase().replace(/\s/g, '');
 
@@ -69,9 +39,8 @@ const isValidBrazilianPlate = (value: string) => {
 export default function RegisterDriverDetailsScreen() {
   const router = useRouter();
   const { userId } = useLocalSearchParams<{ userId?: string }>();
-
-  const { mutateAsync: updateUserMutate, isPending: isUpdatingUser } = useUpdateUser();
-  const { mutateAsync: createVehicleMutate, isPending: isCreatingVehicle } = useCreateVehicle();
+  const updateSessionUser = useSessionStore((s) => s.updateUser);
+  const { mutateAsync: updateUser, isPending: isUpdatingUser } = useUpdateUser();
 
   const [cpf, setCpf] = useState('');
   const [passengerCount, setPassengerCount] = useState('');
@@ -81,7 +50,7 @@ export default function RegisterDriverDetailsScreen() {
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<FieldName, string>>>({});
   const [requestError, setRequestError] = useState<string | null>(null);
 
-  const isSubmitting = isUpdatingUser || isCreatingVehicle;
+  const isSubmitting = isUpdatingUser;
 
   const validateField = (field: FieldName, value: string) => {
     const trimmedValue = value.trim();
@@ -131,9 +100,15 @@ export default function RegisterDriverDetailsScreen() {
   };
 
   const handleContinue = async () => {
-    if (!validateForm()) {
-      const hasEmpty = [cpf, passengerCount, plate, vehicleModel].some((v) => !v.trim());
-      if (hasEmpty) setShowRequiredFieldsDialog(true);
+    const isFormValid = validateForm();
+
+    if (!isFormValid) {
+      const hasRequiredFieldError = [cpf, passengerCount, plate, vehicleModel].some(
+        (value) => !value.trim(),
+      );
+      if (hasRequiredFieldError) {
+        setShowRequiredFieldsDialog(true);
+      }
       return;
     }
 
@@ -143,22 +118,8 @@ export default function RegisterDriverDetailsScreen() {
     }
 
     try {
-      setRequestError(null);
-
-      await updateUserMutate({
-        userId,
-        data: { cpf: onlyDigits(cpf) },
-      });
-
-      await createVehicleMutate({
-        userId,
-        data: {
-          plate: normalizePlate(plate),
-          capacity: Number(passengerCount),
-          notes: vehicleModel.trim(),
-        },
-      });
-
+      const updated = await updateUser({ id: userId, data: { cpf } });
+      updateSessionUser({ cpf: updated.cpf });
       router.push({ pathname: '/register-success', params: { userType: 'driver' } });
     } catch (error) {
       let message = 'Erro ao finalizar cadastro do motorista.';

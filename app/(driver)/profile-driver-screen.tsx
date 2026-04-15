@@ -4,11 +4,13 @@ import { ProfileSummaryCard } from '@/components/profile/profile-summary-card';
 import { ProfileMenuSection } from '@/components/profile/profile-menu-section';
 import { colors } from '@/styles/colors';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
 import { AuthHeader } from '@/components/auth/auth-header';
 
 export default function ProfileDriverScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   return (
     <AppScreenContainer backgroundColor={colors.accent} style={styles.container}>
@@ -27,7 +29,7 @@ export default function ProfileDriverScreen() {
         </View>
       </View>
 
-      <View style={styles.bottomSheet}>
+      <View style={[styles.bottomSheet, { marginBottom: -(insets.bottom + 24) }]}>
         <ProfileSummaryCard />
 
         <View style={styles.divider} />
@@ -71,7 +73,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.light,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    marginBottom: -60,
+    // marginBottom é definido via inline style com -(insets.bottom + 24)
     paddingHorizontal: 55,
     paddingTop: 32,
   },

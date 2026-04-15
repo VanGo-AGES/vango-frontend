@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
-import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
+import { Animated, Easing, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PrimaryButton } from '@/components/general/primary-button';
 import { BottomVersionInfo } from '@/components/general/bottom-version-info';
@@ -33,6 +34,8 @@ const pages: OnboardingPage[] = [
 
 export default function OnboardingScreen() {
   const router = useRouter();
+  const { height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const [currentPage, setCurrentPage] = useState(0);
   const [slideDirection, setSlideDirection] = useState<1 | -1>(1);
   const transition = useRef(new Animated.Value(1)).current;
@@ -98,13 +101,29 @@ export default function OnboardingScreen() {
 
   return (
     <AppScreenContainer backgroundColor={colors.primary} style={styles.container}>
-      <AppLogo variant="light" width={64.86} height={50} style={styles.topLogo} />
+      <AppLogo
+        variant="light"
+        width={64.86}
+        height={50}
+        style={[styles.topLogo, { top: insets.top + 16 }]}
+      />
 
-      <Animated.View style={[styles.content, isLastPage && styles.contentLast, animatedSlideStyle]}>
+      <Animated.View
+        style={[
+          styles.content,
+          isLastPage && { justifyContent: 'flex-start', paddingTop: height * 0.22 },
+          animatedSlideStyle,
+        ]}
+      >
         <View style={styles.textBlock}>
           <Text style={styles.brand}>VanGO</Text>
 
-          <Text style={[styles[page.titleVariant], isLastPage && styles.lastTitle]}>
+          <Text
+            style={[styles[page.titleVariant], isLastPage && styles.lastTitle]}
+            adjustsFontSizeToFit={isLastPage}
+            minimumFontScale={0.6}
+            numberOfLines={isLastPage ? 3 : undefined}
+          >
             {page.title}
           </Text>
         </View>
@@ -164,14 +183,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
   },
-  contentLast: {
-    justifyContent: 'flex-start',
-    paddingTop: 180,
-  },
   topLogo: {
     position: 'absolute',
-    top: 92,
     left: 24,
+    // top is set dynamically via inline style using insets.top + 16
   },
   textBlock: {
     gap: 16,
@@ -205,13 +220,15 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   lastControlsRow: {
-    marginTop: 56,
+    marginTop: 40,
     flexDirection: 'row',
     justifyContent: 'flex-start',
     alignItems: 'center',
   },
   lastFooter: {
-    gap: 100,
+    flex: 1,
+    justifyContent: 'space-between',
+    paddingBottom: 80,
   },
   lastActionsRow: {
     flexDirection: 'row',
@@ -219,9 +236,6 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   versionInfo: {
-    position: 'absolute',
-    left: 24,
-    right: 24,
-    bottom: 62,
+    // flui normalmente no layout — sem position absolute
   },
 });

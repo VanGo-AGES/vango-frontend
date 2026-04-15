@@ -10,12 +10,29 @@ export class ApiError extends Error {
   }
 }
 
-async function parseResponse<TResponse>(response: Response): Promise<TResponse> {
+async function handleResponse<TResponse>(response: Response): Promise<TResponse> {
   if (!response.ok) {
     const error = await response.json().catch(() => ({ detail: 'Erro inesperado' }));
     throw new ApiError(response.status, error.detail ?? 'Erro inesperado');
   }
-  return response.json();
+
+  if (response.status === 204) {
+    return undefined as TResponse;
+  }
+
+  return await response.json();
+}
+
+export async function apiGet<TResponse>(
+  path: string,
+  headers?: Record<string, string>,
+): Promise<TResponse> {
+  const response = await fetch(`${BASE_URL}${path}`, {
+    method: 'GET',
+    headers: { ...headers },
+  });
+
+  return handleResponse<TResponse>(response);
 }
 
 export async function apiPost<TBody, TResponse>(
@@ -28,7 +45,8 @@ export async function apiPost<TBody, TResponse>(
     headers: { 'Content-Type': 'application/json', ...headers },
     body: JSON.stringify(body),
   });
-  return parseResponse<TResponse>(response);
+
+  return handleResponse<TResponse>(response);
 }
 
 export async function apiPut<TBody, TResponse>(
@@ -38,8 +56,33 @@ export async function apiPut<TBody, TResponse>(
 ): Promise<TResponse> {
   const response = await fetch(`${BASE_URL}${path}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json', ...headers },
+    headers: {
+      'Content-Type': 'application/json',
+      ...headers,
+    },
     body: JSON.stringify(body),
   });
-  return parseResponse<TResponse>(response);
+
+  return handleResponse<TResponse>(response);
+}
+
+export async function apiDelete<TResponse>(
+  path: string,
+  headers?: Record<string, string>,
+): Promise<TResponse> {
+  const response = await fetch(`${BASE_URL}${path}`, {
+    method: 'DELETE',
+    headers: { ...headers },
+  });
+
+  return handleResponse<TResponse>(response);
+}
+
+export async function apiUpload<TResponse>(path: string, formData: FormData): Promise<TResponse> {
+  const response = await fetch(`${BASE_URL}${path}`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  return handleResponse<TResponse>(response);
 }
