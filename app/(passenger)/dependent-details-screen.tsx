@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { router } from 'expo-router';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { Icon } from 'react-native-paper';
@@ -12,8 +12,6 @@ import { AppScreenContainer } from '@/components/general/app-screen-container';
 import { SectionHeader } from '@/components/route/section-header';
 import { SecondaryOutlinedButton } from '@/components/general/secondary-outlined-button';
 import { DependentList } from '@/components/passenger/dependent-list';
-import { colors } from '@/styles/colors';
-import { typography } from '@/styles/typography';
 import { SubtleOutlinedButton } from '@/components/general/subtle-outlined-button';
 import {
   useDependents,
@@ -21,6 +19,8 @@ import {
   calculateDependentsDiff,
 } from '@/hooks/use-dependents';
 import { ApiError } from '@/services/api';
+import { colors } from '@/styles/colors';
+import { typography } from '@/styles/typography';
 import type { Dependent } from '@/types/dependents.types';
 
 const dependentSchema = z.object({
@@ -34,15 +34,23 @@ const dependentSchema = z.object({
 
 type DependentFormData = z.infer<typeof dependentSchema>;
 
+type DialogState = {
+  visible: boolean;
+  title: string;
+  description: string;
+  onOkPress?: () => void;
+};
+
+const initialDialogState: DialogState = { visible: false, title: '', description: '' };
+
 export default function DependentDetailsScreen() {
-  const router = useRouter();
   const [dependentToDelete, setDependentToDelete] = useState<string | null>(null);
+  const [dialog, setDialog] = useState<DialogState>(initialDialogState);
   const [initialDependents, setInitialDependents] = useState<Dependent[]>([]);
-  const [submitError, setSubmitError] = useState<string | null>(null);
   const tempIdCounterRef = useRef(0);
 
   const { data: loadedDependents, isLoading: isDependentsLoading } = useDependents();
-  const { applyDiff, isPending: isMutationPending } = useDependentsMutation();
+  const { applyDiff, isPending } = useDependentsMutation();
 
   const {
     handleSubmit,
@@ -52,78 +60,63 @@ export default function DependentDetailsScreen() {
     setValue,
   } = useForm<DependentFormData>({
     resolver: zodResolver(dependentSchema),
-    defaultValues: {
-      dependents: [],
-    },
+    defaultValues: { dependents: [] },
   });
 
-  // Load dependents from API on mount
   useEffect(() => {
-    if (loadedDependents) {
-      // Transform DependentResponse to Dependent format for form
-      const formattedDependents: Dependent[] = loadedDependents.map((dep) => ({
-        id: dep.id,
-        name: dep.name,
-      }));
-      setInitialDependents(formattedDependents);
-      reset({ dependents: formattedDependents });
-    }
+    if (!loadedDependents) return;
+    const formatted: Dependent[] = loadedDependents.map((dep) => ({ id: dep.id, name: dep.name }));
+    setInitialDependents(formatted);
+    reset({ dependents: formatted });
   }, [loadedDependents, reset]);
 
   const dependents = watch('dependents');
-  const isSubmitting = isMutationPending;
+
+  const closeDialog = () => setDialog(initialDialogState);
 
   const onSubmit = async (data: DependentFormData) => {
-    setSubmitError(null);
+    const diff = calculateDependentsDiff(initialDependents, data.dependents);
+
+    if (!diff.toCreate.length && !diff.toUpdate.length && !diff.toDelete.length) {
+      reset(data);
+      return;
+    }
 
     try {
-      // Calculate diff between initial and current state
-      const diff = calculateDependentsDiff(initialDependents, data.dependents);
-
-      if (diff.toCreate.length === 0 && diff.toUpdate.length === 0 && diff.toDelete.length === 0) {
-        reset(data);
-        return;
-      }
-
       const idMap = await applyDiff(diff);
 
       const updatedDependents = data.dependents.map((dep) => ({
         ...dep,
-        id: idMap.has(dep.id) ? idMap.get(dep.id)! : dep.id,
+        id: idMap.get(dep.id) ?? dep.id,
       }));
 
       setInitialDependents(updatedDependents);
       reset({ dependents: updatedDependents });
+      setDialog({
+        visible: true,
+        title: 'Sucesso',
+        description: 'Dependentes atualizados com sucesso.',
+        onOkPress: () => router.back(),
+      });
     } catch (error) {
-      let errorMessage = 'Erro ao salvar dependentes';
+      let description = 'Não foi possível salvar os dependentes.';
 
       if (error instanceof ApiError) {
         if (error.status === 403) {
-          errorMessage = 'Você não tem permissão para realizar esta ação';
-        } else if (error.status === 422) {
-          errorMessage = error.detail || 'Dados inválidos. Verifique os nomes dos dependentes';
-        } else if (error.detail) {
-          errorMessage = error.detail;
+          description = 'Você não tem permissão para realizar esta ação.';
+        } else if (typeof error.detail === 'string' && error.detail) {
+          description = error.detail;
         }
       }
 
-      setSubmitError(errorMessage);
+      setDialog({ visible: true, title: 'Erro ao salvar', description });
     }
   };
 
-  const handleCancel = () => {
-    setSubmitError(null);
-    reset();
-  };
-
   const handleAdd = () => {
-    // avoid field/key collisions.
     const tempId = `temp-${Date.now()}-${tempIdCounterRef.current}`;
     tempIdCounterRef.current += 1;
-
-    setValue('dependents', [...dependents, { id: tempId, name: '' }], {
-      shouldDirty: true,
-    });
+    setValue('dependents', [...dependents, { id: tempId, name: '' }], { shouldDirty: true });
   };
 
   const handleChangeName = (id: string, name: string) => {
@@ -134,17 +127,13 @@ export default function DependentDetailsScreen() {
   };
 
   const handleConfirmDelete = () => {
-    if (dependentToDelete) {
-      setValue(
-        'dependents',
-        dependents.filter((d) => d.id !== dependentToDelete),
-        {
-          shouldDirty: true,
-          shouldValidate: true,
-        },
-      );
-      setDependentToDelete(null);
-    }
+    if (!dependentToDelete) return;
+    setValue(
+      'dependents',
+      dependents.filter((d) => d.id !== dependentToDelete),
+      { shouldDirty: true, shouldValidate: true },
+    );
+    setDependentToDelete(null);
   };
 
   return (
@@ -167,7 +156,6 @@ export default function DependentDetailsScreen() {
               <Text style={styles.emptyStateDescription}>
                 Adicione um dependente para gerenciar suas rotas.
               </Text>
-
               <SubtleOutlinedButton
                 label="Adicionar Dependente"
                 icon="plus"
@@ -190,24 +178,19 @@ export default function DependentDetailsScreen() {
           <View style={styles.actionsContainer}>
             <View style={styles.primaryButtonWrapper}>
               <PrimaryButton
-                label={isSubmitting ? 'Salvando...' : 'Salvar Mudanças'}
+                label={isPending ? 'Salvando...' : 'Salvar Mudanças'}
                 onPress={handleSubmit(onSubmit)}
-                disabled={isSubmitting || isDependentsLoading}
+                disabled={isPending || isDependentsLoading}
                 icon={
-                  <Icon
-                    source={isSubmitting ? 'loading' : 'check'}
-                    size={20}
-                    color={colors.primary}
-                  />
+                  <Icon source={isPending ? 'loading' : 'check'} size={20} color={colors.primary} />
                 }
                 style={styles.saveButton}
               />
             </View>
-
             <SecondaryOutlinedButton
               label="Cancelar"
-              onPress={handleCancel}
-              disabled={isSubmitting}
+              onPress={() => reset()}
+              disabled={isPending}
             />
           </View>
         )}
@@ -235,15 +218,16 @@ export default function DependentDetailsScreen() {
       />
 
       <AppDialog
-        visible={!!submitError}
-        title="Erro ao salvar"
-        description={submitError || ''}
-        onRequestClose={() => setSubmitError(null)}
+        visible={dialog.visible}
+        title={dialog.title}
+        description={dialog.description}
+        onRequestClose={closeDialog}
         actions={[
           {
             label: 'Ok',
             icon: 'check',
-            onPress: () => setSubmitError(null),
+            variant: 'default',
+            onPress: dialog.onOkPress ?? closeDialog,
           },
         ]}
       />

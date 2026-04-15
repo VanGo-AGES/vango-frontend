@@ -1,16 +1,9 @@
-/**
- * Utilitários de formatação e validação compartilhados entre telas e schemas.
- * Centraliza as regras de exibição de CPF e telefone para garantir consistência.
- */
+export const PHONE_REGEX = /^\+55\s\d{2}\s\d{5}-\d{4}$/;
 
 export function onlyDigits(value: string): string {
   return value.replace(/\D/g, '');
 }
 
-/**
- * Formata CPF para exibição: "999.999.999-99"
- * O backend armazena e espera o CPF neste formato (String(14)).
- */
 export function formatCpf(value: string): string {
   const digits = onlyDigits(value).slice(0, 11);
 
@@ -20,11 +13,6 @@ export function formatCpf(value: string): string {
     .replace(/\.(\d{3})(\d{1,2})$/, '.$1-$2');
 }
 
-/**
- * Formata telefone para exibição: "+55 51 99999-9999"
- * Sempre inclui o prefixo +55 para consistência com o cadastro.
- * O backend recebe o telefone apenas com dígitos (ex: 5551999999999).
- */
 export function formatPhone(value: string): string {
   const digits = onlyDigits(value).slice(0, 13);
 
@@ -45,10 +33,18 @@ export function formatPhone(value: string): string {
   return formatted;
 }
 
-/**
- * Valida CPF com verificação dos dígitos verificadores.
- * Aceita CPF com ou sem máscara.
- */
+export function normalizePlate(value: string): string {
+  return value
+    .replace(/[^A-Za-z0-9]/g, '')
+    .toUpperCase()
+    .slice(0, 7);
+}
+
+export function isValidBrazilianPlate(value: string): boolean {
+  const plate = normalizePlate(value);
+  return /^[A-Z]{3}[0-9]{4}$/.test(plate) || /^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test(plate);
+}
+
 export function isValidCpf(value: string): boolean {
   const cpf = onlyDigits(value);
 

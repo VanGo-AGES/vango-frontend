@@ -17,7 +17,13 @@ import { PrimaryButton } from '@/components/general/primary-button';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
 import { useCreateVehicle } from '@/hooks/use-create-vehicle';
 import { useUpdateUser } from '@/hooks/use-update-user';
-import { formatCpf, isValidCpf, onlyDigits } from '@/lib/formatters';
+import {
+  formatCpf,
+  isValidBrazilianPlate,
+  isValidCpf,
+  normalizePlate,
+  onlyDigits,
+} from '@/lib/formatters';
 import { ApiError } from '@/services/api';
 import { useSessionStore } from '@/store/session.store';
 import { colors } from '@/styles/colors';
@@ -26,16 +32,6 @@ import { typography } from '@/styles/typography';
 type FieldName = 'cpf' | 'passengerCount' | 'plate' | 'vehicleModel';
 
 const MAX_PASSENGERS = 20;
-
-const normalizePlate = (value: string) => value.toUpperCase().replace(/\s/g, '');
-
-const isValidBrazilianPlate = (value: string) => {
-  const plate = normalizePlate(value).replace(/-/g, '');
-  const oldPattern = /^[A-Z]{3}[0-9]{4}$/;
-  const mercosulPattern = /^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/;
-
-  return oldPattern.test(plate) || mercosulPattern.test(plate);
-};
 
 export default function RegisterDriverDetailsScreen() {
   const router = useRouter();
@@ -219,7 +215,7 @@ export default function RegisterDriverDetailsScreen() {
                 }
                 autoCapitalize="characters"
                 placeholder="Placa do veículo"
-                maxLength={8}
+                maxLength={7}
                 errorMessage={fieldErrors.plate}
               />
 

@@ -25,7 +25,7 @@ import { SectionHeader } from '@/components/route/section-header';
 import { useCreateVehicle } from '@/hooks/use-create-vehicle';
 import { useUpdateVehicle } from '@/hooks/use-update-vehicle';
 import { useVehicle } from '@/hooks/use-vehicle';
-import { onlyDigits } from '@/lib/formatters';
+import { isValidBrazilianPlate, normalizePlate, onlyDigits } from '@/lib/formatters';
 import { ApiError } from '@/services/api';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
@@ -38,9 +38,6 @@ enum VehicleDetailsErrorMessage {
   PLATE_INVALID = 'Placa do veículo inválida',
   MODEL_REQUIRED = 'Modelo do veículo é obrigatório',
 }
-
-const oldPlateRegex = /^[A-Z]{3}[0-9]{4}$/;
-const mercosulPlateRegex = /^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/;
 
 const vehicleDetailsSchema = z.object({
   passengerCount: z
@@ -57,7 +54,7 @@ const vehicleDetailsSchema = z.object({
     .string()
     .trim()
     .min(1, VehicleDetailsErrorMessage.PLATE_REQUIRED)
-    .refine((value) => oldPlateRegex.test(value) || mercosulPlateRegex.test(value), {
+    .refine(isValidBrazilianPlate, {
       message: VehicleDetailsErrorMessage.PLATE_INVALID,
     }),
   vehicleModel: z.string().trim().min(1, VehicleDetailsErrorMessage.MODEL_REQUIRED),
@@ -73,13 +70,6 @@ type DialogState = {
 };
 
 const initialDialogState: DialogState = { visible: false, title: '', description: '' };
-
-function normalizePlate(value: string) {
-  return value
-    .replace(/[^A-Za-z0-9]/g, '')
-    .toUpperCase()
-    .slice(0, 7);
-}
 
 export default function VehicleDetailsScreen() {
   const insets = useSafeAreaInsets();
@@ -105,7 +95,6 @@ export default function VehicleDetailsScreen() {
   const [dialog, setDialog] = useState<DialogState>(initialDialogState);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
-  // Pré-popula o form quando o veículo é carregado do backend
   useEffect(() => {
     if (!vehicle) return;
     reset({

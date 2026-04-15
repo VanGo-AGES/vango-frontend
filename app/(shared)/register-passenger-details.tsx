@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AuthHeader } from '@/components/auth/auth-header';
@@ -16,7 +16,6 @@ import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
 export default function PassengerDependentsScreen() {
-  const router = useRouter();
   const insets = useSafeAreaInsets();
 
   const [hasDependents, setHasDependents] = useState<boolean | null>(false);
@@ -29,7 +28,7 @@ export default function PassengerDependentsScreen() {
   >(null);
 
   const skipNextDeleteDialog = useRef(false);
-  const { createMutation } = useDependentsMutation();
+  const { applyDiff, isPending } = useDependentsMutation();
 
   const hasInvalidDependents =
     hasDependents === true && dependents.some((dep) => dep.name.trim() === '');
@@ -88,12 +87,14 @@ export default function PassengerDependentsScreen() {
     if (hasDependents && dependents.length > 0) {
       setSubmitError(null);
       try {
-        for (const dep of dependents) {
-          await createMutation.mutateAsync({ name: dep.name.trim() });
-        }
+        await applyDiff({
+          toCreate: dependents.map((dep) => ({ ...dep, name: dep.name.trim() })),
+          toUpdate: [],
+          toDelete: [],
+        });
       } catch (error) {
-        let errorMessage = 'Erro ao cadastrar dependentes';
-        if (error instanceof ApiError && error.detail) {
+        let errorMessage = 'Erro ao cadastrar dependentes.';
+        if (error instanceof ApiError && typeof error.detail === 'string' && error.detail) {
           errorMessage = error.detail;
         }
         setSubmitError(errorMessage);
@@ -141,10 +142,10 @@ export default function PassengerDependentsScreen() {
 
         <View style={styles.buttonWrapper}>
           <PrimaryButton
-            label={createMutation.isPending ? 'Salvando...' : 'Finalizar'}
+            label={isPending ? 'Salvando...' : 'Finalizar'}
             variant="secondary"
             onPress={handleSubmit}
-            disabled={createMutation.isPending}
+            disabled={isPending}
             icon={<MaterialIcons name="arrow-forward" size={20} color={colors.light} />}
           />
         </View>
