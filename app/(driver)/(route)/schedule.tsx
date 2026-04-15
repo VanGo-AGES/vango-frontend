@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { router } from 'expo-router';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
 import { PrimaryButton } from '@/components/general/primary-button';
 import { HourSelector } from '@/components/route/hour-selector';
@@ -13,11 +13,7 @@ import { useRouteFormStore } from '@/store/route-form.store';
 import { ApiError } from '@/services/api';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
-import type { CreateRouteRequest, RouteType } from '@/types/route.types';
-
-function mapRouteType(type: 'Ida' | 'Volta' | ''): RouteType {
-  return type === 'Volta' ? 'inbound' : 'outbound';
-}
+import type { CreateRouteRequest } from '@/types/route.types';
 
 function formatCep(cep: string): string {
   const digits = cep.replace(/\D/g, '');
@@ -25,29 +21,26 @@ function formatCep(cep: string): string {
 }
 
 export default function ScheduleScreen() {
-  const router = useRouter();
-
   const { routeName, routeType, origin, destination, clearForm } = useRouteFormStore();
   const { mutateAsync, isPending } = useCreateRoute();
 
-  const [arrival_time, set_arrival_time] = useState('');
-  const [selected_days, set_selected_days] = useState<string[]>([]);
-  const [show_errors, set_show_errors] = useState(false);
+  const [arrivalTime, setArrivalTime] = useState('');
+  const [selectedDays, setSelectedDays] = useState<string[]>([]);
+  const [showErrors, setShowErrors] = useState(false);
 
-  const has_selected_days = selected_days.length > 0;
-  const can_continue = arrival_time.trim() !== '' && has_selected_days;
+  const hasSelectedDays = selectedDays.length > 0;
+  const canContinue = arrivalTime.trim() !== '' && hasSelectedDays;
+  const weekdayError =
+    showErrors && !hasSelectedDays ? 'Pelo menos um dia deve ser selecionado' : undefined;
 
-  const weekday_error =
-    show_errors && !has_selected_days ? 'Pelo menos um dia deve ser selecionado' : undefined;
+  const handleContinue = async () => {
+    setShowErrors(true);
 
-  const handle_continue = async () => {
-    set_show_errors(true);
-
-    if (!can_continue) return;
+    if (!canContinue) return;
 
     const payload: CreateRouteRequest = {
       name: routeName,
-      route_type: mapRouteType(routeType),
+      route_type: routeType === 'Volta' ? 'inbound' : 'outbound',
       origin: {
         label: `${origin.rua}, ${origin.numero}`,
         street: origin.rua,
@@ -66,8 +59,8 @@ export default function ScheduleScreen() {
         city: destination.cidade,
         state: destination.estado || 'RS',
       },
-      expected_time: `${arrival_time}:00`,
-      recurrence: selected_days.map((d) => d.toLowerCase()).join(','),
+      expected_time: `${arrivalTime}:00`,
+      recurrence: selectedDays.map((d) => d.toLowerCase()).join(','),
     };
 
     try {
@@ -80,7 +73,7 @@ export default function ScheduleScreen() {
       } as never);
     } catch (error) {
       const message =
-        error instanceof ApiError && error.detail
+        error instanceof ApiError && typeof error.detail === 'string' && error.detail
           ? error.detail
           : 'Não foi possível criar a rota. Tente novamente.';
 
@@ -102,35 +95,35 @@ export default function ScheduleScreen() {
         />
       </View>
 
-      <View style={styles.content_card}>
+      <View style={styles.contentCard}>
         <View>
-          <Text style={styles.section_title}>Horário</Text>
+          <Text style={styles.sectionTitle}>Horário</Text>
 
           <HourSelector
-            value={arrival_time}
-            onChange={set_arrival_time}
-            showError={show_errors}
-            style={styles.hour_selector}
+            value={arrivalTime}
+            onChange={setArrivalTime}
+            showError={showErrors}
+            style={styles.hourSelector}
           />
 
           <WeekdaySelector
-            value={selected_days}
-            onChange={set_selected_days}
-            error={weekday_error}
-            style={styles.weekday_selector}
+            value={selectedDays}
+            onChange={setSelectedDays}
+            error={weekdayError}
+            style={styles.weekdaySelector}
           />
         </View>
 
         <View style={styles.footer}>
-          <View style={styles.step_indicator_wrapper}>
+          <View style={styles.stepIndicatorWrapper}>
             <RouteStepIndicator currentStep={4} totalSteps={4} />
           </View>
 
-          <View style={styles.button_wrapper}>
+          <View style={styles.buttonWrapper}>
             <PrimaryButton
               label={isPending ? 'Criando rota...' : 'Continuar'}
               variant="secondary"
-              onPress={handle_continue}
+              onPress={handleContinue}
               disabled={isPending}
               icon={<MaterialIcons name="arrow-forward" size={20} color={colors.light} />}
             />
@@ -154,7 +147,7 @@ const styles = StyleSheet.create({
     paddingBottom: 52,
     gap: 16,
   },
-  content_card: {
+  contentCard: {
     flex: 1,
     paddingHorizontal: 24,
     paddingTop: 72,
@@ -166,16 +159,16 @@ const styles = StyleSheet.create({
     marginBottom: -80,
     justifyContent: 'space-between',
   },
-  section_title: {
+  sectionTitle: {
     marginBottom: 24,
     textAlign: 'center',
     color: colors.dark,
     ...typography.header3,
   },
-  hour_selector: {
+  hourSelector: {
     marginBottom: 20,
   },
-  weekday_selector: {
+  weekdaySelector: {
     marginBottom: 8,
   },
   footer: {
@@ -183,10 +176,10 @@ const styles = StyleSheet.create({
     gap: 28,
     paddingTop: 32,
   },
-  step_indicator_wrapper: {
+  stepIndicatorWrapper: {
     alignSelf: 'center',
   },
-  button_wrapper: {
+  buttonWrapper: {
     alignSelf: 'center',
   },
 });

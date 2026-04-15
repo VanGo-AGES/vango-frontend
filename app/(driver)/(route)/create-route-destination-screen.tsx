@@ -1,14 +1,11 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { PrimaryButton } from '@/components/general/primary-button';
-import {
-  AddressFormSection,
-  type AddressFields,
-  type AddressErrors,
-} from '@/components/route/address-form-section';
+import { AddressFormSection } from '@/components/route/address-form-section';
+import type { AddressErrors, RouteFormAddress } from '@/types/route.types';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
 import { RouteStepIndicator } from '@/components/route/route-step-indicator';
 import { useRouteFormStore } from '@/store/route-form.store';
@@ -16,10 +13,9 @@ import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
 export default function CreateRouteDestinationScreen() {
-  const router = useRouter();
   const setDestination = useRouteFormStore((state) => state.setDestination);
 
-  const [address, setAddress] = useState<AddressFields>({
+  const [address, setAddress] = useState<RouteFormAddress>({
     cep: '',
     numero: '',
     rua: '',
@@ -29,13 +25,13 @@ export default function CreateRouteDestinationScreen() {
   });
   const [errors, setErrors] = useState<AddressErrors>({});
 
-  const handleChange = (field: keyof AddressFields, text: string) => {
+  const handleChange = (field: keyof RouteFormAddress, text: string) => {
     setAddress((prev) => ({ ...prev, [field]: text }));
   };
 
   const validateForm = () => {
     const nextErrors: AddressErrors = {};
-    const requiredFields: (keyof AddressFields)[] = ['cep', 'numero', 'rua', 'bairro', 'cidade'];
+    const requiredFields: (keyof RouteFormAddress)[] = ['cep', 'numero', 'rua', 'bairro', 'cidade'];
 
     requiredFields.forEach((field) => {
       if (!address[field].trim()) {

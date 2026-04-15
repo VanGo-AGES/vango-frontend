@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { useRouter } from 'expo-router';
+import { router } from 'expo-router';
 import { Controller, useForm } from 'react-hook-form';
 import {
   Keyboard,
@@ -37,7 +37,6 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export default function CreateRouteInfoScreen() {
-  const router = useRouter();
   const setRouteInfo = useRouteFormStore((state) => state.setRouteInfo);
 
   const {
