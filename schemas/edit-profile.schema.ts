@@ -1,5 +1,8 @@
 import { z } from 'zod';
 
+// Mesma regex usada em register-basic-info-screen para garantir consistência
+const PHONE_REGEX = /^\+55\s\d{2}\s\d{5}-\d{4}$/;
+
 function onlyDigits(value: string) {
   return value.replace(/\D/g, '');
 }
@@ -34,10 +37,7 @@ export const editProfileSchema = z.object({
     .string()
     .trim()
     .min(1, 'Telefone obrigatório')
-    .refine((value) => {
-      const digits = onlyDigits(value);
-      return digits.length === 10 || digits.length === 11;
-    }, 'Telefone inválido'),
+    .refine((value) => PHONE_REGEX.test(value), 'Telefone inválido'),
   password: z
     .string()
     .refine((val) => val === '' || val.length >= 6, 'A senha deve ter pelo menos 6 caracteres'),

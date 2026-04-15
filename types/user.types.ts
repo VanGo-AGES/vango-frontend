@@ -10,7 +10,7 @@ export interface CreateUserRequest {
   photo_url?: string;
 }
 
-export interface CreateUserResponse {
+export interface UserResponse {
   id: string;
   name: string;
   email: string;
