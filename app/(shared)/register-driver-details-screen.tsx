@@ -15,7 +15,8 @@ import AppDialog from '@/components/general/app-dialog';
 import { AppTextField } from '@/components/general/app-text-field';
 import { PrimaryButton } from '@/components/general/primary-button';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
-import { updateUser } from '@/services/user.service';
+import { useUpdateUser } from '@/hooks/use-update-user';
+import { formatCpf, isValidCpf, onlyDigits } from '@/lib/formatters';
 import { useSessionStore } from '@/store/session.store';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
@@ -38,6 +39,7 @@ export default function RegisterDriverDetailsScreen() {
   const router = useRouter();
   const { userId } = useLocalSearchParams<{ userId?: string }>();
   const updateSessionUser = useSessionStore((s) => s.updateUser);
+  const { mutateAsync: updateUser } = useUpdateUser();
 
   const [cpf, setCpf] = useState('');
   const [passengerCount, setPassengerCount] = useState('');
@@ -110,7 +112,7 @@ export default function RegisterDriverDetailsScreen() {
 
     if (userId) {
       try {
-        const updated = await updateUser(userId, { cpf });
+        const updated = await updateUser({ id: userId, data: { cpf } });
         updateSessionUser({ cpf: updated.cpf });
       } catch {
         // CPF não crítico para continuar o cadastro

@@ -14,6 +14,7 @@ import { AuthHeader } from '@/components/auth/auth-header';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 import { useCreateUser } from '@/hooks/use-create-user';
+import { formatPhone, onlyDigits } from '@/lib/formatters';
 import { ApiError } from '@/services/api';
 import { useSessionStore } from '@/store/session.store';
 

@@ -12,7 +12,6 @@ import {
   Text,
   View,
 } from 'react-native';
-import { TextInput } from 'react-native-paper';
 
 import { AppTextField } from '@/components/general/app-text-field';
 import { CircleIconButton } from '@/components/general/circle-icon-button';
@@ -20,38 +19,13 @@ import { EditableProfilePicture } from '@/components/profile/editable-profile-pi
 import { PrimaryButton } from '@/components/general/primary-button';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
 import { editProfileSchema, type EditProfileFormData } from '@/schemas/edit-profile.schema';
-import { getUser, updateUser, uploadPhoto } from '@/services/user.service';
-import { ApiError } from '@/services/api';
+import { formatCpf, formatPhone, onlyDigits } from '@/lib/formatters';
+import { useUser } from '@/hooks/use-user';
+import { useUpdateUser } from '@/hooks/use-update-user';
+import { useUploadPhoto } from '@/hooks/use-upload-photo';
 import { useSessionStore } from '@/store/session.store';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
-
-function onlyDigits(value: string) {
-  return value.replace(/\D/g, '');
-}
-
-function formatCpf(value: string) {
-  const digits = onlyDigits(value).slice(0, 11);
-
-  return digits
-    .replace(/^(\d{3})(\d)/, '$1.$2')
-    .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
-    .replace(/\.(\d{3})(\d{1,2})$/, '.$1-$2');
-}
-
-function formatPhone(value: string) {
-  const digits = onlyDigits(value).slice(0, 11);
-
-  if (digits.length <= 2) return digits;
-  if (digits.length <= 6) {
-    return `${digits.slice(0, 2)} ${digits.slice(2)}`;
-  }
-  if (digits.length <= 10) {
-    return `${digits.slice(0, 2)} ${digits.slice(2, 6)}-${digits.slice(6)}`;
-  }
-
-  return `${digits.slice(0, 2)} ${digits.slice(2, 7)}-${digits.slice(7)}`;
-}
 
 export default function EditProfileScreen() {
   const router = useRouter();
@@ -60,8 +34,13 @@ export default function EditProfileScreen() {
   const localPhotoUri = useSessionStore((s) => s.localPhotoUri);
   const setLocalPhotoUri = useSessionStore((s) => s.setLocalPhotoUri);
 
-  const [isFetchingUser, setIsFetchingUser] = useState(false);
   const [pendingPhotoUri, setPendingPhotoUri] = useState<string | null>(null);
+
+  const { data: freshUser, isLoading: isFetchingUser } = useUser(sessionUser?.id);
+  const { mutateAsync: updateUser, isPending: isUpdating } = useUpdateUser();
+  const { mutateAsync: uploadPhoto, isPending: isUploading } = useUploadPhoto();
+
+  const isSubmitting = isUpdating || isUploading;
 
   const {
     control,
@@ -80,25 +59,14 @@ export default function EditProfileScreen() {
   });
 
   useEffect(() => {
-    if (!sessionUser) return;
-
-    setIsFetchingUser(true);
-    getUser(sessionUser.id)
-      .then((data) => {
-        reset({
-          name: data.name,
-          cpf: formatCpf(data.cpf ?? ''),
-          phone: formatPhone(data.phone),
-          password: '',
-        });
-      })
-      .catch(() => {
-        // Mantém os dados do store em caso de falha
-      })
-      .finally(() => {
-        setIsFetchingUser(false);
-      });
-  }, []);
+    if (!freshUser) return;
+    reset({
+      name: freshUser.name,
+      cpf: formatCpf(freshUser.cpf ?? ''),
+      phone: formatPhone(freshUser.phone),
+      password: '',
+    });
+  }, [freshUser]);
 
   const onSubmit = async (data: EditProfileFormData) => {
     if (!sessionUser) return;
@@ -109,12 +77,15 @@ export default function EditProfileScreen() {
         photo_url = await uploadPhoto(pendingPhotoUri);
       }
 
-      const updated = await updateUser(sessionUser.id, {
-        name: data.name,
-        cpf: data.cpf,
-        phone: onlyDigits(data.phone),
-        ...(data.password ? { password: data.password } : {}),
-        ...(photo_url ? { photo_url } : {}),
+      const updated = await updateUser({
+        id: sessionUser.id,
+        data: {
+          name: data.name,
+          cpf: data.cpf, // formatado (ex: 999.999.999-99) conforme esperado pelo backend
+          phone: onlyDigits(data.phone), // apenas dígitos (ex: 5551999999999)
+          ...(data.password ? { password: data.password } : {}),
+          ...(photo_url ? { photo_url } : {}),
+        },
       });
 
       updateSessionUser({
@@ -125,7 +96,6 @@ export default function EditProfileScreen() {
       });
 
       setPendingPhotoUri(null);
-      // localPhotoUri permanece no store para exibição ao navegar de volta
       reset({
         name: updated.name,
         cpf: formatCpf(updated.cpf ?? ''),
@@ -134,10 +104,8 @@ export default function EditProfileScreen() {
       });
 
       Alert.alert('Sucesso', 'Perfil atualizado com sucesso.');
-    } catch (error) {
-      const message =
-        error instanceof ApiError ? error.detail : 'Não foi possível salvar as alterações.';
-      Alert.alert('Erro', message);
+    } catch {
+      Alert.alert('Erro', 'Não foi possível salvar as alterações.');
     }
   };
 
@@ -228,9 +196,8 @@ export default function EditProfileScreen() {
                     onBlur={onBlur}
                     onChangeText={(text) => onChange(formatPhone(text))}
                     errorMessage={errors.phone?.message}
-                    keyboardType="numeric"
-                    maxLength={13}
-                    left={<TextInput.Affix text="+55" textStyle={styles.phoneAffix} />}
+                    keyboardType="phone-pad"
+                    maxLength={17}
                     editable={!isFetchingUser}
                   />
                 )}
