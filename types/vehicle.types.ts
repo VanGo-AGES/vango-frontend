@@ -4,7 +4,13 @@ export interface CreateVehicleRequest {
   notes?: string | null;
 }
 
-export interface CreateVehicleResponse {
+export interface UpdateVehicleRequest {
+  plate?: string;
+  capacity?: number;
+  notes?: string | null;
+}
+
+export interface VehicleResponse {
   id: string;
   driver_id: string;
   plate: string | null;
@@ -14,4 +20,6 @@ export interface CreateVehicleResponse {
   created_at: string;
 }
 
-export interface Vehicle extends CreateVehicleResponse {}
+// Aliases para consistência com o padrão do projeto
+export type CreateVehicleResponse = VehicleResponse;
+export type UpdateVehicleResponse = VehicleResponse;

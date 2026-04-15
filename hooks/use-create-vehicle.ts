@@ -1,14 +1,16 @@
-import { useMutation } from '@tanstack/react-query';
-import { createVehicle } from '@/services/vehicle.service';
-import type { CreateVehicleRequest } from '@/types/vehicles.types';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-type CreateVehicleMutationInput = {
-  userId: string;
-  data: CreateVehicleRequest;
-};
+import { createVehicle } from '@/services/vehicle.service';
+import { VEHICLE_QUERY_KEY } from '@/hooks/use-vehicle';
+import type { CreateVehicleRequest } from '@/types/vehicle.types';
 
 export function useCreateVehicle() {
+  const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: ({ userId, data }: CreateVehicleMutationInput) => createVehicle(data, userId),
+    mutationFn: (data: CreateVehicleRequest) => createVehicle(data),
+    onSuccess: (newVehicle) => {
+      queryClient.setQueryData(VEHICLE_QUERY_KEY, [newVehicle]);
+    },
   });
 }

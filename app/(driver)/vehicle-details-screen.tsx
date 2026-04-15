@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { MaterialIcons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Controller, type FieldErrors, useForm } from 'react-hook-form';
 import {
@@ -21,12 +22,13 @@ import { AppTextField } from '@/components/general/app-text-field';
 import { PrimaryButton } from '@/components/general/primary-button';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
 import { SectionHeader } from '@/components/route/section-header';
+import { useCreateVehicle } from '@/hooks/use-create-vehicle';
+import { useUpdateVehicle } from '@/hooks/use-update-vehicle';
+import { useVehicle } from '@/hooks/use-vehicle';
 import { onlyDigits } from '@/lib/formatters';
+import { ApiError } from '@/services/api';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
-import { useCreateVehicle } from '@/hooks/use-create-vehicle';
-import { useSessionStore } from '@/store/session.store';
-import { ApiError } from '@/services/api';
 
 enum VehicleDetailsErrorMessage {
   PASSENGERS_REQUIRED = 'Número de passageiros é obrigatório',
@@ -63,23 +65,14 @@ const vehicleDetailsSchema = z.object({
 
 type VehicleDetailsFormData = z.infer<typeof vehicleDetailsSchema>;
 
-const defaultValues: VehicleDetailsFormData = {
-  passengerCount: '',
-  vehiclePlate: '',
-  vehicleModel: '',
-};
-
 type DialogState = {
   visible: boolean;
   title: string;
   description: string;
+  onOkPress?: () => void;
 };
 
-const initialDialogState: DialogState = {
-  visible: false,
-  title: '',
-  description: '',
-};
+const initialDialogState: DialogState = { visible: false, title: '', description: '' };
 
 function normalizePlate(value: string) {
   return value
@@ -91,40 +84,51 @@ function normalizePlate(value: string) {
 export default function VehicleDetailsScreen() {
   const insets = useSafeAreaInsets();
 
+  const { data: vehicle, isLoading: isFetchingVehicle } = useVehicle();
+  const { mutateAsync: createVehicle, isPending: isCreating } = useCreateVehicle();
+  const { mutateAsync: updateVehicle, isPending: isUpdating } = useUpdateVehicle();
+
+  const isPending = isCreating || isUpdating;
+
   const {
     control,
     handleSubmit,
     setFocus,
     reset,
-    setError,
-    formState: { errors, isDirty, isSubmitting },
+    formState: { errors, isDirty },
   } = useForm<VehicleDetailsFormData>({
     resolver: zodResolver(vehicleDetailsSchema),
-    defaultValues,
+    defaultValues: { passengerCount: '', vehiclePlate: '', vehicleModel: '' },
     mode: 'onChange',
   });
 
   const [dialog, setDialog] = useState<DialogState>(initialDialogState);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
-  const closeDialog = () => {
-    setDialog(initialDialogState);
-  };
+  // Pré-popula o form quando o veículo é carregado do backend
+  useEffect(() => {
+    if (!vehicle) return;
+    reset({
+      passengerCount: String(vehicle.capacity),
+      vehiclePlate: vehicle.plate ?? '',
+      vehicleModel: vehicle.notes ?? '',
+    });
+  }, [vehicle, reset]);
 
   useEffect(() => {
-    const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
-      setIsKeyboardVisible(true);
-    });
-
-    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
-      setIsKeyboardVisible(false);
-    });
-
+    const showSubscription = Keyboard.addListener('keyboardDidShow', () =>
+      setIsKeyboardVisible(true),
+    );
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () =>
+      setIsKeyboardVisible(false),
+    );
     return () => {
       showSubscription.remove();
       hideSubscription.remove();
     };
   }, []);
+
+  const closeDialog = () => setDialog(initialDialogState);
 
   const onInvalid = (fieldErrors: FieldErrors<VehicleDetailsFormData>) => {
     if (
@@ -158,14 +162,36 @@ export default function VehicleDetailsScreen() {
     }
   };
 
-  const onSubmit = (data: VehicleDetailsFormData) => {
-    // TODO: integrar com serviço de veículo quando o endpoint estiver disponível no backend
-    reset(data);
+  const onSubmit = async (data: VehicleDetailsFormData) => {
+    const payload = {
+      plate: data.vehiclePlate,
+      capacity: Number(data.passengerCount),
+      notes: data.vehicleModel,
+    };
+
+    try {
+      if (vehicle) {
+        await updateVehicle({ id: vehicle.id, data: payload });
+      } else {
+        await createVehicle(payload);
+      }
+      reset(data);
+      setDialog({
+        visible: true,
+        title: 'Sucesso',
+        description: 'Veículo atualizado com sucesso.',
+        onOkPress: () => router.back(),
+      });
+    } catch (error) {
+      let description = 'Não foi possível salvar as informações do veículo.';
+      if (error instanceof ApiError && typeof error.detail === 'string') {
+        description = error.detail;
+      }
+      setDialog({ visible: true, title: 'Erro ao salvar', description });
+    }
   };
 
-  const handleCancel = () => {
-    reset();
-  };
+  const handleCancel = () => reset();
 
   return (
     <AppScreenContainer
@@ -211,6 +237,7 @@ export default function VehicleDetailsScreen() {
                       maxLength={2}
                       returnKeyType="next"
                       placeholder="0"
+                      editable={!isFetchingVehicle}
                       errorMessage={errors.passengerCount?.message}
                     />
                   )}
@@ -231,6 +258,7 @@ export default function VehicleDetailsScreen() {
                       maxLength={7}
                       returnKeyType="next"
                       placeholder="Placa do veículo"
+                      editable={!isFetchingVehicle}
                       errorMessage={errors.vehiclePlate?.message}
                     />
                   )}
@@ -248,6 +276,7 @@ export default function VehicleDetailsScreen() {
                       autoCapitalize="words"
                       returnKeyType="done"
                       placeholder="Modelo do veículo"
+                      editable={!isFetchingVehicle}
                       errorMessage={errors.vehicleModel?.message}
                     />
                   )}
@@ -262,9 +291,9 @@ export default function VehicleDetailsScreen() {
             {isDirty ? (
               <>
                 <PrimaryButton
-                  label="Salvar Mudanças"
+                  label={isPending ? 'Salvando...' : 'Salvar Mudanças'}
                   onPress={handleSubmit(onSubmit, onInvalid)}
-                  disabled={isPending}
+                  disabled={isPending || isFetchingVehicle}
                   icon={<MaterialIcons name="check" size={18} color={colors.light} />}
                   labelColor={colors.light}
                   style={styles.saveButton}
@@ -295,7 +324,7 @@ export default function VehicleDetailsScreen() {
         actions={[
           {
             label: 'Ok',
-            onPress: closeDialog,
+            onPress: dialog.onOkPress ?? closeDialog,
             icon: 'check',
             variant: 'default',
           },
@@ -349,7 +378,6 @@ const styles = StyleSheet.create({
   actions: {
     alignItems: 'center',
     gap: 12,
-    // paddingBottom é definido via inline style com insets.bottom + 32
     backgroundColor: colors.light,
     justifyContent: 'center',
   },
