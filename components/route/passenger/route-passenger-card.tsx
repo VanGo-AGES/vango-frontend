@@ -87,7 +87,7 @@ export function RoutePassengerCard({
 const styles = StyleSheet.create({
   container: {
     width: 100,
-    gap: 8,
+    gap: 4, //Ajustado para ter o mesmo valor do protótipo
   },
   avatarWrapper: {
     width: 100,
