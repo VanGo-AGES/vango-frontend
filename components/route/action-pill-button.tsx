@@ -9,7 +9,7 @@ export interface ActionPillButtonProps {
   onPress?: () => void;
   href?: Href;
   icon?: ReactNode;
-  label?: string;
+  label: string;
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
 }
