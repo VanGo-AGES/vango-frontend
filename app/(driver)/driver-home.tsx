@@ -1,12 +1,14 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
+
 import { HomeHeaderCard } from '@/components/route/home-header-card';
 import { EmptyState } from '@/components/general/empty-state';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
-import { CreateRouteButton } from '@/components/route/create-route-button';
+import { ActionPillButton } from '@/components/route/action-pill-button';
 import { useSessionStore } from '@/store/session.store';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
+import { MaterialIcons } from '@expo/vector-icons';
 
 type RouteItem = {
   id: string;
@@ -78,7 +80,11 @@ export default function DriverHomeScreen() {
               <Text style={styles.sectionTitle}>Minhas rotas</Text>
 
               <View style={styles.buttonContainer}>
-                <CreateRouteButton onPress={handleCreateRoutePress} />
+                <ActionPillButton
+                  onPress={handleCreateRoutePress}
+                  label="Criar Rota"
+                  icon={<MaterialIcons name="add" size={20} />}
+                />
               </View>
 
               {myRoutes.length > 0 ? (

@@ -1,25 +1,28 @@
 import { StyleProp, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
 import { Href, useRouter } from 'expo-router';
+import { ReactNode } from 'react';
+
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
-export interface CreateRouteButtonProps {
+export interface ActionPillButtonProps {
   onPress?: () => void;
   href?: Href;
-  label?: string;
+  icon?: ReactNode;
+  label: string;
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
 }
 
-export function CreateRouteButton({
+export function ActionPillButton({
   onPress,
+  icon,
   href,
-  label = 'CRIAR ROTA',
+  label,
   disabled = false,
   style,
-}: CreateRouteButtonProps) {
+}: ActionPillButtonProps) {
   const router = useRouter();
-
   const handlePress = () => {
     if (href) {
       router.push(href);
@@ -37,7 +40,7 @@ export function CreateRouteButton({
       style={[styles.button, disabled && styles.buttonDisabled, style]}
     >
       <View style={styles.content}>
-        <Text style={[styles.plus, disabled && styles.labelDisabled]}>+</Text>
+        <Text style={[styles.icon, disabled && styles.labelDisabled]}>{icon}</Text>
         <Text style={[styles.label, disabled && styles.labelDisabled]}>{label}</Text>
       </View>
     </TouchableOpacity>
@@ -46,10 +49,8 @@ export function CreateRouteButton({
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: colors.light,
-    borderWidth: 1,
-    borderColor: colors.subtleText,
-    borderRadius: 12,
+    backgroundColor: colors.primary,
+    borderRadius: 100,
     paddingVertical: 8,
     paddingHorizontal: 24,
     alignItems: 'center',
@@ -64,13 +65,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
   },
-  plus: {
-    ...typography.buttonText,
+  icon: {
     color: colors.dark,
-    fontSize: 18,
   },
   label: {
     ...typography.buttonText,
+    fontSize: 16,
     color: colors.dark,
     letterSpacing: 0.3,
   },
