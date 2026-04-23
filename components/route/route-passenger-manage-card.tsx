@@ -57,20 +57,21 @@ export function RoutePassengerManageCard({
 
 const styles = StyleSheet.create({
   card: {
-    width: 112,
+    width: 102,
+    height: 135, //Adicionado pra limitar a altura
     borderRadius: 8,
-    backgroundColor: colors.light,
-    paddingHorizontal: 12,
-    paddingTop: 10,
-    paddingBottom: 12,
-    alignItems: 'center',
+    backgroundColor: 'transparent', // Tava com uma cor cinza
+    //paddingHorizontal: 12,
+    paddingTop: 12,
+    //paddingBottom: 12,
+    //alignItems: 'center',
     gap: 4,
     position: 'relative',
   },
   deleteButton: {
     position: 'absolute',
-    top: 6,
-    right: 4,
+    top: 0,
+    right: 0,
     width: 32,
     height: 32,
     borderRadius: 12,
@@ -88,7 +89,7 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: 12,
     overflow: 'hidden',
-    marginTop: 8,
+    //marginTop: 8, 
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'transparent',
