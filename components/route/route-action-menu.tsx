@@ -70,7 +70,7 @@ export function RouteActionMenu({
               >
                 <MaterialIcons
                   name={action.icon}
-                  size={22}
+                  size={24}
                   color={action.destructive ? colors.destructive : colors.dark}
                 />
                 <Text
@@ -98,11 +98,13 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     width: MENU_WIDTH,
     height: TOGGLE_HEIGHT + 16, // espaço reservado = só o toggle + padding vertical do pill
+    zIndex: 9999, // garante que o componente não seja coberto por outros componentes
   },
   floating: {
     position: 'absolute',
     top: 0,
     left: 0,
+    zIndex: 9999, // garante que o componente não seja coberto por outros componentes
     width: MENU_WIDTH,
     alignItems: 'center',
     backgroundColor: colors.accent,
