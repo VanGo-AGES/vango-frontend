@@ -113,12 +113,14 @@ export function RouteItem({
           )}
         </View>
 
-        <Icon
-          name="arrow-right"
-          size={24}
-          color={isPending ? colors.subtleText : colors.dark}
-          style={styles.arrow}
-        />
+        {!isPending && (
+          <Icon
+            name="arrow-right"
+            size={24}
+            color={colors.dark}
+            style={styles.arrow}
+          />
+        )}
       </Pressable>
 
       <AppDialog
@@ -142,11 +144,12 @@ export function RouteItem({
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    borderRadius: 16,
-    paddingVertical: 8,
-    paddingRight: 8,
+    //alignItems: 'center',
+    gap: 16,
+    height: 98,
+    //borderRadius: 16,
+    //paddingVertical: 8,
+    paddingRight: 24,
   },
   pressed: {
     opacity: 0.75,
@@ -155,19 +158,20 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   thumbnail: {
-    width: 80,
-    height: 80,
+    width: 90,
+    height: 90,
     borderRadius: 12,
+    top: 0,
     overflow: 'hidden',
   },
   thumbnailPlaceholder: {
-    backgroundColor: colors.accent,
+
     alignItems: 'center',
     justifyContent: 'center',
   },
   content: {
     flex: 1,
-    gap: 4,
+    gap: 8,
   },
   pendingBadge: {
     alignSelf: 'flex-start',
@@ -182,27 +186,36 @@ const styles = StyleSheet.create({
     color: colors.dark,
   },
   name: {
-    ...typography.header3,
+    ...typography.subtitle,
     color: colors.dark,
+    height: 28,
+    width: '100%',
+    lineHeight: 28,
   },
   daysRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+    height: 24,
   },
   days: {
     ...typography.small,
     color: colors.dark,
   },
   meta: {
-    ...typography.body,
+    ...typography.small,
     color: colors.text,
-    marginTop: 2,
+    //marginTop: 2,
+    //bottom: 6,
+    height: 24,
   },
   pendingText: {
     color: colors.subtleText,
   },
   arrow: {
-    marginLeft: 4,
+    position: 'absolute',
+    right: 0,
+    alignSelf: 'flex-end',
+    bottom: 6,
   },
 });
