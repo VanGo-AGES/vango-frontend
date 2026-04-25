@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   userName: {
-    ...typography.subtitle,
+    ...typography.body,
     color: colors.dark,
     flexShrink: 1,
   },
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   addressText: {
-    ...typography.body,
+    ...typography.small,
     color: colors.dark,
     flexShrink: 1,
   },
