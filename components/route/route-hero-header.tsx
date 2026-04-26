@@ -1,4 +1,4 @@
-import { ImageBackground, StyleSheet, Text, View } from 'react-native';
+import { ImageBackground, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
 import { colors } from '@/styles/colors';
@@ -12,6 +12,7 @@ export type RouteHeroHeaderProps = {
   durationMinutes: number;
   distanceKm: number;
   backgroundImage?: string;
+  style?: StyleProp<ViewStyle>;
 };
 
 // URL de mock de um mapa genérico temporário
@@ -25,11 +26,12 @@ export function RouteHeroHeader({
   durationMinutes,
   distanceKm,
   backgroundImage = MOCK_MAP_IMAGE,
+  style,
 }: RouteHeroHeaderProps) {
   return (
     <ImageBackground
       source={{ uri: backgroundImage }}
-      style={styles.container}
+      style={[styles.container, style]}
       imageStyle={styles.image}
     >
       <Svg height="100%" width="100%" style={StyleSheet.absoluteFill}>
@@ -44,7 +46,12 @@ export function RouteHeroHeader({
       </Svg>
 
       <View style={styles.content}>
-        <Text style={styles.title} numberOfLines={2}>
+        <Text
+          style={styles.title}
+          numberOfLines={2}
+          accessibilityRole="header"
+          accessibilityLabel={routeName}
+        >
           {routeName}
         </Text>
 
@@ -67,7 +74,6 @@ export function RouteHeroHeader({
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    flex: 1,
     minHeight: 260,
     justifyContent: 'flex-end',
   },
