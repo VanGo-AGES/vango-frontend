@@ -1,7 +1,7 @@
 import React from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
-import { colors } from '@/styles/colors';
+import { colors, withAlpha } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
 type ActionVariant = 'default' | 'destructive' | 'cancel';
@@ -85,7 +85,7 @@ export default AppDialog;
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(14, 14, 44, 0.5)',
+    backgroundColor: withAlpha(colors.dark, 0.5),
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,

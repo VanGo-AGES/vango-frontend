@@ -2,7 +2,7 @@ import { View, StyleSheet } from 'react-native';
 import { CircleIconButton } from '@/components/general/circle-icon-button';
 import { ProfileSummaryCard } from '@/components/profile/profile-summary-card';
 import { ProfileMenuSection } from '@/components/profile/profile-menu-section';
-import { colors } from '@/styles/colors';
+import { colors, withAlpha } from '@/styles/colors';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(250, 252, 254, 0.65)',
+    backgroundColor: withAlpha(colors.light, 0.65),
     borderWidth: 0,
   },
   titleWrapper: {
