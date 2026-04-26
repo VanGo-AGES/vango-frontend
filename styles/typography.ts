@@ -35,17 +35,26 @@ export const typography = {
     fontSize: 16,
     lineHeight: 22.4, // 140% de 16px
   },
+  // M3/body/large — WorkSans 400 Regular, 16/24, ls 0.5
   bodyLarge: {
     fontFamily: 'WorkSans_400Regular',
     fontSize: 16,
     lineHeight: 24,
     letterSpacing: 0.5,
   },
+  // M3/body/medium — WorkSans 400 Regular, 14/20, ls 0.25
   bodyMedium: {
     fontFamily: 'WorkSans_400Regular',
     fontSize: 14,
     lineHeight: 20,
     letterSpacing: 0.25,
+  },
+  // M3/label/small — WorkSans 500 Medium, 11/16, ls 0.5
+  labelSmall: {
+    fontFamily: 'WorkSans_500Medium',
+    fontSize: 11,
+    lineHeight: 16,
+    letterSpacing: 0.5,
   },
   bodyBold: {
     fontFamily: 'WorkSans_700Bold',

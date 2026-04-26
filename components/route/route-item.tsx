@@ -114,12 +114,7 @@ export function RouteItem({
         </View>
 
         {!isPending && (
-          <Icon
-            name="arrow-right"
-            size={24}
-            color={colors.dark}
-            style={styles.arrow}
-          />
+          <Icon name="arrow-right" size={24} color={colors.dark} style={styles.arrow} />
         )}
       </Pressable>
 
@@ -165,7 +160,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   thumbnailPlaceholder: {
-
     alignItems: 'center',
     justifyContent: 'center',
   },
