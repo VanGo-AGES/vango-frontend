@@ -1,10 +1,13 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import type { ReactElement } from 'react';
+import { useEffect, useState, type ReactElement } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { TouchableRipple } from 'react-native-paper';
 
-import { colors } from '@/styles/colors';
+import GenericAvatar from '@/assets/images/generic-avatar.svg';
+import { colors, withAlpha } from '@/styles/colors';
 import { typography } from '@/styles/typography';
+
+const AVATAR_SIZE = 48;
 
 export type RouteRequestItemProps = {
   name: string;
@@ -23,14 +26,29 @@ export function RouteRequestItem({
   onCheckPress,
   onRemovePress,
 }: RouteRequestItemProps): ReactElement {
+  // Se a URL do avatar falhar no carregamento, cai pro placeholder SVG.
+  // Reset quando a URL mudar pra dar nova chance de tentar carregar.
+  const [imageError, setImageError] = useState(false);
+  useEffect(() => {
+    setImageError(false);
+  }, [avatarUrl]);
+
+  const showAvatarImage = !!avatarUrl && !imageError;
+
   return (
     <View style={styles.container}>
       <View style={styles.leftSection}>
-        {avatarUrl ? (
-          <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+        {showAvatarImage ? (
+          <Image
+            source={{ uri: avatarUrl }}
+            style={styles.avatar}
+            accessibilityRole="image"
+            accessibilityLabel={`Foto de ${name}`}
+            onError={() => setImageError(true)}
+          />
         ) : (
-          <View style={styles.avatarFallback}>
-            <MaterialIcons name="person" size={26} color={colors.light} />
+          <View style={styles.avatarFallback} accessibilityLabel="Foto de perfil não disponível">
+            <GenericAvatar width={AVATAR_SIZE} height={AVATAR_SIZE} />
           </View>
         )}
 
@@ -50,16 +68,21 @@ export function RouteRequestItem({
       <View style={styles.actions}>
         <TouchableRipple
           onPress={onRemovePress}
-          rippleColor="rgba(240, 106, 106, 0.12)"
+          rippleColor={withAlpha(colors.destructive, 0.12)}
           style={styles.removeButton}
+          accessibilityRole="button"
+          accessibilityLabel={`Remover solicitação de ${name}`}
         >
           <Text style={styles.removeText}>Remover</Text>
         </TouchableRipple>
 
         <TouchableRipple
           onPress={onCheckPress}
-          rippleColor="rgba(124, 131, 253, 0.16)"
+          rippleColor={withAlpha(colors.secondary, 0.16)}
           style={[styles.checkbox, checked && styles.checkboxChecked]}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked }}
+          accessibilityLabel={`Aceitar solicitação de ${name}`}
         >
           <View style={styles.checkboxContent}>
             {checked && <MaterialIcons name="check" size={16} color={colors.light} />}
@@ -89,19 +112,20 @@ const styles = StyleSheet.create({
   },
 
   avatar: {
-    width: 48,
-    height: 48,
+    width: AVATAR_SIZE,
+    height: AVATAR_SIZE,
     borderRadius: 12,
-    backgroundColor: colors.light,
+    backgroundColor: colors.accent,
   },
 
   avatarFallback: {
-    width: 48,
-    height: 48,
+    width: AVATAR_SIZE,
+    height: AVATAR_SIZE,
     borderRadius: 12,
-    backgroundColor: '#F4E389',
+    backgroundColor: colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
 
   textContent: {
@@ -110,18 +134,13 @@ const styles = StyleSheet.create({
   },
 
   name: {
-    ...typography.bodyBold,
+    ...typography.bodyLarge,
     color: colors.dark,
-    fontSize: 16,
-    lineHeight: 16,
   },
 
   guardian: {
-    ...typography.body,
-    color: colors.text,
-    fontSize: 8,
-    lineHeight: 14,
-    marginTop: 0,
+    ...typography.bodyMedium,
+    color: colors.subtleText,
   },
 
   actions: {
@@ -137,9 +156,8 @@ const styles = StyleSheet.create({
   },
 
   removeText: {
-    ...typography.bodyBold,
-    color: '#F06A6A',
-    fontSize: 10,
+    ...typography.labelSmall,
+    color: colors.destructive,
   },
 
   checkbox: {
@@ -147,15 +165,15 @@ const styles = StyleSheet.create({
     height: 18,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: '#9EA0BE',
+    borderColor: colors.subtleText,
     backgroundColor: colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
   },
 
   checkboxChecked: {
-    backgroundColor: '#7C83FD',
-    borderColor: '#7C83FD',
+    backgroundColor: colors.secondary,
+    borderColor: colors.secondary,
   },
 
   checkboxContent: {
