@@ -2,10 +2,11 @@ import { ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
+import { RouteInfoChip } from '@/components/route/route-info-chip';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
-type NextRouteCardProps = {
+export type NextRouteCardProps = {
   routeName: string;
   dateLabel: string;
   time: string;
@@ -26,22 +27,23 @@ export function NextRouteCard({ routeName, dateLabel, time, onPress }: NextRoute
           end={{ x: 0, y: 1 }}
           style={styles.overlay}
         >
-          <Text style={styles.routeName}>{routeName}</Text>
+          <Text style={styles.routeName} numberOfLines={2}>
+            {routeName}
+          </Text>
 
           <View style={styles.chipsContainer}>
-            <View style={[styles.chip, styles.dateChip]}>
-              <MaterialIcons name="calendar-month" size={12} color={colors.dark} />
-              <Text style={styles.chipText}>{dateLabel}</Text>
-            </View>
-
-            <View style={[styles.chip, styles.timeChip]}>
-              <Text style={styles.chipText}>{time}</Text>
-            </View>
+            <RouteInfoChip variant="dateLabel" label={dateLabel} />
+            <RouteInfoChip variant="time" time={time} />
           </View>
         </LinearGradient>
       </ImageBackground>
 
-      <Pressable style={styles.cta} onPress={onPress}>
+      <Pressable
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={`Ver rota ${routeName}`}
+        style={({ pressed }) => [styles.cta, pressed && styles.ctaPressed]}
+      >
         <MaterialIcons name="arrow-forward" size={14} color={colors.secondary} />
         <Text style={styles.ctaText}>Ver Rota</Text>
       </Pressable>
@@ -75,26 +77,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 6,
   },
-  chip: {
-    minHeight: 28,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 6,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-    gap: 6,
-  },
-  dateChip: {
-    backgroundColor: colors.primary,
-  },
-  timeChip: {
-    backgroundColor: '#ECF1F4BF',
-  },
-  chipText: {
-    ...typography.small,
-    color: colors.dark,
-  },
   cta: {
     alignSelf: 'flex-end',
     flexDirection: 'row',
@@ -102,6 +84,9 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 10,
     paddingRight: 16,
+  },
+  ctaPressed: {
+    opacity: 0.6,
   },
   ctaText: {
     ...typography.small,
