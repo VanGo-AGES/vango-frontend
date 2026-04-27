@@ -58,8 +58,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    width: '100%',
+    maxWidth: 412,
+    alignSelf: 'center',
+    height: 64,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+
     backgroundColor: colors.light,
   },
   backButton: {
