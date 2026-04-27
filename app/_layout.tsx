@@ -81,6 +81,10 @@ export default function RootLayout() {
               options={{ headerShown: false }}
             />
             <Stack.Screen name="(driver)/(route)/schedule" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="(driver)/(route)/enter-route-code-screen"
+              options={{ headerShown: false }}
+            />
 
             {/* passenger */}
             <Stack.Screen
