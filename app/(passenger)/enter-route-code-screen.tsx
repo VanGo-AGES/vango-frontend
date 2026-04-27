@@ -1,15 +1,15 @@
 import { useCallback, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 
 import { AppScreenContainer } from '@/components/general/app-screen-container';
+import { AuthHeader } from '@/components/auth/auth-header';
 import { InviteCodeDisplay } from '@/components/route/invite-code-display';
 import { RouteStepIndicator } from '@/components/route/route-step-indicator';
 import { PrimaryButton } from '@/components/general/primary-button';
 import AppDialog from '@/components/general/app-dialog';
 import { colors } from '@/styles/colors';
-import { typography } from '@/styles/typography';
 
 export default function EnterRouteCodeScreen() {
   const [code, setCode] = useState<string | undefined>(undefined);
@@ -21,7 +21,11 @@ export default function EnterRouteCodeScreen() {
 
   const handleContinue = () => {
     if (!code) return;
-    const isValid = false;
+
+    // TODO: integrar com API de validação do código
+    // Para testar sucesso, use o código "TESTE"
+    const isValid = code === 'TESTE';
+
     if (isValid) {
       router.push({ pathname: '/(passenger)/route-details-screen' as any, params: { code } });
     } else {
@@ -30,19 +34,12 @@ export default function EnterRouteCodeScreen() {
   };
 
   return (
-    <AppScreenContainer style={styles.container}>
-      <View style={styles.header}>
-        <Pressable
-          onPress={() => router.back()}
-          accessibilityRole="button"
-          accessibilityLabel="voltar"
-          style={({ pressed }) => [styles.backButton, pressed && { opacity: 0.6 }]}
-        >
-          <MaterialIcons name="arrow-back" size={24} color={colors.dark} />
-        </Pressable>
-        <Text style={styles.title}>Código da Rota</Text>
-        <Text style={styles.subtitle}>Digite o código para{'\n'}entrar em uma rota.</Text>
-      </View>
+    <AppScreenContainer backgroundColor={colors.white} style={styles.container}>
+      <AuthHeader
+        title="Código da Rota"
+        subtitle="Digite o código para entrar em uma rota."
+        showBackButton
+      />
 
       <View style={styles.middle}>
         <View style={styles.inputWrapper}>
@@ -58,7 +55,7 @@ export default function EnterRouteCodeScreen() {
           label="Continuar"
           onPress={handleContinue}
           disabled={!code}
-          icon={<MaterialIcons name="arrow-forward" size={12} color={colors.primary} />}
+          icon={<MaterialIcons name="arrow-forward" size={18} color={colors.white} />}
           style={styles.button}
         />
       </View>
@@ -87,29 +84,6 @@ export default function EnterRouteCodeScreen() {
 const styles = StyleSheet.create({
   container: {
     justifyContent: 'space-between',
-  },
-  header: {
-    alignItems: 'center',
-    gap: 8,
-    paddingBottom: 16,
-  },
-  backButton: {
-    alignSelf: 'flex-start',
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-  },
-  title: {
-    ...typography.header3,
-    color: colors.dark,
-    textAlign: 'center',
-  },
-  subtitle: {
-    ...typography.body,
-    color: colors.subtleText,
-    textAlign: 'center',
   },
   middle: {
     flex: 1,
