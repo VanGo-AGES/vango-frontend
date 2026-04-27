@@ -20,6 +20,8 @@ export type RouteInfoChipProps = (
   | { variant: 'timeRange'; expectedTime: string; durationMinutes: number }
   | { variant: 'duration'; durationMinutes: number }
   | { variant: 'distance'; distanceKm: number }
+  | { variant: 'dateLabel'; label: string }
+  | { variant: 'time'; time: string }
 ) & { style?: StyleProp<ViewStyle> };
 
 const variantConfig: Record<string, VariantConfig> = {
@@ -59,6 +61,15 @@ const variantConfig: Record<string, VariantConfig> = {
     backgroundColor: colors.lightMuted,
     icon: { name: 'car-outline', color: colors.dark },
     formatLabel: (props) => (props.variant === 'distance' ? `${props.distanceKm}km` : ''),
+  },
+  dateLabel: {
+    backgroundColor: colors.primary,
+    icon: { name: 'calendar', color: colors.dark },
+    formatLabel: (props) => (props.variant === 'dateLabel' ? props.label : ''),
+  },
+  time: {
+    backgroundColor: colors.light,
+    formatLabel: (props) => (props.variant === 'time' ? props.time : ''),
   },
 };
 
