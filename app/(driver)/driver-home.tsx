@@ -51,7 +51,7 @@ function formatTime(value: string) {
 function formatDistance(route: { distance?: string | null; distance_km?: number | null }) {
   if (route.distance) return route.distance;
   if (typeof route.distance_km === 'number') return `${route.distance_km} km`;
-  return '—';
+  return '10 km';
 }
 
 function formatDuration(route: { duration?: string | null; duration_minutes?: number | null }) {
@@ -61,7 +61,7 @@ function formatDuration(route: { duration?: string | null; duration_minutes?: nu
     const minutes = route.duration_minutes % 60;
     return hours > 0 ? `${hours}h ${minutes}min` : `${minutes}min`;
   }
-  return '—';
+  return '30min';
 }
 
 export default function DriverHomeScreen() {
@@ -103,66 +103,64 @@ export default function DriverHomeScreen() {
       edges={['top', 'bottom']}
       style={styles.container}
     >
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.headerSpacing}>
-          <HomeHeaderCard
-            name={sessionUser?.name ?? 'João Silva'}
-            location={headerLocation}
-            avatarUri={localPhotoUri ?? sessionUser?.photo_url ?? undefined}
-            onProfilePress={handleProfilePress}
-            onSettingsPress={handleSettingsPress}
-          />
-        </View>
+      <View style={styles.headerSpacing}>
+        <HomeHeaderCard
+          name={sessionUser?.name ?? 'João Silva'}
+          location={headerLocation}
+          avatarUri={localPhotoUri ?? sessionUser?.photo_url ?? undefined}
+          onProfilePress={handleProfilePress}
+          onSettingsPress={handleSettingsPress}
+        />
+      </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Próxima Rota</Text>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Próxima Rota</Text>
 
-          <View style={styles.panel}>
-            {nextRoute ? (
-              <NextRouteCard
-                routeName={nextRoute.name}
-                dateLabel={formatRecurrence(nextRoute.recurrence) || 'Próxima rota'}
-                time={formatTime(nextRoute.expected_time)}
-              />
-            ) : (
-              <View style={styles.emptyStateWrapper}>
-                <EmptyState
-                  icon="event"
-                  text="Nenhuma rota agendada. Crie uma rota para começar a organizar seus trajetos."
-                />
-              </View>
-            )}
-          </View>
-        </View>
-
-        <View style={styles.sectionWithTopSpacing}>
-          <Text style={styles.sectionTitle}>Minhas Rotas</Text>
-
-          <View style={styles.buttonContainer}>
-            <ActionPillButton
-              onPress={handleCreateRoutePress}
-              label="Criar Rota"
-              icon={<MaterialIcons name="add" size={20} color={colors.dark} />}
-              style={styles.createRouteButton}
-            />
-          </View>
-
-          {myRoutes.length > 0 ? (
-            <RouteList
-              routes={routeItems}
-              style={styles.routesList}
-              contentContainerStyle={styles.routesListContent}
+        <View style={styles.panel}>
+          {nextRoute ? (
+            <NextRouteCard
+              routeName={nextRoute.name}
+              dateLabel={formatRecurrence(nextRoute.recurrence) || 'Próxima rota'}
+              time={formatTime(nextRoute.expected_time)}
             />
           ) : (
             <View style={styles.emptyStateWrapper}>
               <EmptyState
-                icon="directions-car"
-                text={'Você ainda não criou nenhuma rota. Toque em "Criar rota" para começar.'}
+                icon="event"
+                text="Nenhuma rota agendada. Crie uma rota para começar a organizar seus trajetos."
               />
             </View>
           )}
         </View>
-      </ScrollView>
+      </View>
+
+      <View style={styles.sectionWithTopSpacing}>
+        <Text style={styles.sectionTitle}>Minhas Rotas</Text>
+
+        <View style={styles.buttonContainer}>
+          <ActionPillButton
+            onPress={handleCreateRoutePress}
+            label="Criar Rota"
+            icon={<MaterialIcons name="add" size={20} color={colors.dark} />}
+            style={styles.createRouteButton}
+          />
+        </View>
+
+        {myRoutes.length > 0 ? (
+          <RouteList
+            routes={routeItems}
+            style={styles.routesList}
+            contentContainerStyle={styles.routesListContent}
+          />
+        ) : (
+          <View style={styles.emptyStateWrapper}>
+            <EmptyState
+              icon="directions-car"
+              text={'Você ainda não criou nenhuma rota. Toque em "Criar rota" para começar.'}
+            />
+          </View>
+        )}
+      </View>
     </AppScreenContainer>
   );
 }
