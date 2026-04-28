@@ -12,7 +12,7 @@ export default function SplashScreen() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      router.replace('/(passenger)/enter-route-code-screen');
+      router.replace('/onboarding');
     }, 3000);
 
     return () => clearTimeout(timer);
