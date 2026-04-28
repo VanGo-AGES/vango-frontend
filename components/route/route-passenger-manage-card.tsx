@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: 12,
     overflow: 'hidden',
-    //marginTop: 8, 
+    //marginTop: 8,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'transparent',

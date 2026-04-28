@@ -81,7 +81,6 @@ export default function RootLayout() {
               options={{ headerShown: false }}
             />
             <Stack.Screen name="(driver)/(route)/schedule" options={{ headerShown: false }} />
-
             {/* passenger */}
             <Stack.Screen
               name="(passenger)/profile-passenger-screen"
@@ -89,6 +88,10 @@ export default function RootLayout() {
             />
             <Stack.Screen
               name="(passenger)/dependent-details-screen"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="(passenger)/enter-route-code-screen"
               options={{ headerShown: false }}
             />
           </Stack>
