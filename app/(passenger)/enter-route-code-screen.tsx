@@ -23,8 +23,8 @@ export default function EnterRouteCodeScreen() {
     if (!code) return;
 
     // TODO: integrar com API de validação do código
-    // Para testar sucesso, use o código "TESTE"
-    const isValid = code === 'TESTE';
+    // Para testar sucesso, use o código "00000"
+    const isValid = code === '00000';
 
     if (isValid) {
       router.push({ pathname: '/(passenger)/route-details-screen' as any, params: { code } });
@@ -55,6 +55,7 @@ export default function EnterRouteCodeScreen() {
           label="Continuar"
           onPress={handleContinue}
           disabled={!code}
+          labelColor={colors.white}
           icon={<MaterialIcons name="arrow-forward" size={18} color={colors.white} />}
           style={styles.button}
         />
