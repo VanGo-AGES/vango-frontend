@@ -56,7 +56,7 @@ export const typography = {
     lineHeight: 16,
     letterSpacing: 0.5,
   },
-    // M3/label/large — WorkSans 500 Medium, 14/20, ls 0.1
+  // M3/label/large — WorkSans 500 Medium, 14/20, ls 0.1
   labelLarge: {
     fontFamily: 'WorkSans_500Medium',
     fontSize: 14,
