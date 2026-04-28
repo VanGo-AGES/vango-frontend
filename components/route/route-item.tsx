@@ -34,8 +34,8 @@ export type RouteItemProps = {
 export function RouteItem({
   name,
   days,
-  duration,
-  distance,
+  duration = '30',
+  distance = '10',
   status = 'default',
   thumbnailUri,
   thumbnailSource,
