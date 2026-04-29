@@ -1,7 +1,6 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useQuery } from '@tanstack/react-query';
 
 import { HomeHeaderCard } from '@/components/route/home-header-card';
 import { EmptyState } from '@/components/general/empty-state';
@@ -9,31 +8,13 @@ import { AppScreenContainer } from '@/components/general/app-screen-container';
 import { ActionPillButton } from '@/components/route/action-pill-button';
 import { NextRouteCard } from '@/components/route/next-route-card';
 import { RouteList } from '@/components/route/route-list';
-import { apiGet } from '@/services/api';
+import { getNextRoute } from '@/services/route.service';
+import { useDriverRoutes } from '@/hooks/use-driver-routes';
 import { useSessionStore } from '@/store/session.store';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
 const headerLocation = 'Porto Alegre, RS';
-const ROUTES_QUERY_KEY = ['routes'];
-
-type Route = {
-  id: string;
-  name: string;
-  status: 'inativa' | 'ativa';
-  recurrence: string;
-  expected_time: string;
-  distance?: string | null;
-  distance_km?: number | null;
-  duration?: string | null;
-  duration_minutes?: number | null;
-};
-
-async function fetchRoutes(): Promise<Route[]> {
-  const user = useSessionStore.getState().user;
-  const headers = { 'X-User-Id': user?.id ?? '', 'X-User-Role': 'driver' };
-  return apiGet('/routes/', headers);
-}
 
 function formatRecurrence(recurrence: string) {
   return recurrence
@@ -68,14 +49,9 @@ export default function DriverHomeScreen() {
   const router = useRouter();
   const sessionUser = useSessionStore((s) => s.user);
   const localPhotoUri = useSessionStore((s) => s.localPhotoUri);
-  const { data: routesData = [] as Route[] } = useQuery({
-    queryKey: ROUTES_QUERY_KEY,
-    queryFn: fetchRoutes,
-    enabled: !!sessionUser?.id,
-    staleTime: 0,
-  });
+  const { data: routesData = [], isLoading, isError } = useDriverRoutes();
 
-  const nextRoute = routesData.find((route) => route.status === 'inativa') ?? routesData[0] ?? null;
+  const nextRoute = getNextRoute(routesData);
   const myRoutes = routesData;
   const routeItems = myRoutes.map((route) => ({
     name: route.name,
@@ -117,7 +93,14 @@ export default function DriverHomeScreen() {
         <Text style={styles.sectionTitle}>Próxima Rota</Text>
 
         <View style={styles.panel}>
-          {nextRoute ? (
+          {isLoading ? (
+            <EmptyState icon="schedule" text="Carregando a próxima rota do motorista..." />
+          ) : isError ? (
+            <EmptyState
+              icon="error-outline"
+              text="Não foi possível carregar a próxima rota. Tente novamente em instantes."
+            />
+          ) : nextRoute ? (
             <NextRouteCard
               routeName={nextRoute.name}
               dateLabel={formatRecurrence(nextRoute.recurrence) || 'Próxima rota'}
@@ -146,7 +129,18 @@ export default function DriverHomeScreen() {
           />
         </View>
 
-        {myRoutes.length > 0 ? (
+        {isLoading ? (
+          <View style={styles.emptyStateWrapper}>
+            <EmptyState icon="schedule" text="Carregando suas rotas..." />
+          </View>
+        ) : isError ? (
+          <View style={styles.emptyStateWrapper}>
+            <EmptyState
+              icon="error-outline"
+              text="Não foi possível carregar suas rotas no momento. Tente novamente."
+            />
+          </View>
+        ) : myRoutes.length > 0 ? (
           <RouteList
             routes={routeItems}
             style={styles.routesList}
@@ -168,9 +162,6 @@ export default function DriverHomeScreen() {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 0,
-  },
-  content: {
-    paddingBottom: 32,
   },
   headerSpacing: {
     paddingHorizontal: 24,

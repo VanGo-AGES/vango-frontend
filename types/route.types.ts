@@ -44,7 +44,7 @@ export interface CreateRouteRequest {
   recurrence: string;
 }
 
-export interface CreateRouteResponse {
+export interface RouteResponse {
   id: string;
   name: string;
   route_type: RouteType;
@@ -55,4 +55,10 @@ export interface CreateRouteResponse {
   max_passengers: number;
   origin_address: AddressResponse;
   destination_address: AddressResponse;
+  distance?: string | null;
+  distance_km?: number | null;
+  duration?: string | null;
+  duration_minutes?: number | null;
 }
+
+export type CreateRouteResponse = RouteResponse;
