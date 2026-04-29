@@ -43,7 +43,7 @@ export function RouteItem({
   style,
   pendingBadgeLabel = 'CONVITE PENDENTE',
   pendingDialogTitle = 'Convite pendente',
-  pendingDialogDescription = 'Você ainda não aceitou esse convite de rota. Ao aceitar, os detalhes completos do trajeto ficarão disponíveis.',
+  pendingDialogDescription = 'Você ainda não foi aceito nessa rota. Quando o motorista aceitar os detalhes completos do trajeto ficarão disponíveis.',
 }: RouteItemProps) {
   const [isPendingDialogVisible, setIsPendingDialogVisible] = useState(false);
 
