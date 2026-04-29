@@ -11,56 +11,60 @@ type ParticipantSelectorProps = {
     label: string;
   }[];
   selectedId?: string;
-  onSelect: (id: string) => void;
+  onSelect: (id: string | undefined) => void;
+  dependentsPaddingEnd?: number;
 };
 
-export function ParticipantSelector({ options, selectedId, onSelect }: ParticipantSelectorProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [selectedType, setSelectedType] = useState<'you' | 'dependent' | undefined>();
+export function ParticipantSelector({
+  options,
+  selectedId,
+  onSelect,
+  dependentsPaddingEnd,
+}: ParticipantSelectorProps) {
+  const [isExpanded, setIsExpanded] = useState(() => !!selectedId && selectedId !== 'you');
+  const [selectedGroup, setSelectedGroup] = useState<'you' | 'dependent' | undefined>(() => {
+    if (!selectedId) return undefined;
+    return selectedId === 'you' ? 'you' : 'dependent';
+  });
 
   const userOption = options.find((option) => option.id === 'you');
   const dependentOptions = options.filter((option) => option.id !== 'you');
 
-  const isUserSelected = selectedType === 'you';
-  const isDependentGroupSelected = selectedType === 'dependent';
+  const isUserSelected = selectedGroup === 'you';
+  const isDependentGroupSelected = selectedGroup === 'dependent';
 
   const handleSelectUser = () => {
-    if (!userOption) return;
-
-    setSelectedType('you');
-    onSelect(userOption.id);
+    setSelectedGroup('you');
+    onSelect('you');
     setIsExpanded(false);
   };
 
   const handleSelectDependentGroup = () => {
-    setSelectedType('dependent');
-    setIsExpanded(true);
-  };
-
-  const handleSelectDependent = (id: string) => {
-    onSelect(id);
+    if (!isDependentGroupSelected) {
+      setSelectedGroup('dependent');
+      onSelect(undefined);
+    }
+    setIsExpanded((prev) => (isDependentGroupSelected ? true : !prev));
   };
 
   return (
     <View style={styles.container}>
       {userOption && (
-        <View style={styles.cardWrapper}>
-          <TouchableOpacity style={styles.header} activeOpacity={0.7} onPress={handleSelectUser}>
-            <View style={styles.radioWrapper}>
-              <Icon
-                source={isUserSelected ? 'radiobox-marked' : 'radiobox-blank'}
-                size={24}
-                color={isUserSelected ? colors.dark : colors.subtleText}
-              />
+        <TouchableOpacity style={styles.header} activeOpacity={0.7} onPress={handleSelectUser}>
+          <View style={styles.radioWrapper}>
+            <Icon
+              source={isUserSelected ? 'radiobox-marked' : 'radiobox-blank'}
+              size={24}
+              color={isUserSelected ? colors.dark : colors.subtleText}
+            />
 
-              <RNText style={styles.optionText}>{userOption.label}</RNText>
-            </View>
-          </TouchableOpacity>
-        </View>
+            <RNText style={styles.optionText}>{userOption.label}</RNText>
+          </View>
+        </TouchableOpacity>
       )}
 
       {dependentOptions.length > 0 && (
-        <View style={styles.cardWrapper}>
+        <>
           <TouchableOpacity
             style={styles.header}
             activeOpacity={0.7}
@@ -75,18 +79,10 @@ export function ParticipantSelector({ options, selectedId, onSelect }: Participa
 
               <RNText style={styles.optionText}>Seu dependente</RNText>
             </View>
-
-            <View style={styles.iconWrapper}>
-              <Icon
-                source={isExpanded ? 'chevron-up' : 'chevron-down'}
-                size={20}
-                color={colors.dark}
-              />
-            </View>
           </TouchableOpacity>
 
           {isExpanded && (
-            <View style={styles.dropdownContent}>
+            <View style={[styles.dropdownContent, { paddingEnd: dependentsPaddingEnd }]}>
               {dependentOptions.map((dependent) => {
                 const isSelected = selectedId === dependent.id;
 
@@ -94,7 +90,7 @@ export function ParticipantSelector({ options, selectedId, onSelect }: Participa
                   <TouchableOpacity
                     key={dependent.id}
                     activeOpacity={0.7}
-                    onPress={() => handleSelectDependent(dependent.id)}
+                    onPress={() => onSelect(dependent.id)}
                   >
                     <AppTextField
                       label="Nome"
@@ -107,7 +103,6 @@ export function ParticipantSelector({ options, selectedId, onSelect }: Participa
                         <TextInput.Icon
                           icon={isSelected ? 'radiobox-marked' : 'radiobox-blank'}
                           color={isSelected ? colors.dark : colors.subtleText}
-                          onPress={() => handleSelectDependent(dependent.id)}
                         />
                       }
                     />
@@ -116,7 +111,7 @@ export function ParticipantSelector({ options, selectedId, onSelect }: Participa
               })}
             </View>
           )}
-        </View>
+        </>
       )}
     </View>
   );
@@ -127,19 +122,9 @@ const styles = StyleSheet.create({
     gap: 16,
   },
 
-  cardWrapper: {
-    borderRadius: 8,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: colors.accent,
-    alignSelf: 'center',
-    width: 315,
-  },
-
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     padding: 16,
     minHeight: 68,
     backgroundColor: colors.light,
@@ -152,20 +137,13 @@ const styles = StyleSheet.create({
     gap: 12,
   },
 
-  iconWrapper: {
-    backgroundColor: colors.accent,
-    minWidth: 32,
-    borderRadius: 16,
-    padding: 6,
-  },
-
   optionText: {
     ...typography.body,
     color: colors.dark,
   },
 
   dropdownContent: {
-    paddingLeft: 42,
+    paddingStart: 42,
     paddingBottom: 16,
     gap: 1,
   },
