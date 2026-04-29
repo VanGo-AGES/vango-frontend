@@ -1,9 +1,18 @@
-import { StyleProp, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
+import {
+  Alert,
+  Linking,
+  StyleProp,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+} from 'react-native';
 import { Href, useRouter } from 'expo-router';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const VARIANT_LABELS = {
   driver: 'Chamar Passageiro',
@@ -11,44 +20,76 @@ const VARIANT_LABELS = {
 } as const;
 
 export type ContactActionButtonProps = {
-  onPress: () => void;
-  href?: Href;
   variant: 'driver' | 'passenger';
+  phoneNumber: string;
+  onPress?: () => void;
+  href?: Href;
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
 };
 
 export function ContactActionButton({
+  variant,
+  phoneNumber,
   onPress,
   href,
-  variant,
   disabled = false,
   style,
 }: ContactActionButtonProps) {
   const router = useRouter();
+
   const handlePress = () => {
     if (href) {
       router.push(href);
     }
-    onPress?.();
+    if (onPress) {
+      onPress();
+    }
+
+    if (!href && phoneNumber) {
+      Alert.alert(
+        VARIANT_LABELS[variant],
+        'Como você prefere entrar em contato?',
+        [
+          {
+            text: 'Ligar',
+            onPress: () => Linking.openURL(`tel:${phoneNumber}`),
+          },
+          {
+            text: 'WhatsApp',
+            onPress: () => {
+              const cleanNumber = phoneNumber.replace(/\D/g, '');
+              Linking.openURL(`whatsapp://send?phone=${cleanNumber}`);
+            },
+          },
+          {
+            text: 'Cancelar',
+            style: 'cancel',
+          },
+        ],
+        { cancelable: true },
+      );
+    }
   };
+
+  const isDisabled = disabled || !phoneNumber;
 
   return (
     <TouchableOpacity
       onPress={handlePress}
-      disabled={disabled}
+      disabled={isDisabled}
       activeOpacity={0.75}
       accessibilityRole="button"
-      accessibilityState={{ disabled }}
-      style={[styles.button, disabled && styles.buttonDisabled, style]}
+      accessibilityState={{ disabled: isDisabled }}
+      style={[styles.button, isDisabled && styles.buttonDisabled, style]}
     >
       <View style={styles.content}>
         <MaterialCommunityIcons
           name="phone-hangup"
           size={20}
-          color={disabled ? colors.subtleText : colors.dark}
+          color={isDisabled ? colors.subtleText : colors.dark}
         />
-        <Text style={[styles.label, disabled && styles.labelDisabled]}>
+        <Text style={[styles.label, isDisabled && styles.labelDisabled]}>
           {VARIANT_LABELS[variant]}
         </Text>
       </View>
