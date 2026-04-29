@@ -11,6 +11,7 @@ type RouteTopBarProps = {
   onEditPress?: () => void;
   onDeletePress?: () => void;
   onLeavePress?: () => void;
+  showMenu?: boolean;
 };
 
 export function RouteTopBar({
@@ -19,6 +20,7 @@ export function RouteTopBar({
   onEditPress,
   onDeletePress,
   onLeavePress,
+  showMenu = true,
 }: RouteTopBarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -37,7 +39,7 @@ export function RouteTopBar({
         <MaterialIcons name="arrow-back" size={24} color={colors.dark} />
       </Pressable>
 
-      {variant && (
+      {variant && showMenu && (
         <View style={styles.menuWrapper}>
           <RouteActionMenu
             isOpen={menuOpen}
