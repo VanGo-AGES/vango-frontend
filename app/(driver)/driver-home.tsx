@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 
@@ -162,9 +162,6 @@ export default function DriverHomeScreen() {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 0,
-  },
-  content: {
-    paddingBottom: 32,
   },
   headerSpacing: {
     paddingHorizontal: 24,
