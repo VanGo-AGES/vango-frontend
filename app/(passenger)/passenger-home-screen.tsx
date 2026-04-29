@@ -1,4 +1,5 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 
 import { ActionPillButton } from '@/components/route/action-pill-button';
 import { EmptyState } from '@/components/general/empty-state';
@@ -8,21 +9,13 @@ import { RouteList } from '@/components/route/route-list';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
-import { MaterialIcons } from '@expo/vector-icons';
 
-type NextRoute = {
-  routeName: string;
-  dateLabel: string;
-  time: string;
-};
-
-// Dados mockados para visualização — serão substituídos por dados reais da API
 const MOCK_USER = {
   name: 'Mateus Cunha',
   location: 'Porto Alegre, RS',
 };
 
-const MOCK_NEXT_ROUTE: NextRoute | null = {
+const MOCK_NEXT_ROUTE = {
   routeName: 'PUCRS',
   dateLabel: 'Hoje',
   time: '08:00',
@@ -40,87 +33,117 @@ const MOCK_ROUTES = [
 
 export default function PassengerHomeScreen() {
   const hasRoutes = MOCK_ROUTES.length > 0;
-  const hasPendingRoutes = MOCK_ROUTES.some((r) => r.status === 'pending');
   const nextRoute = MOCK_NEXT_ROUTE;
 
   return (
-    <AppScreenContainer backgroundColor={colors.light} style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-        {/* Header com avatar, nome e botão de settings */}
+    <AppScreenContainer
+      backgroundColor={colors.white}
+      edges={['top', 'bottom']}
+      style={styles.container}
+    >
+      <View style={styles.headerSpacing}>
         <HomeHeaderCard
           name={MOCK_USER.name}
           location={MOCK_USER.location}
           onSettingsPress={() => {}}
           onProfilePress={() => {}}
         />
+      </View>
 
-        {/* Seção: Próxima Rota */}
+      <View style={styles.section}>
         <Text style={styles.sectionTitle}>Próxima Rota</Text>
 
-        {nextRoute ? (
-          <>
+        <View style={styles.panel}>
+          {nextRoute ? (
             <NextRouteCard
               routeName={nextRoute.routeName}
               dateLabel={nextRoute.dateLabel}
               time={nextRoute.time}
-              onPress={() => {}}
             />
-          </>
-        ) : (
-          <EmptyState
-            icon="calendar-today"
-            text={'Nenhuma rota agendada\nParticipe de uma rota para começar.'}
-          />
-        )}
+          ) : (
+            <View style={styles.emptyStateWrapper}>
+              <EmptyState
+                icon="calendar-today"
+                text="Nenhuma rota agendada. Participe de uma rota para começar."
+              />
+            </View>
+          )}
+        </View>
+      </View>
 
-        {/* Seção: Minhas Rotas */}
+      <View style={styles.sectionWithTopSpacing}>
         <Text style={styles.sectionTitle}>Minhas Rotas</Text>
 
-        <ActionPillButton
-          icon={<MaterialIcons name="qr-code-scanner" size={20} color={colors.dark} />}
-          label="ENTRAR COM CÓDIGO"
-          onPress={() => {}}
-        />
+        <View style={styles.buttonContainer}>
+          <ActionPillButton
+            icon={<MaterialIcons name="qr-code-scanner" size={20} color={colors.dark} />}
+            label="ENTRAR COM CÓDIGO"
+            onPress={() => {}}
+            style={styles.enterCodeButton}
+          />
+        </View>
 
         {hasRoutes ? (
           <RouteList
-            routes={MOCK_ROUTES.map((r) => ({
-              name: r.name,
-              days: r.days,
-              duration: r.duration,
-              distance: r.distance,
-              status: r.status,
-            }))}
+            routes={MOCK_ROUTES}
+            style={styles.routesList}
+            contentContainerStyle={styles.routesListContent}
           />
         ) : (
-          <EmptyState
-            icon="directions-car"
-            text={
-              'Você ainda não participa de nenhuma rota.\nToque em "Entrar com Código" para começar.'
-            }
-          />
+          <View style={styles.emptyStateWrapper}>
+            <EmptyState
+              icon="directions-car"
+              text={
+                'Você ainda não participa de nenhuma rota. Toque em "Entrar com Código" para começar.'
+              }
+            />
+          </View>
         )}
-      </ScrollView>
+      </View>
     </AppScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    paddingHorizontal: 0,
   },
-  scroll: {
-    gap: 16,
-    paddingBottom: 32,
+  headerSpacing: {
+    paddingHorizontal: 24,
+    marginBottom: 32,
+  },
+  section: {
+    gap: 12,
+  },
+  sectionWithTopSpacing: {
+    gap: 12,
+    marginTop: 36,
+  },
+  panel: {
+    backgroundColor: colors.light,
+    paddingHorizontal: 24,
+    paddingVertical: 24,
+  },
+  emptyStateWrapper: {
+    paddingHorizontal: 24,
+    paddingVertical: 24,
   },
   sectionTitle: {
-    ...typography.header3,
-    color: colors.dark,
-    marginTop: 8,
-  },
-  verRota: {
     ...typography.body,
-    color: colors.primary,
-    textAlign: 'right',
+    color: colors.dark,
+    paddingHorizontal: 24,
+  },
+  buttonContainer: {
+    paddingHorizontal: 24,
+  },
+  enterCodeButton: {
+    width: '100%',
+    minHeight: 40,
+  },
+  routesList: {
+    paddingHorizontal: 24,
+  },
+  routesListContent: {
+    gap: 16,
   },
 });
