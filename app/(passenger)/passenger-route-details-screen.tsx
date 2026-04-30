@@ -1,42 +1,30 @@
 import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useRouter } from 'expo-router';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { RouteTopBar } from '@/components/route/route-top-bar';
 import { RouteHeroHeader } from '@/components/route/route-hero-header';
 import { RouteStopList, type Stop } from '@/components/route/route-stop-list';
 import { PrimaryButton } from '@/components/general/primary-button';
 import AppDialog, { type DialogAction } from '@/components/general/app-dialog';
-import { AppScreenContainer } from '@/components/general/app-screen-container';
 
 import { colors } from '@/styles/colors';
 
 type AbsenceStatus = 'not_notified' | 'notified';
 type TripStatus = 'before_trip' | 'during_trip' | 'after_trip';
 
-/**
- * Estados do CTA principal:
- * 1. Antes da viagem / participação ativa (before_trip + not_notified):
- *    exibir botão "Avisar ausência" (variant="warning")
- *
- * 2. Durante a viagem / participando normalmente (during_trip + not_notified):
- *    exibir botão "Acompanhar viagem"
- *
- * 3. Após avisar ausência (any + notified):
- *    ocultar CTA (preparado para lógica futura)
- */
 export default function PassengerRouteDetailsScreen() {
   const router = useRouter();
+  const { height: screenHeight } = useWindowDimensions();
+  const heroHeight = Math.max(320, Math.min(420, Math.round(screenHeight * 0.42)));
 
-  // Estados da rota (idealmente viriam de contexto/hook da API)
   const [absenceStatus, setAbsenceStatus] = useState<AbsenceStatus>('not_notified');
   const [tripStatus, setTripStatus] = useState<TripStatus>('before_trip');
 
-  // Estados dos diálogos
   const [absenceDialogVisible, setAbsenceDialogVisible] = useState(false);
   const [leaveDialogVisible, setLeaveDialogVisible] = useState(false);
 
-  // Dados mockados (idealmente viriam de params/hook da API)
   const mockRoute = {
     id: '1',
     name: 'Centro → Zona Norte',
@@ -78,14 +66,12 @@ export default function PassengerRouteDetailsScreen() {
   const handleConfirmAbsence = async () => {
     setAbsenceDialogVisible(false);
     setAbsenceStatus('notified');
-    // TODO: Chamar API para avisar ausência
-    // await useUpdatePassengerAbsenceStatus(routeId, true);
+    // TODO: chamar API para avisar ausencia
   };
 
   const handleLeaveRoute = async () => {
     setLeaveDialogVisible(false);
-    // TODO: Chamar API para sair da rota
-    // await useLeaveRoute(routeId);
+    // TODO: chamar API para sair da rota
     router.back();
   };
 
@@ -94,8 +80,7 @@ export default function PassengerRouteDetailsScreen() {
   };
 
   const handleAccompanyTrip = () => {
-    // TODO: Navegar para fluxo de acompanhamento
-    // router.push('/(passenger)/accompany-trip');
+    // TODO: navegar para fluxo de acompanhamento
   };
 
   const handleBack = () => {
@@ -103,18 +88,36 @@ export default function PassengerRouteDetailsScreen() {
   };
 
   const renderCTA = () => {
-    // Após avisar ausência: ocultar CTA (ou adaptar conforme regra futura)
+    // CTA oculto quando o passageiro ja avisou ausencia.
     if (absenceStatus === 'notified') {
+      return null;
+    }
+
+    if (tripStatus === 'after_trip') {
       return null;
     }
 
     if (tripStatus === 'during_trip') {
       return (
-        <PrimaryButton label="Acompanhar viagem" onPress={handleAccompanyTrip} variant="primary" />
+        <PrimaryButton
+          label="Acompanhar viagem"
+          onPress={handleAccompanyTrip}
+          icon={<MaterialIcons name="arrow-forward" size={24} color={colors.light} />}
+          variant="secondary"
+          style={styles.ctaButton}
+        />
       );
     }
 
-    return <PrimaryButton label="Avisar ausência" onPress={handleAbsencePress} variant="warning" />;
+    return (
+      <PrimaryButton
+        label="Avisar ausência"
+        onPress={handleAbsencePress}
+        variant="warning"
+        icon={<MaterialIcons name="error-outline" size={18} color={colors.light} />}
+        style={styles.ctaButton}
+      />
+    );
   };
 
   const absenceDialogActions: DialogAction[] = [
@@ -143,35 +146,48 @@ export default function PassengerRouteDetailsScreen() {
     },
   ];
 
+  const cta = renderCTA();
+
   return (
-    <AppScreenContainer backgroundColor={colors.light} style={styles.container}>
-      <RouteTopBar
-        onBackPress={handleBack}
-        variant="passenger"
-        showMenu
-        onLeavePress={handleLeavePress}
-      />
+    <View style={[styles.container, styles.screen]}>
+      <View style={styles.topBarContainer}>
+        <RouteTopBar
+          onBackPress={handleBack}
+          variant="passenger"
+          showMenu={tripStatus !== 'during_trip'}
+          onLeavePress={handleLeavePress}
+          backgroundColor="transparent"
+          style={styles.topBarOverlay}
+        />
+      </View>
 
       <ScrollView
         style={styles.content}
+        contentContainerStyle={[
+          styles.contentContainer,
+          cta ? styles.contentContainerWithCTA : null,
+        ]}
         scrollIndicatorInsets={{ right: 1 }}
         showsVerticalScrollIndicator={true}
       >
-        <RouteHeroHeader
-          routeName={mockRoute.name}
-          recurrence={mockRoute.recurrence}
-          expectedTime={mockRoute.expectedTime}
-          durationMinutes={mockRoute.durationMinutes}
-          distanceKm={mockRoute.distanceKm}
-        />
+        <View style={styles.heroSection}>
+          <RouteHeroHeader
+            routeName={mockRoute.name}
+            recurrence={mockRoute.recurrence}
+            expectedTime={mockRoute.expectedTime}
+            durationMinutes={mockRoute.durationMinutes}
+            distanceKm={mockRoute.distanceKm}
+            style={[styles.heroHeader, { minHeight: heroHeight }]}
+          />
+        </View>
 
         <View style={styles.stopsSection}>
           <Text style={styles.sectionTitle}>Paradas da rota</Text>
           <RouteStopList stops={mockStops} />
         </View>
-
-        <View style={styles.ctaSection}>{renderCTA()}</View>
       </ScrollView>
+
+      {cta ? <View style={styles.ctaFloating}>{cta}</View> : null}
 
       <AppDialog
         visible={absenceDialogVisible}
@@ -188,7 +204,7 @@ export default function PassengerRouteDetailsScreen() {
         actions={leaveDialogActions}
         onRequestClose={() => setLeaveDialogVisible(false)}
       />
-    </AppScreenContainer>
+    </View>
   );
 }
 
@@ -196,13 +212,40 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  screen: {
+    backgroundColor: colors.light,
+  },
   content: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+  },
+  contentContainer: {
+    paddingBottom: 24,
+    paddingTop: 0,
+  },
+  contentContainerWithCTA: {
+    paddingBottom: 180,
+  },
+  topBarContainer: {
+    position: 'absolute',
+    top: 52,
+    left: 4,
+    right: 4,
+    zIndex: 10,
+  },
+  topBarOverlay: {
+    maxWidth: '100%',
+    alignSelf: 'stretch',
+  },
+  heroSection: {
+    position: 'relative',
+    marginBottom: 16,
+  },
+  heroHeader: {
+    width: '100%',
   },
   stopsSection: {
     marginVertical: 24,
+    paddingHorizontal: 16,
   },
   sectionTitle: {
     fontSize: 16,
@@ -210,8 +253,16 @@ const styles = StyleSheet.create({
     color: colors.dark,
     marginBottom: 16,
   },
-  ctaSection: {
-    marginVertical: 24,
-    paddingBottom: 32,
+  ctaFloating: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 44,
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  ctaButton: {
+    alignSelf: 'stretch',
+    width: '100%',
   },
 });
