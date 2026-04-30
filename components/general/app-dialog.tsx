@@ -112,10 +112,8 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    ...typography.subtitle,
+    ...typography.header3,
     color: colors.dark,
-    fontSize: 20,
-    fontWeight: '700',
   },
 
   description: {
@@ -151,7 +149,6 @@ const styles = StyleSheet.create({
   },
 
   buttonText: {
-    fontSize: 14,
-    fontWeight: '600',
+    ...typography.bodyBold,
   },
 });
