@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { colors, withAlpha } from '@/styles/colors';
@@ -11,6 +11,9 @@ type RouteTopBarProps = {
   onEditPress?: () => void;
   onDeletePress?: () => void;
   onLeavePress?: () => void;
+  showMenu?: boolean;
+  backgroundColor?: string;
+  style?: StyleProp<ViewStyle>;
 };
 
 export function RouteTopBar({
@@ -19,6 +22,9 @@ export function RouteTopBar({
   onEditPress,
   onDeletePress,
   onLeavePress,
+  showMenu = true,
+  backgroundColor = colors.light,
+  style,
 }: RouteTopBarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -27,7 +33,7 @@ export function RouteTopBar({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor }, style]}>
       <Pressable
         onPress={onBackPress}
         accessibilityRole="button"
@@ -37,7 +43,7 @@ export function RouteTopBar({
         <MaterialIcons name="arrow-back" size={24} color={colors.dark} />
       </Pressable>
 
-      {variant && (
+      {variant && showMenu && (
         <View style={styles.menuWrapper}>
           <RouteActionMenu
             isOpen={menuOpen}

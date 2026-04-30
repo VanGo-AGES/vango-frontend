@@ -3,7 +3,7 @@ import { StyleProp, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from '
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
-export type ButtonVariant = 'primary' | 'secondary';
+export type ButtonVariant = 'primary' | 'secondary' | 'warning';
 
 export interface PrimaryButtonProps {
   label: string;
@@ -23,6 +23,10 @@ const variantStyles: Record<ButtonVariant, { textColor: string; backgroundColor:
   secondary: {
     textColor: colors.light,
     backgroundColor: colors.dark,
+  },
+  warning: {
+    textColor: colors.light,
+    backgroundColor: colors.destructive,
   },
 };
 
