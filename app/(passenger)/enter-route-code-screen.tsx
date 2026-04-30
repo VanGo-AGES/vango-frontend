@@ -22,8 +22,6 @@ export default function EnterRouteCodeScreen() {
   const handleContinue = () => {
     if (!code) return;
 
-    // TODO: integrar com API de validação do código
-    // Para testar sucesso, use o código "TESTE"
     const isValid = code === 'TESTE';
 
     if (isValid) {

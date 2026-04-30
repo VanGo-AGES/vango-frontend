@@ -20,7 +20,6 @@ export default function DriverHomeScreen() {
   const router = useRouter();
   const sessionUser = useSessionStore((s) => s.user);
   const localPhotoUri = useSessionStore((s) => s.localPhotoUri);
-
   let nextRoute: RouteItem | null = null;
   let myRoutes: RouteItem[] = [];
 
