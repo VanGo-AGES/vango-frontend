@@ -35,6 +35,18 @@ export const typography = {
     fontSize: 16,
     lineHeight: 22.4, // 140% de 16px
   },
+  bodyLarge: {
+    fontFamily: 'WorkSans_400Regular',
+    fontSize: 16,
+    lineHeight: 24,
+    letterSpacing: 0.5,
+  },
+  bodyMedium: {
+    fontFamily: 'WorkSans_400Regular',
+    fontSize: 14,
+    lineHeight: 20,
+    letterSpacing: 0.25,
+  },
   bodyBold: {
     fontFamily: 'WorkSans_700Bold',
     fontSize: 16,
