@@ -8,9 +8,6 @@ export type AppSnackbarProps = {
   onDismiss: () => void;
 };
 
-// Cores baseadas nos tokens M3/sys/light do Figma:
-// inverse-surface  → #313033 (fundo)
-// inverse-on-surface → #EDEDF4 (texto)
 export function AppSnackbar({ visible, message, onDismiss }: AppSnackbarProps) {
   return (
     <Snackbar
