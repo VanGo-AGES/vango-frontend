@@ -106,6 +106,10 @@ export default function RootLayout() {
                 name="(passenger)/enter-route-code-screen"
                 options={{ headerShown: false }}
               />
+              <Stack.Screen
+                name="(passenger)/passenger-route-details-screen"
+                options={{ headerShown: false }}
+              />
             </Stack>
             <StatusBar style="auto" />
           </PaperProvider>
