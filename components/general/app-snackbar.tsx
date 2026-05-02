@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import { Snackbar } from 'react-native-paper';
 
 export type AppSnackbarProps = {
@@ -17,7 +17,7 @@ export function AppSnackbar({ visible, message, onDismiss }: AppSnackbarProps) {
       style={styles.snackbar}
       contentStyle={styles.content}
     >
-      {message}
+      <Text numberOfLines={1}>{message}</Text>
     </Snackbar>
   );
 }
@@ -30,8 +30,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   content: {
-    paddingHorizontal: 0,
-    paddingVertical: 0,
     minHeight: 48,
   },
 });
