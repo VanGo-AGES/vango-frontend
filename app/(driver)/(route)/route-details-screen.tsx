@@ -2,7 +2,6 @@ import AppDialog, { type DialogAction } from '@/components/general/app-dialog';
 import { EmptyState } from '@/components/general/empty-state';
 import { PrimaryButton } from '@/components/general/primary-button';
 import { RoutePassengerSection } from '@/components/route/passenger/route-passenger-section';
-import { RouteAbsentList, type RouteAbsentItem } from '@/components/route/route-absent-list';
 import { RouteHeroHeader } from '@/components/route/route-hero-header';
 import { RouteStopList, type Stop } from '@/components/route/route-stop-list';
 import { RouteTopBar } from '@/components/route/route-top-bar';
@@ -15,12 +14,7 @@ import { isRouteToday, splitStopsByAbsence } from '@/services/route.service';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 import type { PassengerStatus } from '@/components/route/passenger/route-passenger-card';
-import type {
-  AddressResponse,
-  RouteAbsenceResponse,
-  RoutePassangerResponse,
-  StopResponse,
-} from '@/types/route.types';
+import type { AddressResponse, RoutePassangerResponse, StopResponse } from '@/types/route.types';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
@@ -90,29 +84,17 @@ function buildUiStops(
   ];
 }
 
-function buildAbsentItems(
-  absentStops: StopResponse[],
-  absences: RouteAbsenceResponse[],
-): RouteAbsentItem[] {
-  const absenceByRpId = new Map<string, RouteAbsenceResponse>();
-  absences.forEach((absence) => absenceByRpId.set(absence.route_passanger_id, absence));
-
-  return absentStops.map((stop) => {
-    const absence = absenceByRpId.get(stop.route_passanger_id);
-    const name = absence?.dependent_name ?? absence?.user_name ?? 'Passageiro ausente';
-    return {
-      id: stop.route_passanger_id,
-      name,
-      reason: absence?.reason ?? null,
-    };
-  });
-}
-
-function mapPassangerStatusToCard(status: RoutePassangerResponse['status']): PassengerStatus {
-  if (status === 'accepted') {
-    return 'confirmed';
+function mapPassangerStatusToCard(
+  passanger: RoutePassangerResponse,
+  absentRpIds: Set<string>,
+): PassengerStatus {
+  if (passanger.status !== 'accepted') {
+    return 'none';
   }
-  return 'none';
+  if (absentRpIds.has(passanger.id)) {
+    return 'absent';
+  }
+  return 'confirmed';
 }
 
 export default function RouteDetailsScreen() {
@@ -141,12 +123,11 @@ export default function RouteDetailsScreen() {
     return map;
   }, [passangers]);
 
-  const { presentStops, absentStops } = useMemo(() => {
+  const presentStops = useMemo(() => {
     if (!route) {
-      return { presentStops: [], absentStops: [] };
+      return [];
     }
-    const { present, absent } = splitStopsByAbsence(route.stops, absences);
-    return { presentStops: present, absentStops: absent };
+    return splitStopsByAbsence(route.stops, absences).present;
   }, [route, absences]);
 
   const stopsForView = useMemo<Stop[]>(() => {
@@ -154,27 +135,38 @@ export default function RouteDetailsScreen() {
       return [];
     }
 
-    const stops = isToday ? presentStops : route.stops;
-    return buildUiStops(route.origin_address, route.destination_address, stops, passangerByRpId);
-  }, [route, isToday, presentStops, passangerByRpId]);
+    return buildUiStops(
+      route.origin_address,
+      route.destination_address,
+      presentStops,
+      passangerByRpId,
+    );
+  }, [route, presentStops, passangerByRpId]);
 
-  const absentItems = useMemo(
-    () => buildAbsentItems(absentStops, absences),
-    [absentStops, absences],
+  const absentRpIds = useMemo(
+    () => new Set(absences.map((absence) => absence.route_passanger_id)),
+    [absences],
   );
 
   const cardPassangers = useMemo(
     () =>
       passangers.map((p) => ({
         name: pickPassangerName(p),
-        status: mapPassangerStatusToCard(p.status),
+        status: mapPassangerStatusToCard(p, absentRpIds),
       })),
+    [passangers, absentRpIds],
+  );
+
+  const acceptedPassangers = useMemo(
+    () => passangers.filter((p) => p.status === 'accepted'),
     [passangers],
   );
 
+  const totalAcceptedCount = acceptedPassangers.length;
+
   const confirmedCount = useMemo(
-    () => passangers.filter((p) => p.status === 'accepted').length,
-    [passangers],
+    () => acceptedPassangers.filter((p) => !absentRpIds.has(p.id)).length,
+    [acceptedPassangers, absentRpIds],
   );
 
   const [activeDialog, setActiveDialog] = useState<DialogType>(null);
@@ -346,39 +338,38 @@ export default function RouteDetailsScreen() {
         </View>
 
         <View style={styles.stopsSection}>
-          <Text style={[styles.sectionTitle, styles.sectionHPadding]}>
-            {isToday ? 'Próxima partida' : 'Paradas'}
-          </Text>
+          <Text style={[styles.sectionTitle, styles.sectionHPadding]}>Próxima partida</Text>
           <RouteStopList
             stops={stopsForView}
             onDeleteStopPress={isInProgress ? undefined : handleDeleteStopPress}
           />
         </View>
 
-        {isToday && absentItems.length > 0 ? (
-          <View style={styles.absentSection}>
-            <Text style={[styles.sectionTitle, styles.sectionHPadding]}>Ausentes hoje</Text>
-            <RouteAbsentList items={absentItems} />
-          </View>
-        ) : null}
-
-        <View style={styles.section}>
-          <TouchableOpacity onPress={handleNavigateToPassengers} activeOpacity={0.7}>
+        <View style={styles.passengersBlock}>
+          <TouchableOpacity
+            onPress={handleNavigateToPassengers}
+            activeOpacity={0.7}
+            style={styles.sectionHPadding}
+          >
             <View style={styles.passengerHeader}>
               <View style={styles.passengerTitleRow}>
                 <Text style={styles.sectionTitle}>Passageiros</Text>
                 <MaterialIcons name="chevron-right" size={20} color={colors.dark} />
               </View>
               <Text style={styles.passengerCount}>
-                {confirmedCount}/{route.max_passengers} Confirmados
+                {confirmedCount}/{totalAcceptedCount} Confirmados
               </Text>
             </View>
           </TouchableOpacity>
 
           {isPassangersLoading ? (
-            <EmptyState icon="schedule" text="Carregando passageiros..." />
+            <View style={styles.sectionHPadding}>
+              <EmptyState icon="schedule" text="Carregando passageiros..." />
+            </View>
           ) : cardPassangers.length === 0 ? (
-            <EmptyState icon="group" text="Nenhum passageiro nessa rota ainda." />
+            <View style={styles.sectionHPadding}>
+              <EmptyState icon="group" text="Nenhum passageiro nessa rota ainda." />
+            </View>
           ) : (
             <RoutePassengerSection passengers={cardPassangers} phase="pre_trip" />
           )}
@@ -459,15 +450,15 @@ const styles = StyleSheet.create({
     paddingTop: 24,
     gap: 12,
   },
-  absentSection: {
-    paddingTop: 24,
-    gap: 12,
-  },
   sectionHPadding: {
     paddingHorizontal: 16,
   },
   section: {
     paddingHorizontal: 16,
+    paddingTop: 24,
+    gap: 12,
+  },
+  passengersBlock: {
     paddingTop: 24,
     gap: 12,
   },

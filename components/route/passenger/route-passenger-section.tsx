@@ -44,6 +44,6 @@ const styles = StyleSheet.create({
   passengerList: {
     flexDirection: 'row',
     gap: 8,
-    paddingRight: 16,
+    paddingLeft: 16,
   },
 });

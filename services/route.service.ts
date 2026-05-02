@@ -70,6 +70,48 @@ export function isRouteToday(recurrence: string): boolean {
     .some((index) => index !== null && index === todayIndex);
 }
 
+/**
+ * Retorna a data (YYYY-MM-DD) da próxima execução da rota.
+ *
+ * - Se hoje está na recorrência, retorna hoje (offset 0).
+ * - Caso contrário, o próximo dia futuro que está na recorrência (1..6 à frente).
+ * - Recorrência inválida ou vazia → null.
+ *
+ * Usa data local (mesmo critério de isRouteToday). O formato YYYY-MM-DD é o
+ * mesmo aceito por GET /routes/{id}/absences?date=YYYY-MM-DD.
+ */
+export function getNextRouteOccurrenceDate(
+  recurrence: string,
+  now: Date = new Date(),
+): string | null {
+  const recurrenceDays = recurrence
+    .split(',')
+    .map(getWeekdayIndex)
+    .filter((day): day is number => day !== null);
+
+  if (!recurrenceDays.length) {
+    return null;
+  }
+
+  const todayIndex = now.getDay();
+  let bestOffset = 7;
+  for (const target of recurrenceDays) {
+    const offset = (target - todayIndex + 7) % 7;
+    if (offset < bestOffset) {
+      bestOffset = offset;
+    }
+  }
+
+  const next = new Date(now);
+  next.setHours(0, 0, 0, 0);
+  next.setDate(next.getDate() + bestOffset);
+
+  const yyyy = next.getFullYear();
+  const mm = String(next.getMonth() + 1).padStart(2, '0');
+  const dd = String(next.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 function normalizeRecurrenceDay(day: string): string {
   return day
     .trim()
