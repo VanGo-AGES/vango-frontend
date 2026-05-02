@@ -12,7 +12,7 @@ type RouteHeroHeaderData = {
 // Mock, deletar quando fizer a integração
 const MOCK_ROUTE: RouteHeroHeaderData = {
   routeName: 'Rota teste',
-  recurrence: ['Sex'],
+  recurrence: ['Sab'],
   expectedTime: '8:30',
   durationMinutes: 40,
   distanceKm: 10,
