@@ -33,7 +33,9 @@ export interface AddressResponse {
 }
 
 export type RouteType = 'outbound' | 'inbound';
-export type RouteStatus = 'inativa' | 'ativa';
+export type RouteStatus = 'inativa' | 'em_andamento';
+export type StopType = 'embarque' | 'desembarque';
+export type RoutePassangerStatus = 'pending' | 'accepted' | 'rejected';
 
 export interface CreateRouteRequest {
   name: string;
@@ -42,6 +44,15 @@ export interface CreateRouteRequest {
   destination: AddressRequest;
   expected_time: string;
   recurrence: string;
+}
+
+export interface StopResponse {
+  id: string;
+  route_passanger_id: string;
+  order_index: number;
+  type: StopType;
+  address_id: string;
+  address: AddressResponse;
 }
 
 export interface RouteResponse {
@@ -55,10 +66,36 @@ export interface RouteResponse {
   max_passengers: number;
   origin_address: AddressResponse;
   destination_address: AddressResponse;
+  stops: StopResponse[];
   distance?: string | null;
   distance_km?: number | null;
   duration?: string | null;
   duration_minutes?: number | null;
+}
+
+export interface RoutePassangerResponse {
+  id: string;
+  route_id: string;
+  status: RoutePassangerStatus;
+  user_id: string;
+  user_name: string;
+  user_phone: string;
+  pickup_address_id: string;
+  requested_at: string;
+  joined_at: string | null;
+  dependent_id: string | null;
+  dependent_name: string | null;
+  guardian_name: string | null;
+}
+
+export interface RouteAbsenceResponse {
+  route_passanger_id: string;
+  user_id: string;
+  user_name: string;
+  dependent_id: string | null;
+  dependent_name: string | null;
+  absence_date: string;
+  reason: string | null;
 }
 
 export type CreateRouteResponse = RouteResponse;
