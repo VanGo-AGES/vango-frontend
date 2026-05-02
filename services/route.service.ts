@@ -1,6 +1,12 @@
-import { apiGet, apiPost } from './api';
+import { apiDelete, apiGet, apiPost } from './api';
 import { useSessionStore } from '@/store/session.store';
-import type { CreateRouteRequest, CreateRouteResponse, RouteResponse } from '@/types/route.types';
+import type {
+  CreateRouteRequest,
+  CreateRouteResponse,
+  RouteAbsenceResponse,
+  RouteResponse,
+  StopResponse,
+} from '@/types/route.types';
 
 function getDriverHeaders(): Record<string, string> {
   const user = useSessionStore.getState().user;
@@ -13,6 +19,55 @@ export async function createRoute(data: CreateRouteRequest): Promise<CreateRoute
 
 export async function listDriverRoutes(): Promise<RouteResponse[]> {
   return apiGet<RouteResponse[]>('/routes/', getDriverHeaders());
+}
+
+export async function getRouteById(routeId: string): Promise<RouteResponse> {
+  return apiGet<RouteResponse>(`/routes/${routeId}`, getDriverHeaders());
+}
+
+export async function deleteRoute(routeId: string): Promise<void> {
+  return apiDelete<void>(`/routes/${routeId}`, getDriverHeaders());
+}
+
+export async function removePassanger(routeId: string, rpId: string): Promise<void> {
+  return apiDelete<void>(`/routes/${routeId}/passangers/${rpId}`, getDriverHeaders());
+}
+
+export async function listRouteAbsences(
+  routeId: string,
+  date?: string,
+): Promise<RouteAbsenceResponse[]> {
+  const query = date ? `?date=${encodeURIComponent(date)}` : '';
+  return apiGet<RouteAbsenceResponse[]>(`/routes/${routeId}/absences${query}`, getDriverHeaders());
+}
+
+export function splitStopsByAbsence(
+  stops: StopResponse[],
+  absences: RouteAbsenceResponse[],
+): { present: StopResponse[]; absent: StopResponse[] } {
+  const absentRpIds = new Set(absences.map((absence) => absence.route_passanger_id));
+
+  const present: StopResponse[] = [];
+  const absent: StopResponse[] = [];
+
+  for (const stop of stops) {
+    if (absentRpIds.has(stop.route_passanger_id)) {
+      absent.push(stop);
+    } else {
+      present.push(stop);
+    }
+  }
+
+  return { present, absent };
+}
+
+export function isRouteToday(recurrence: string): boolean {
+  const todayIndex = new Date().getDay();
+
+  return recurrence
+    .split(',')
+    .map(getWeekdayIndex)
+    .some((index) => index !== null && index === todayIndex);
 }
 
 function normalizeRecurrenceDay(day: string): string {
