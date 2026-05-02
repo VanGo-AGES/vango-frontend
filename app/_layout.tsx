@@ -110,6 +110,10 @@ export default function RootLayout() {
                 name="(passenger)/passenger-route-details-screen"
                 options={{ headerShown: false }}
               />
+              <Stack.Screen
+                name="(passenger)/participant-selection-screen"
+                options={{ headerShown: false }}
+              />
             </Stack>
             <StatusBar style="auto" />
           </PaperProvider>

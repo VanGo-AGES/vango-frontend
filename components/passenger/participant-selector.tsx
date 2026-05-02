@@ -12,15 +12,9 @@ type ParticipantSelectorProps = {
   }[];
   selectedId?: string;
   onSelect: (id: string | undefined) => void;
-  dependentsPaddingEnd?: number;
 };
 
-export function ParticipantSelector({
-  options,
-  selectedId,
-  onSelect,
-  dependentsPaddingEnd,
-}: ParticipantSelectorProps) {
+export function ParticipantSelector({ options, selectedId, onSelect }: ParticipantSelectorProps) {
   const [isExpanded, setIsExpanded] = useState(() => !!selectedId && selectedId !== 'you');
   const [selectedGroup, setSelectedGroup] = useState<'you' | 'dependent' | undefined>(() => {
     if (!selectedId) return undefined;
@@ -82,7 +76,7 @@ export function ParticipantSelector({
           </TouchableOpacity>
 
           {isExpanded && (
-            <View style={[styles.dropdownContent, { paddingEnd: dependentsPaddingEnd }]}>
+            <View style={styles.dropdownContent}>
               {dependentOptions.map((dependent) => {
                 const isSelected = selectedId === dependent.id;
 
@@ -92,20 +86,21 @@ export function ParticipantSelector({
                     activeOpacity={0.7}
                     onPress={() => onSelect(dependent.id)}
                   >
-                    <AppTextField
-                      label="Nome"
-                      value={dependent.label}
-                      editable={false}
-                      outlineColor={colors.subtleText}
-                      activeOutlineColor={colors.subtleText}
-                      pointerEvents="none"
-                      right={
-                        <TextInput.Icon
-                          icon={isSelected ? 'radiobox-marked' : 'radiobox-blank'}
-                          color={isSelected ? colors.dark : colors.subtleText}
-                        />
-                      }
-                    />
+                    <View pointerEvents="none">
+                      <AppTextField
+                        label="Nome"
+                        value={dependent.label}
+                        editable={false}
+                        outlineColor={colors.subtleText}
+                        activeOutlineColor={colors.subtleText}
+                        right={
+                          <TextInput.Icon
+                            icon={isSelected ? 'radiobox-marked' : 'radiobox-blank'}
+                            color={isSelected ? colors.dark : colors.subtleText}
+                          />
+                        }
+                      />
+                    </View>
                   </TouchableOpacity>
                 );
               })}
@@ -143,7 +138,7 @@ const styles = StyleSheet.create({
   },
 
   dropdownContent: {
-    paddingStart: 42,
+    paddingStart: 56,
     paddingBottom: 16,
     gap: 1,
   },
