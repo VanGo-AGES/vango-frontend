@@ -1,7 +1,14 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Keyboard, ScrollView, StyleSheet, TouchableWithoutFeedback, View } from 'react-native';
+import {
+  Keyboard,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 
 import AppDialog from '@/components/general/app-dialog';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
@@ -15,7 +22,6 @@ import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 import type { AddressErrors, RouteFormAddress } from '@/types/route.types';
 
-// Dados mockados — substituir por dados reais via props/params quando a API estiver pronta
 const MOCK_ROUTE = {
   name: 'PUCRS',
   routeType: 'Ida' as RouteType,
@@ -133,7 +139,7 @@ export default function EditRouteScreen() {
             contentContainerStyle={styles.scrollContent}
           >
             {/* Informações básicas */}
-            <SectionHeader title="Informações" />
+            <Text style={styles.sectionTitle}>Informações</Text>
 
             <AppTextField
               label="Nome"
@@ -148,6 +154,8 @@ export default function EditRouteScreen() {
               error={routeTypeError}
             />
 
+            <View style={styles.divider} />
+
             {/* Endereço de Origem */}
             <AddressFormSection
               title="Endereço de Origem"
@@ -155,6 +163,8 @@ export default function EditRouteScreen() {
               onChange={(field, text) => setOrigin((prev) => ({ ...prev, [field]: text }))}
               errors={originErrors}
             />
+
+            <View style={styles.divider} />
 
             {/* Endereço de Destino */}
             <AddressFormSection
@@ -164,21 +174,24 @@ export default function EditRouteScreen() {
               errors={destinationErrors}
             />
 
+            <View style={styles.divider} />
+
             {/* Horário e Recorrência */}
-            <SectionHeader title="Horário" />
+            <Text style={styles.sectionTitle}>Horário</Text>
 
             <AppTextField
               label="Horário de Chegada"
               value={arrivalTime}
               onChangeText={setArrivalTime}
-              keyboardType="numeric"
               errorMessage={arrivalTimeError}
             />
 
             <RecurrenceSelector selectedDays={selectedDays} onChange={setSelectedDays} />
+
             {recurrenceError && (
               <View style={styles.errorWrapper}>
                 <MaterialIcons name="error-outline" size={14} color={colors.destructive} />
+                <Text style={styles.errorText}>{recurrenceError}</Text>
               </View>
             )}
 
@@ -241,20 +254,32 @@ const styles = StyleSheet.create({
     gap: 16,
     paddingBottom: 16,
   },
+  sectionTitle: {
+    ...typography.header3,
+    color: colors.dark,
+    textAlign: 'center',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.accent,
+  },
   footer: {
     paddingVertical: 16,
     backgroundColor: colors.light,
     alignItems: 'center',
     width: '100%',
-  },
-  hiddenInput: {
-    display: 'none',
+    borderTopWidth: 1,
+    borderTopColor: colors.accent,
   },
   errorWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     marginTop: -8,
+  },
+  errorText: {
+    ...typography.caption,
+    color: colors.destructive,
   },
   bottomPadding: {
     height: 32,
