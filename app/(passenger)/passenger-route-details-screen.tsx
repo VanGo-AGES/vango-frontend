@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-n
 import { useRouter } from 'expo-router';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
+import { AppScreenContainer } from '@/components/general/app-screen-container';
 import { RouteTopBar } from '@/components/route/route-top-bar';
 import { RouteHeroHeader } from '@/components/route/route-hero-header';
 import { RouteStopList, type Stop } from '@/components/route/route-stop-list';
@@ -10,6 +11,7 @@ import { PrimaryButton } from '@/components/general/primary-button';
 import AppDialog, { type DialogAction } from '@/components/general/app-dialog';
 
 import { colors } from '@/styles/colors';
+import { typography } from '@/styles/typography';
 
 type AbsenceStatus = 'not_notified' | 'notified';
 type TripStatus = 'before_trip' | 'during_trip' | 'after_trip';
@@ -149,7 +151,7 @@ export default function PassengerRouteDetailsScreen() {
   const cta = renderCTA();
 
   return (
-    <View style={[styles.container, styles.screen]}>
+    <AppScreenContainer edges={['bottom']} style={styles.container}>
       <View style={styles.topBarContainer}>
         <RouteTopBar
           onBackPress={handleBack}
@@ -163,10 +165,7 @@ export default function PassengerRouteDetailsScreen() {
 
       <ScrollView
         style={styles.content}
-        contentContainerStyle={[
-          styles.contentContainer,
-          cta ? styles.contentContainerWithCTA : null,
-        ]}
+        contentContainerStyle={styles.contentContainer}
         scrollIndicatorInsets={{ right: 1 }}
         showsVerticalScrollIndicator={true}
       >
@@ -182,12 +181,12 @@ export default function PassengerRouteDetailsScreen() {
         </View>
 
         <View style={styles.stopsSection}>
-          <Text style={styles.sectionTitle}>Paradas da rota</Text>
+          <Text style={styles.sectionTitle}>Paradas</Text>
           <RouteStopList stops={mockStops} />
         </View>
       </ScrollView>
 
-      {cta ? <View style={styles.ctaFloating}>{cta}</View> : null}
+      {cta ? <View style={styles.ctaContainer}>{cta}</View> : null}
 
       <AppDialog
         visible={absenceDialogVisible}
@@ -204,26 +203,20 @@ export default function PassengerRouteDetailsScreen() {
         actions={leaveDialogActions}
         onRequestClose={() => setLeaveDialogVisible(false)}
       />
-    </View>
+    </AppScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  screen: {
-    backgroundColor: colors.light,
+    padding: 0,
   },
   content: {
     flex: 1,
   },
   contentContainer: {
-    paddingBottom: 24,
-    paddingTop: 0,
-  },
-  contentContainerWithCTA: {
-    paddingBottom: 180,
+    paddingBottom: 16,
   },
   topBarContainer: {
     position: 'absolute',
@@ -238,28 +231,22 @@ const styles = StyleSheet.create({
   },
   heroSection: {
     position: 'relative',
-    marginBottom: 16,
   },
   heroHeader: {
     width: '100%',
   },
   stopsSection: {
     marginVertical: 24,
-    paddingHorizontal: 16,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
+    ...typography.subtitle,
     color: colors.dark,
     marginBottom: 16,
-  },
-  ctaFloating: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 44,
-    alignItems: 'center',
     paddingHorizontal: 16,
+  },
+  ctaContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
   },
   ctaButton: {
     alignSelf: 'stretch',
