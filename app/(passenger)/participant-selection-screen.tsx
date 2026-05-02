@@ -1,15 +1,15 @@
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
 import { AppScreenContainer } from '@/components/general/app-screen-container';
-import { AuthHeader } from '@/components/auth/auth-header';
 import { PrimaryButton } from '@/components/general/primary-button';
 import { RouteStepIndicator } from '@/components/route/route-step-indicator';
 import AppDialog from '@/components/general/app-dialog';
 import { ParticipantSelector } from '@/components/passenger/participant-selector';
-import { colors } from '@/styles/colors';
+import { colors, withAlpha } from '@/styles/colors';
+import { typography } from '@/styles/typography';
 
 export default function ParticipantSelectionScreen() {
   const router = useRouter();
@@ -33,20 +33,23 @@ export default function ParticipantSelectionScreen() {
   };
 
   return (
-    <AppScreenContainer>
-      <AuthHeader
-        title="Quem vai participar?"
-        subtitle="Selecione quem utilizará essa rota."
-        showBackButton
-      />
+    <AppScreenContainer backgroundColor={colors.white}>
+      <View style={styles.headerArea}>
+        <Pressable
+          onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel="voltar"
+          style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
+        >
+          <MaterialIcons name="arrow-back" size={24} color={colors.dark} />
+        </Pressable>
+
+        <Text style={styles.title}>Quem vai participar?</Text>
+        <Text style={styles.subtitle}>Selecione quem utilizará essa rota.</Text>
+      </View>
 
       <View style={styles.selectorContainer}>
-        <ParticipantSelector
-          options={options}
-          selectedId={selectedId}
-          onSelect={setSelectedId}
-          dependentsPaddingEnd={16}
-        />
+        <ParticipantSelector options={options} selectedId={selectedId} onSelect={setSelectedId} />
       </View>
 
       <View style={styles.bottomContent}>
@@ -81,15 +84,48 @@ export default function ParticipantSelectionScreen() {
 }
 
 const styles = StyleSheet.create({
+  headerArea: {
+    paddingTop: 8,
+    paddingBottom: 24,
+    alignItems: 'center',
+  },
+
+  backButton: {
+    alignSelf: 'flex-start',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: withAlpha(colors.light, 0.5),
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+
+  backButtonPressed: {
+    opacity: 0.65,
+  },
+
+  title: {
+    ...typography.header3,
+    color: colors.dark,
+    textAlign: 'center',
+  },
+
+  subtitle: {
+    ...typography.body,
+    color: colors.dark,
+    textAlign: 'center',
+    marginTop: 4,
+  },
+
   selectorContainer: {
     flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 16,
+    justifyContent: 'flex-start',
+    paddingTop: 120,
   },
 
   bottomContent: {
     alignItems: 'center',
-    paddingTop: 36,
     gap: 32,
   },
 
@@ -101,6 +137,5 @@ const styles = StyleSheet.create({
 
   continueButton: {
     alignSelf: 'center',
-    marginBottom: 24,
   },
 });
