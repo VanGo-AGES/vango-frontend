@@ -73,7 +73,7 @@ export default function RouteDetailsScreen() {
 
   const handleNavigateToPassengers = () => {
     // TODO: navegar para a tela de gerenciamento de passageiros
-    router.push('/route-passenger-screen'); // Alterar quando a tela existir
+    router.push('/route-passenger-screen' as never); // Alterar quando a tela existir
   };
 
   const startRouteDialogActions: DialogAction[] = [
@@ -97,7 +97,7 @@ export default function RouteDetailsScreen() {
         <RouteTopBar
           variant="driver"
           onBackPress={handleOnBackPress}
-          onEditPress={() => router.push('/edit-route-screen')} // Alterar quando a tela existir
+          onEditPress={() => router.push('/edit-route-screen' as never)} // Alterar quando a tela existir
           onDeletePress={() => setActiveDialog('delete_route')}
           backgroundColor="transparent"
           style={styles.topBarOverlay}
@@ -126,8 +126,8 @@ export default function RouteDetailsScreen() {
           )}
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Paradas</Text>
+        <View style={styles.stopsSection}>
+          <Text style={[styles.sectionTitle, styles.sectionHPadding]}>Paradas</Text>
           <RouteStopList
             stops={stops}
             currentStopId={currentStopId}
@@ -138,7 +138,10 @@ export default function RouteDetailsScreen() {
         <View style={styles.section}>
           <TouchableOpacity onPress={handleNavigateToPassengers} activeOpacity={0.7}>
             <View style={styles.passengerHeader}>
-              <Text style={styles.sectionTitle}>Passageiros →</Text>
+              <View style={styles.passengerTitleRow}>
+                <Text style={styles.sectionTitle}>Passageiros</Text>
+                <MaterialIcons name="chevron-right" size={20} color={colors.dark} />
+              </View>
               <Text style={styles.passengerCount}>
                 {confirmedCount}/{totalCount} Confirmados
               </Text>
@@ -218,6 +221,13 @@ const styles = StyleSheet.create({
   heroHeader: {
     width: '100%',
   },
+  stopsSection: {
+    paddingTop: 24,
+    gap: 12,
+  },
+  sectionHPadding: {
+    paddingHorizontal: 16,
+  },
   section: {
     paddingHorizontal: 16,
     paddingTop: 24,
@@ -229,6 +239,10 @@ const styles = StyleSheet.create({
   },
   passengerHeader: {
     gap: 2,
+  },
+  passengerTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   passengerCount: {
     ...typography.small,

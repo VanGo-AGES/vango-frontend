@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Stop } from '@/components/route/route-stop-list';
-import { routeStopsMock } from '@/mocks/route-stop-list.mock';
 
 type UseRouteStopsParams = {
   routeId: string;
