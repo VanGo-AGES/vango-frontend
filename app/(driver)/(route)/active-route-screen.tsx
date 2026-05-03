@@ -13,7 +13,6 @@ import { useRouteStops } from '@/hooks/use-route-stops';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
-// TODO: receber routeId via params quando a navegação real estiver implementada
 const ROUTE_ID = 'rota-123';
 
 export default function DriverActiveRouteScreen() {
@@ -30,7 +29,6 @@ export default function DriverActiveRouteScreen() {
 
   return (
     <View style={styles.screen}>
-      {/* TopBar absoluto sobre o hero — variant omitido = sem menu de edição/exclusão */}
       <View style={styles.topBarContainer}>
         <RouteTopBar onBackPress={() => router.push('/driver-home')} />
       </View>
@@ -40,7 +38,6 @@ export default function DriverActiveRouteScreen() {
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        {/* Hero com dados da rota */}
         {data && (
           <View style={styles.heroSection}>
             <RouteHeroHeader
@@ -55,13 +52,11 @@ export default function DriverActiveRouteScreen() {
           </View>
         )}
 
-        {/* Paradas — onDeleteStopPress omitido → sem swipe de delete */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Paradas</Text>
           <RouteStopList stops={stops} currentStopId={currentStopId} />
         </View>
 
-        {/* Botão Navegação — dentro do scroll, abaixo das paradas */}
         <View style={styles.navButtonSection}>
           <PrimaryButton
             label="Navegação"
@@ -72,7 +67,6 @@ export default function DriverActiveRouteScreen() {
           />
         </View>
 
-        {/* Passageiros — somente visualização, sem gerenciamento */}
         <View style={styles.section}>
           <View style={styles.passengerHeader}>
             <Text style={styles.sectionTitle}>Passageiros</Text>
