@@ -14,7 +14,7 @@ import { AuthHeader } from '@/components/auth/auth-header';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 import { useCreateUser } from '@/hooks/use-create-user';
-import { formatPhone, onlyDigits, PHONE_REGEX } from '@/lib/formatters';
+import { formatCpf, formatPhone, isValidCpf, onlyDigits, PHONE_REGEX } from '@/lib/formatters';
 import { ApiError } from '@/services/api';
 import { useSessionStore } from '@/store/session.store';
 
@@ -28,6 +28,8 @@ enum RegisterBasicInfoErrorMessage {
   PHONE_ALREADY_EXISTS = 'Telefone já cadastrado',
   PASSWORD_EMPTY = 'Senha não pode ser vazia',
   PASSWORD_TOO_SHORT = 'Senha deve ter pelo menos 6 caracteres',
+  CPF_EMPTY = 'CPF não pode ser vazio',
+  CPF_INVALID = 'CPF inválido',
 }
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -53,6 +55,14 @@ const registerBasicInfoSchema = z.object({
     .refine((value) => PHONE_REGEX.test(value), {
       message: RegisterBasicInfoErrorMessage.PHONE_INVALID,
     }),
+  cpf: z
+    .string()
+    .trim()
+    .min(1, RegisterBasicInfoErrorMessage.CPF_EMPTY)
+    .refine((value) => isValidCpf(value), {
+      message: RegisterBasicInfoErrorMessage.CPF_INVALID,
+    })
+    .optional(),
 });
 
 type RegisterBasicInfoFormData = z.infer<typeof registerBasicInfoSchema>;
@@ -68,6 +78,7 @@ export default function RegisterBasicInfoScreen() {
   const [requiredDialogVisible, setRequiredDialogVisible] = useState(false);
 
   const resolvedUserType: UserType = userType === 'driver' ? 'driver' : 'passenger';
+  const isDriver = resolvedUserType === 'driver';
 
   const {
     control,
@@ -82,6 +93,7 @@ export default function RegisterBasicInfoScreen() {
       password: '',
       name: '',
       phone: '',
+      cpf: '',
     },
   });
 
@@ -89,17 +101,20 @@ export default function RegisterBasicInfoScreen() {
   const watchedPassword = watch('password');
   const watchedName = watch('name');
   const watchedPhone = watch('phone');
+  const watchedCpf = watch('cpf');
 
   const handleLoginPress = () => {
     router.push('/login');
   };
 
   const onInvalid = () => {
-    const allFieldsEmpty =
+    const baseFieldsEmpty =
       !watchedEmail.trim() &&
       !watchedPassword.trim() &&
       !watchedName.trim() &&
       !watchedPhone.trim();
+
+    const allFieldsEmpty = isDriver ? baseFieldsEmpty && !watchedCpf?.trim() : baseFieldsEmpty;
 
     if (allFieldsEmpty) {
       setRequiredDialogVisible(true);
@@ -114,6 +129,7 @@ export default function RegisterBasicInfoScreen() {
         phone: onlyDigits(data.phone),
         password: data.password,
         role: resolvedUserType,
+        ...(isDriver && data.cpf ? { cpf: onlyDigits(data.cpf) } : {}),
       });
 
       setUser({
@@ -245,6 +261,24 @@ export default function RegisterBasicInfoScreen() {
               />
             )}
           />
+
+          {isDriver && (
+            <Controller
+              control={control}
+              name="cpf"
+              render={({ field: { onChange, value } }) => (
+                <AppTextField
+                  label="CPF"
+                  placeholder="999.999.999-99"
+                  value={value}
+                  onChangeText={(text) => onChange(formatCpf(text))}
+                  keyboardType="number-pad"
+                  maxLength={14}
+                  errorMessage={errors.cpf?.message}
+                />
+              )}
+            />
+          )}
         </View>
 
         <View style={styles.footer}>
