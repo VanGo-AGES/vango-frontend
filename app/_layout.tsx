@@ -90,9 +90,14 @@ export default function RootLayout() {
               />
               <Stack.Screen name="(driver)/(route)/schedule" options={{ headerShown: false }} />
               <Stack.Screen
+                name="(driver)/(route)/route-passengers-screen"
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
                 name="(driver)/(route)/route-details-screen"
                 options={{ headerShown: false }}
               />
+
               {/* passenger */}
               <Stack.Screen
                 name="(passenger)/passenger-home-screen"
@@ -116,6 +121,10 @@ export default function RootLayout() {
               />
               <Stack.Screen
                 name="(passenger)/participant-selection-screen"
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="(passenger)/passenger-address-screen"
                 options={{ headerShown: false }}
               />
             </Stack>

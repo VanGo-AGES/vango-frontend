@@ -4,8 +4,9 @@ import type {
   CreateRouteRequest,
   CreateRouteResponse,
   RouteAbsenceResponse,
+  RoutePassangerResponse,
+  RoutePassangerStatus,
   RouteResponse,
-  StopResponse,
 } from '@/types/route.types';
 
 function getDriverHeaders(): Record<string, string> {
@@ -41,14 +42,14 @@ export async function listRouteAbsences(
   return apiGet<RouteAbsenceResponse[]>(`/routes/${routeId}/absences${query}`, getDriverHeaders());
 }
 
-export function splitStopsByAbsence(
-  stops: StopResponse[],
+export function splitStopsByAbsence<T extends { route_passanger_id: string }>(
+  stops: T[],
   absences: RouteAbsenceResponse[],
-): { present: StopResponse[]; absent: StopResponse[] } {
+): { present: T[]; absent: T[] } {
   const absentRpIds = new Set(absences.map((absence) => absence.route_passanger_id));
 
-  const present: StopResponse[] = [];
-  const absent: StopResponse[] = [];
+  const present: T[] = [];
+  const absent: T[] = [];
 
   for (const stop of stops) {
     if (absentRpIds.has(stop.route_passanger_id)) {
@@ -239,4 +240,15 @@ export function getNextRoute(routes: RouteResponse[]): RouteResponse | null {
   }
 
   return nextRoute;
+}
+
+export async function listRoutePassangers(
+  routeId: string,
+  status?: RoutePassangerStatus,
+): Promise<RoutePassangerResponse[]> {
+  const query = status ? `?status=${encodeURIComponent(status)}` : '';
+  return apiGet<RoutePassangerResponse[]>(
+    `/routes/${routeId}/passangers${query}`,
+    getDriverHeaders(),
+  );
 }

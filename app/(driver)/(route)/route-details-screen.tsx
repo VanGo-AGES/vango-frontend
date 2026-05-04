@@ -119,7 +119,7 @@ export default function RouteDetailsScreen() {
 
   const passangerByRpId = useMemo(() => {
     const map = new Map<string, RoutePassangerResponse>();
-    passangers.forEach((p) => map.set(p.id, p));
+    passangers.forEach((p: RoutePassangerResponse) => map.set(p.id, p));
     return map;
   }, [passangers]);
 
@@ -150,7 +150,7 @@ export default function RouteDetailsScreen() {
 
   const cardPassangers = useMemo(
     () =>
-      passangers.map((p) => ({
+      passangers.map((p: RoutePassangerResponse) => ({
         name: pickPassangerName(p),
         status: mapPassangerStatusToCard(p, absentRpIds),
       })),
@@ -158,14 +158,14 @@ export default function RouteDetailsScreen() {
   );
 
   const acceptedPassangers = useMemo(
-    () => passangers.filter((p) => p.status === 'accepted'),
+    () => passangers.filter((p: RoutePassangerResponse) => p.status === 'accepted'),
     [passangers],
   );
 
   const totalAcceptedCount = acceptedPassangers.length;
 
   const confirmedCount = useMemo(
-    () => acceptedPassangers.filter((p) => !absentRpIds.has(p.id)).length,
+    () => acceptedPassangers.filter((p: RoutePassangerResponse) => !absentRpIds.has(p.id)).length,
     [acceptedPassangers, absentRpIds],
   );
 
@@ -318,6 +318,17 @@ export default function RouteDetailsScreen() {
         />
       </View>
 
+      <View style={styles.heroSection}>
+        <RouteHeroHeader
+          routeName={route.name}
+          recurrence={formatRecurrenceLabel(route.recurrence)}
+          expectedTime={formatExpectedTime(route.expected_time)}
+          durationMinutes={route.duration_minutes ?? FALLBACK_DURATION_MINUTES}
+          distanceKm={route.distance_km ?? FALLBACK_DISTANCE_KM}
+          style={[styles.heroHeader, { minHeight: heroHeight }]}
+        />
+      </View>
+
       <ScrollView
         style={styles.content}
         contentContainerStyle={[
@@ -326,17 +337,6 @@ export default function RouteDetailsScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.heroSection}>
-          <RouteHeroHeader
-            routeName={route.name}
-            recurrence={formatRecurrenceLabel(route.recurrence)}
-            expectedTime={formatExpectedTime(route.expected_time)}
-            durationMinutes={route.duration_minutes ?? FALLBACK_DURATION_MINUTES}
-            distanceKm={route.distance_km ?? FALLBACK_DISTANCE_KM}
-            style={[styles.heroHeader, { minHeight: heroHeight }]}
-          />
-        </View>
-
         <View style={styles.stopsSection}>
           <Text style={[styles.sectionTitle, styles.sectionHPadding]}>Próxima partida</Text>
           <RouteStopList

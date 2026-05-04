@@ -4,6 +4,7 @@ import {
   RoutePassengerManageCard,
   type RoutePassengerManageCardProps,
 } from '@/components/route/route-passenger-manage-card';
+import { EmptyState } from '@/components/general/empty-state';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
@@ -33,20 +34,31 @@ export function RoutePassengerList({
         <Text style={styles.capacity}>{capacityText}</Text>
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.listContent}
-      >
-        {passengers.map((passenger) => (
-          <RoutePassengerManageCard
-            key={passenger.id}
-            name={passenger.name}
-            avatarUrl={passenger.avatarUrl}
-            onDeletePress={() => onDeletePassengerPress(passenger.id)}
+      {passengers.length > 0 ? (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.listContent}
+        >
+          {passengers.map((passenger) => (
+            <RoutePassengerManageCard
+              key={passenger.id}
+              name={passenger.name}
+              avatarUrl={passenger.avatarUrl}
+              onDeletePress={() => onDeletePassengerPress(passenger.id)}
+            />
+          ))}
+        </ScrollView>
+      ) : (
+        <View style={styles.emptyWrapper}>
+          <EmptyState
+            icon="groups"
+            text={
+              'Nenhum passageiro na rota.\nCompartilhe o código da rota para começar a receber solicitações.'
+            }
           />
-        ))}
-      </ScrollView>
+        </View>
+      )}
     </View>
   );
 }
@@ -76,5 +88,9 @@ const styles = StyleSheet.create({
   },
   listContent: {
     gap: 8,
+  },
+  emptyWrapper: {
+    flex: 1,
+    justifyContent: 'center',
   },
 });
