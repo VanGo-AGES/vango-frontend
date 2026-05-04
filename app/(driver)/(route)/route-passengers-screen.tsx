@@ -128,8 +128,8 @@ export default function RoutePassengersScreen() {
           {requests.length > 0 ? (
             <RouteRequestList
               requests={requests}
-              onApprovePress={handleApproveRequest}
-              onRemovePress={handleRemoveRequestPress}
+              onCheckRequestPress={handleApproveRequest}
+              onRemoveRequestPress={handleRemoveRequestPress}
             />
           ) : (
             <View style={styles.emptyRequestsWrapper}>
