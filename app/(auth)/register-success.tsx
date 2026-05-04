@@ -15,7 +15,7 @@ export default function RegisterSuccessScreen() {
     if (userType === 'driver') {
       router.replace('/driver-home');
     } else {
-      router.replace('/profile-passenger-screen');
+      router.replace('/passenger-home-screen');
     }
   };
 

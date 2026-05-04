@@ -24,7 +24,7 @@ import { useUser } from '@/hooks/use-user';
 import { useUpdateUser } from '@/hooks/use-update-user';
 import { useUploadPhoto } from '@/hooks/use-upload-photo';
 import { useSessionStore } from '@/store/session.store';
-import { colors } from '@/styles/colors';
+import { colors, withAlpha } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
 export default function EditProfileScreen() {
@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(250, 252, 254, 0.65)',
+    backgroundColor: withAlpha(colors.light, 0.65),
     borderWidth: 0,
   },
   avatarWrap: {

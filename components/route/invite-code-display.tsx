@@ -136,8 +136,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.light,
     borderColor: colors.subtleText,
     color: colors.dark,
-    paddingTop: 0,
-    paddingBottom: 0,
   },
   inputFocused: {
     borderColor: colors.dark,

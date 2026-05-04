@@ -2,7 +2,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { typography } from '@/styles/typography';
-import { colors } from '@/styles/colors';
+import { colors, withAlpha } from '@/styles/colors';
 
 type SectionHeaderProps = {
   title: string;
@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(250, 252, 254, 0.5)',
+    backgroundColor: withAlpha(colors.light, 0.5),
     alignItems: 'center',
     justifyContent: 'center',
   },

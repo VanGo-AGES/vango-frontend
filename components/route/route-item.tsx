@@ -34,8 +34,8 @@ export type RouteItemProps = {
 export function RouteItem({
   name,
   days,
-  duration,
-  distance,
+  duration = '30',
+  distance = '10',
   status = 'default',
   thumbnailUri,
   thumbnailSource,
@@ -43,7 +43,7 @@ export function RouteItem({
   style,
   pendingBadgeLabel = 'CONVITE PENDENTE',
   pendingDialogTitle = 'Convite pendente',
-  pendingDialogDescription = 'Você ainda não aceitou esse convite de rota. Ao aceitar, os detalhes completos do trajeto ficarão disponíveis.',
+  pendingDialogDescription = 'Você ainda não foi aceito nessa rota. Quando o motorista aceitar os detalhes completos do trajeto ficarão disponíveis.',
 }: RouteItemProps) {
   const [isPendingDialogVisible, setIsPendingDialogVisible] = useState(false);
 
@@ -114,12 +114,7 @@ export function RouteItem({
         </View>
 
         {!isPending && (
-          <Icon
-            name="arrow-right"
-            size={24}
-            color={colors.dark}
-            style={styles.arrow}
-          />
+          <Icon name="arrow-right" size={24} color={colors.dark} style={styles.arrow} />
         )}
       </Pressable>
 
@@ -165,7 +160,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   thumbnailPlaceholder: {
-
     alignItems: 'center',
     justifyContent: 'center',
   },

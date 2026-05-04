@@ -18,11 +18,9 @@ export function AppScreenContainer({
   edges = ['top', 'right', 'bottom', 'left'],
 }: Props) {
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <SafeAreaView edges={edges} style={[styles.container, { backgroundColor }, style]}>
-        {children}
-      </SafeAreaView>
-    </TouchableWithoutFeedback>
+    <SafeAreaView edges={edges} style={[styles.container, { backgroundColor }, style]}>
+      {children}
+    </SafeAreaView>
   );
 }
 

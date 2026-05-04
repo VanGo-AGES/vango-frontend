@@ -68,11 +68,13 @@ export function RouteActionMenu({
                 accessibilityLabel={action.label.toLowerCase()}
                 style={({ pressed }) => [styles.actionItem, pressed && styles.pressed]}
               >
-                <MaterialIcons
-                  name={action.icon}
-                  size={24}
-                  color={action.destructive ? colors.destructive : colors.dark}
-                />
+                <View style={action.icon === 'u-turn-left' ? styles.rotatedIconWrapper : undefined}>
+                  <MaterialIcons
+                    name={action.icon}
+                    size={24}
+                    color={action.destructive ? colors.destructive : colors.dark}
+                  />
+                </View>
                 <Text
                   style={[
                     styles.actionLabel,
@@ -149,5 +151,8 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.6,
+  },
+  rotatedIconWrapper: {
+    transform: [{ rotate: '90deg' }],
   },
 });

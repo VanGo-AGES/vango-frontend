@@ -1,5 +1,8 @@
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import { Image } from 'expo-image';
 
+import GenericAvatar from '@/assets/images/generic-avatar.svg';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
@@ -57,15 +60,24 @@ export function RoutePassengerCard({
   phase,
   status = 'none',
 }: RoutePassengerCardProps) {
+  const [imageError, setImageError] = useState(false);
   const statusConfig = STATUS_BY_PHASE[phase][status] ?? null;
+  const showPlaceholder = !avatarUrl || imageError;
 
   return (
     <View style={styles.container}>
       <View style={styles.avatarWrapper}>
-        {avatarUrl ? (
-          <Image source={{ uri: avatarUrl }} style={styles.avatar} resizeMode="cover" />
+        {showPlaceholder ? (
+          <View style={styles.avatarPlaceholder}>
+            <GenericAvatar width={100} height={100} />
+          </View>
         ) : (
-          <View style={styles.avatarPlaceholder} />
+          <Image
+            source={{ uri: avatarUrl }}
+            style={styles.avatar}
+            contentFit="cover"
+            onError={() => setImageError(true)}
+          />
         )}
       </View>
 
@@ -101,7 +113,9 @@ const styles = StyleSheet.create({
   },
   avatarPlaceholder: {
     flex: 1,
-    backgroundColor: colors.light,
+    backgroundColor: colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   name: {
     ...typography.body,
