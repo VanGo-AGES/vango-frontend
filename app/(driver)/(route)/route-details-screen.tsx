@@ -309,7 +309,10 @@ export default function RouteDetailsScreen() {
           variant="driver"
           onBackPress={handleOnBackPress}
           onEditPress={() => {
-            // TODO: navegar para a tela de edição de rota quando ela existir (US futura).
+            router.push({
+              pathname: '/(driver)/(route)/edit-route-screen' as never,
+              params: { routeId },
+            });
           }}
           onDeletePress={() => setActiveDialog('delete_route')}
           showMenu={showActionMenu}
