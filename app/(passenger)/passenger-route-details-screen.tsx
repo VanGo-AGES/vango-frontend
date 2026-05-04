@@ -20,7 +20,9 @@ import { RouteStopList, type Stop } from '@/components/route/route-stop-list';
 import AppDialog, { type DialogAction } from '@/components/general/app-dialog';
 
 import { ApiError } from '@/services/api';
+import { splitStopsByAbsence } from '@/services/route.service';
 import { useLeaveRoute } from '@/hooks/use-leave-route';
+import { usePassangerRouteAbsences } from '@/hooks/use-passanger-route-absences';
 import { usePassangerRouteDetail } from '@/hooks/use-passanger-route-detail';
 import { useReportAbsence } from '@/hooks/use-report-absence';
 import { getPassangerCTA } from '@/lib/passanger-route-cta';
@@ -114,6 +116,10 @@ export default function PassengerRouteDetailsScreen() {
     routeId,
     dependentId,
   });
+  const { data: absences = [] } = usePassangerRouteAbsences({
+    routeId,
+    recurrence: route?.recurrence,
+  });
   const leaveRouteMutation = useLeaveRoute(routeId ?? '', dependentId);
   const reportAbsenceMutation = useReportAbsence(routeId ?? '', dependentId);
 
@@ -153,6 +159,7 @@ export default function PassengerRouteDetailsScreen() {
       setAbsenceReported(true);
       setAbsenceDialogVisible(false);
     } catch (err) {
+      setAbsenceDialogVisible(false);
       setFeedbackMessage(getAbsenceErrorMessage(err));
     }
   };
@@ -166,6 +173,7 @@ export default function PassengerRouteDetailsScreen() {
       await leaveRouteMutation.mutateAsync();
       setLeaveDialogVisible(false);
     } catch (err) {
+      setLeaveDialogVisible(false);
       setFeedbackMessage(getLeaveRouteErrorMessage(err));
     }
   };
@@ -263,13 +271,16 @@ export default function PassengerRouteDetailsScreen() {
       );
     }
 
+    const presentStops = splitStopsByAbsence(route.stops, absences).present;
+    const sortedStops = [...presentStops].sort((a, b) => a.order_index - b.order_index);
+
     const stops: Stop[] = [
       {
         id: route.origin_address.id,
         type: 'origin',
         address: formatAddressLine(route.origin_address),
       },
-      ...route.stops.map((stop) => ({
+      ...sortedStops.map((stop) => ({
         id: stop.id,
         type: 'stop' as const,
         address: formatAddressLine(stop.address),
@@ -280,6 +291,8 @@ export default function PassengerRouteDetailsScreen() {
         address: formatAddressLine(route.destination_address),
       },
     ];
+
+    const ctaElement = renderCTA();
 
     return (
       <>
@@ -301,12 +314,12 @@ export default function PassengerRouteDetailsScreen() {
           </View>
 
           <View style={styles.stopsSection}>
-            <Text style={styles.sectionTitle}>Paradas</Text>
+            <Text style={styles.sectionTitle}>Próxima partida</Text>
             <RouteStopList stops={stops} />
           </View>
         </ScrollView>
 
-        {renderCTA() ? <View style={styles.ctaContainer}>{renderCTA()}</View> : null}
+        {ctaElement ? <View style={styles.ctaContainer}>{ctaElement}</View> : null}
 
         <AppDialog
           visible={absenceDialogVisible}

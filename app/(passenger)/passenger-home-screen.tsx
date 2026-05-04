@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 
 import { ActionPillButton } from '@/components/route/action-pill-button';
@@ -7,33 +8,69 @@ import { HomeHeaderCard } from '@/components/route/home-header-card';
 import { NextRouteCard } from '@/components/route/next-route-card';
 import { RouteList } from '@/components/route/route-list';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
+import { getNextPassangerRoute } from '@/services/route-passanger.service';
+import { usePassangerRoutes } from '@/hooks/use-passanger-routes';
+import { useSessionStore } from '@/store/session.store';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
-const MOCK_USER = {
-  name: 'Mateus Cunha',
-  location: 'Porto Alegre, RS',
-};
+const headerLocation = 'Porto Alegre, RS';
 
-const MOCK_NEXT_ROUTE = {
-  routeName: 'PUCRS',
-  dateLabel: 'Hoje',
-  time: '08:00',
-};
+function formatRecurrence(recurrence: string[]): string {
+  return recurrence
+    .map((day) => day.trim())
+    .filter(Boolean)
+    .map((day) => day.charAt(0).toUpperCase() + day.slice(1))
+    .join(' • ');
+}
 
-const MOCK_ROUTES = [
-  {
-    name: 'PUCRS',
-    days: 'Seg · Qua · Sex',
-    duration: '23 min',
-    distance: '9.2 km',
-    status: 'pending' as const,
-  },
-];
+function formatTime(value: string): string {
+  return value.length >= 5 ? value.slice(0, 5) : value;
+}
 
 export default function PassengerHomeScreen() {
-  const hasRoutes = MOCK_ROUTES.length > 0;
-  const nextRoute = MOCK_NEXT_ROUTE;
+  const router = useRouter();
+  const sessionUser = useSessionStore((s) => s.user);
+  const localPhotoUri = useSessionStore((s) => s.localPhotoUri);
+  const { data: routesData = [], isLoading, isError } = usePassangerRoutes();
+
+  const nextRoute = getNextPassangerRoute(routesData);
+  const visibleRoutes = routesData.filter((r) => r.membership_status !== 'rejected');
+  const routeItems = visibleRoutes.map((route) => ({
+    name: route.route_name,
+    days: formatRecurrence(route.recurrence),
+    duration: '30min',
+    distance: '10 km',
+    status: route.membership_status === 'pending' ? ('pending' as const) : ('default' as const),
+    onPress:
+      route.membership_status === 'accepted'
+        ? () =>
+            router.push({
+              pathname: '/passenger-route-details-screen',
+              params: { routeId: route.route_id },
+            })
+        : undefined,
+  }));
+
+  const handleProfilePress = () => {
+    router.push('/profile-passenger-screen');
+  };
+
+  const handleSettingsPress = () => {
+    router.push('/profile-passenger-screen');
+  };
+
+  const handleEnterCodePress = () => {
+    router.push('/enter-route-code-screen');
+  };
+
+  const handleNextRoutePress = () => {
+    if (!nextRoute) return;
+    router.push({
+      pathname: '/passenger-route-details-screen',
+      params: { routeId: nextRoute.route_id },
+    });
+  };
 
   return (
     <AppScreenContainer
@@ -43,10 +80,11 @@ export default function PassengerHomeScreen() {
     >
       <View style={styles.headerSpacing}>
         <HomeHeaderCard
-          name={MOCK_USER.name}
-          location={MOCK_USER.location}
-          onSettingsPress={() => {}}
-          onProfilePress={() => {}}
+          name={sessionUser?.name ?? ''}
+          location={headerLocation}
+          avatarUri={localPhotoUri ?? sessionUser?.photo_url ?? undefined}
+          onProfilePress={handleProfilePress}
+          onSettingsPress={handleSettingsPress}
         />
       </View>
 
@@ -54,11 +92,19 @@ export default function PassengerHomeScreen() {
         <Text style={styles.sectionTitle}>Próxima Rota</Text>
 
         <View style={styles.panel}>
-          {nextRoute ? (
+          {isLoading ? (
+            <EmptyState icon="schedule" text="Carregando a próxima rota..." />
+          ) : isError ? (
+            <EmptyState
+              icon="error-outline"
+              text="Não foi possível carregar a próxima rota. Tente novamente em instantes."
+            />
+          ) : nextRoute ? (
             <NextRouteCard
-              routeName={nextRoute.routeName}
-              dateLabel={nextRoute.dateLabel}
-              time={nextRoute.time}
+              routeName={nextRoute.route_name}
+              dateLabel={formatRecurrence(nextRoute.recurrence) || 'Próxima rota'}
+              time={formatTime(nextRoute.expected_time)}
+              onPress={handleNextRoutePress}
             />
           ) : (
             <View style={styles.emptyStateWrapper}>
@@ -78,14 +124,25 @@ export default function PassengerHomeScreen() {
           <ActionPillButton
             icon={<MaterialIcons name="qr-code-scanner" size={20} color={colors.dark} />}
             label="ENTRAR COM CÓDIGO"
-            onPress={() => {}}
+            onPress={handleEnterCodePress}
             style={styles.enterCodeButton}
           />
         </View>
 
-        {hasRoutes ? (
+        {isLoading ? (
+          <View style={styles.emptyStateWrapper}>
+            <EmptyState icon="schedule" text="Carregando suas rotas..." />
+          </View>
+        ) : isError ? (
+          <View style={styles.emptyStateWrapper}>
+            <EmptyState
+              icon="error-outline"
+              text="Não foi possível carregar suas rotas no momento. Tente novamente."
+            />
+          </View>
+        ) : visibleRoutes.length > 0 ? (
           <RouteList
-            routes={MOCK_ROUTES}
+            routes={routeItems}
             style={styles.routesList}
             contentContainerStyle={styles.routesListContent}
           />
@@ -116,6 +173,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   sectionWithTopSpacing: {
+    flex: 1,
     gap: 12,
     marginTop: 36,
   },
@@ -141,6 +199,7 @@ const styles = StyleSheet.create({
     minHeight: 40,
   },
   routesList: {
+    flex: 1,
     paddingHorizontal: 24,
   },
   routesListContent: {

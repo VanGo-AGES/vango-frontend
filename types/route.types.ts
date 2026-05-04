@@ -45,7 +45,19 @@ export interface RouteStopAddressResponse {
 
 export interface RouteStopResponse {
   id: string;
+  route_passanger_id: string;
+  order_index: number;
   address: RouteStopAddressResponse;
+}
+
+export interface RouteAbsenceResponse {
+  route_passanger_id: string;
+  user_id: string;
+  user_name: string;
+  dependent_id: string | null;
+  dependent_name: string | null;
+  absence_date: string;
+  reason: string | null;
 }
 
 export interface CreateRouteRequest {
@@ -91,6 +103,28 @@ export interface PassangerRouteDetailResponse {
   my_schedules: string[];
   current_trip_id: string | null;
   dependent_id: string | null;
+  dependent_name: string | null;
+}
+
+export interface PassangerRouteSchedule {
+  id: string;
+  day_of_week: string;
+  address_id: string;
+}
+
+export interface PassangerRouteListItem {
+  route_id: string;
+  route_name: string;
+  driver_name: string;
+  driver_phone: string;
+  origin_label: string;
+  destination_label: string;
+  expected_time: string;
+  recurrence: string[];
+  status: PassengerRouteStatus;
+  membership_status: PassengerMembershipStatus;
+  schedules: PassangerRouteSchedule[];
+  joined_at: string;
   dependent_name: string | null;
 }
 
