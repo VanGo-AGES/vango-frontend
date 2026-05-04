@@ -1,6 +1,7 @@
+import { MaterialIcons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { useState } from 'react';
-import { useRouter } from 'expo-router';
-import { View, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { AppScreenContainer } from '@/components/general/app-screen-container';
 import { AuthHeader } from '@/components/auth/auth-header';
@@ -10,12 +11,10 @@ import { RouteStepIndicator } from '@/components/route/route-step-indicator';
 import AppDialog from '@/components/general/app-dialog';
 import { AddressFormSection } from '@/components/route/address-form-section';
 import { colors } from '@/styles/colors';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import type { AddressErrors, RouteFormAddress } from '@/types/route.types';
 
 export default function PassengerAddressScreen() {
-  const router = useRouter();
-
-  const [address, setAddress] = useState({
+  const [address, setAddress] = useState<RouteFormAddress>({
     cep: '',
     numero: '',
     rua: '',
@@ -24,23 +23,41 @@ export default function PassengerAddressScreen() {
     estado: '',
   });
 
+  const [errors, setErrors] = useState<AddressErrors>({});
   const [isErrorDialogVisible, setIsErrorDialogVisible] = useState(false);
 
-  const handleAddressChange = (field: keyof typeof address, value: string) => {
+  const handleAddressChange = (field: keyof RouteFormAddress, value: string) => {
     setAddress((prev) => ({ ...prev, [field]: value }));
   };
 
+  const validateForm = () => {
+    const nextErrors: AddressErrors = {};
+    const requiredFields: (keyof RouteFormAddress)[] = ['cep', 'numero', 'rua', 'bairro', 'cidade'];
+
+    requiredFields.forEach((field) => {
+      if (!address[field].trim()) {
+        nextErrors[field] = 'Este campo é obrigatório.';
+      }
+    });
+
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  };
+
   const handleSubmit = () => {
-    const { cep, numero, rua, bairro, cidade } = address;
-    if (!cep || !numero || !rua || !bairro || !cidade) {
+    if (!validateForm()) {
       setIsErrorDialogVisible(true);
       return;
     }
-    router.push('/'); // navegar para a próxima etapa do fluxo
+    router.push('/');
   };
 
   return (
-    <AppScreenContainer backgroundColor={colors.light} style={styles.container}>
+    <AppScreenContainer
+      backgroundColor={colors.light}
+      style={styles.container}
+      disableKeyboardDismiss
+    >
       <View style={styles.topSection}>
         <CircleIconButton
           icon="arrow-back"
@@ -54,23 +71,33 @@ export default function PassengerAddressScreen() {
         </View>
       </View>
 
-      <View style={styles.content}>
-        <AddressFormSection title="" value={address} onChange={handleAddressChange} />
-      </View>
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
+      >
+        <AddressFormSection
+          title=""
+          value={address}
+          onChange={handleAddressChange}
+          errors={errors}
+        />
+      </ScrollView>
 
       <View style={styles.footer}>
         <View style={styles.stepIndicatorContainer}>
           <RouteStepIndicator currentStep={3} totalSteps={3} />
         </View>
 
-        <View style={styles.primaryButton}>
-          <PrimaryButton
-            label="Entrar"
-            icon={<MaterialCommunityIcons name="check" size={20} color={colors.light} />}
-            labelColor={colors.light}
-            onPress={handleSubmit}
-          />
-        </View>
+        <PrimaryButton
+          label="Entrar"
+          icon={<MaterialIcons name="check" size={20} color={colors.light} />}
+          labelColor={colors.light}
+          onPress={handleSubmit}
+          style={styles.submitButton}
+        />
       </View>
 
       <AppDialog
@@ -92,7 +119,7 @@ export default function PassengerAddressScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 1,
+    padding: 0,
   },
   topSection: {
     position: 'relative',
@@ -117,17 +144,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   content: {
-    marginTop: 12,
+    flex: 1,
     paddingHorizontal: 56,
+  },
+  contentContainer: {
+    flexGrow: 1,
+    paddingBottom: 32,
   },
   footer: {
     alignItems: 'center',
     marginTop: 42,
+    gap: 32,
   },
   stepIndicatorContainer: {
-    alignItems: 'center',
-    marginBottom: 42,
     transform: [{ scale: 0.8 }],
   },
-  primaryButton: {},
+  submitButton: {
+    alignSelf: 'center',
+  },
 });

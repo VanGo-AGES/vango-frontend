@@ -91,6 +91,10 @@ export default function RootLayout() {
               name="(passenger)/dependent-details-screen"
               options={{ headerShown: false }}
             />
+            <Stack.Screen
+              name="(passenger)/passenger-address-screen"
+              options={{ headerShown: false }}
+            />
           </Stack>
           <StatusBar style="auto" />
         </PaperProvider>
