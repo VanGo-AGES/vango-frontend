@@ -27,7 +27,10 @@ export default function EnterRouteCodeScreen() {
     const isValid = code === '00000';
 
     if (isValid) {
-      router.push({ pathname: '/(passenger)/route-details-screen' as any, params: { code } });
+      router.push({
+        pathname: '/(passenger)/participant-selection-screen' as any,
+        params: { code },
+      });
     } else {
       setErrorDialogVisible(true);
     }

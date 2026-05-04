@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { AppScreenContainer } from '@/components/general/app-screen-container';
 import { PrimaryButton } from '@/components/general/primary-button';
@@ -13,6 +13,7 @@ import { typography } from '@/styles/typography';
 
 export default function ParticipantSelectionScreen() {
   const router = useRouter();
+  const { code } = useLocalSearchParams<{ code: string }>();
 
   const [selectedId, setSelectedId] = useState<string | undefined>();
   const [showError, setShowError] = useState(false);
@@ -29,7 +30,10 @@ export default function ParticipantSelectionScreen() {
       return;
     }
 
-    router.push('/exemplo');
+    router.push({
+      pathname: '/(passenger)/passenger-address-screen' as any,
+      params: { code, participantId: selectedId },
+    });
   };
 
   return (

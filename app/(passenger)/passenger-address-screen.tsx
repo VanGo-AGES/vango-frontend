@@ -1,5 +1,5 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
@@ -14,6 +14,8 @@ import { colors } from '@/styles/colors';
 import type { AddressErrors, RouteFormAddress } from '@/types/route.types';
 
 export default function PassengerAddressScreen() {
+  useLocalSearchParams<{ code: string; participantId: string }>();
+
   const [address, setAddress] = useState<RouteFormAddress>({
     cep: '',
     numero: '',
@@ -25,6 +27,7 @@ export default function PassengerAddressScreen() {
 
   const [errors, setErrors] = useState<AddressErrors>({});
   const [isErrorDialogVisible, setIsErrorDialogVisible] = useState(false);
+  const [isSuccessDialogVisible, setIsSuccessDialogVisible] = useState(false);
 
   const handleAddressChange = (field: keyof RouteFormAddress, value: string) => {
     setAddress((prev) => ({ ...prev, [field]: value }));
@@ -49,7 +52,7 @@ export default function PassengerAddressScreen() {
       setIsErrorDialogVisible(true);
       return;
     }
-    router.push('/');
+    setIsSuccessDialogVisible(true);
   };
 
   return (
@@ -110,6 +113,23 @@ export default function PassengerAddressScreen() {
             label: 'Ok',
             icon: 'check',
             onPress: () => setIsErrorDialogVisible(false),
+          },
+        ]}
+      />
+
+      <AppDialog
+        visible={isSuccessDialogVisible}
+        title="Solicitação enviada!"
+        description="Aguarde a aprovação do motorista."
+        onRequestClose={() => {}}
+        actions={[
+          {
+            label: 'Ok',
+            icon: 'check',
+            onPress: () => {
+              setIsSuccessDialogVisible(false);
+              router.navigate('/(passenger)/passenger-home-screen' as any);
+            },
           },
         ]}
       />
