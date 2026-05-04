@@ -21,7 +21,7 @@ const VARIANT_LABELS = {
 
 export type ContactActionButtonProps = {
   variant: 'driver' | 'passenger';
-  phoneNumber: string;
+  phoneNumber?: string;
   onPress?: () => void;
   href?: Href;
   disabled?: boolean;
@@ -41,12 +41,9 @@ export function ContactActionButton({
   const handlePress = () => {
     if (href) {
       router.push(href);
-    }
-    if (onPress) {
+    } else if (onPress) {
       onPress();
-    }
-
-    if (!href && phoneNumber) {
+    } else if (phoneNumber) {
       Alert.alert(
         VARIANT_LABELS[variant],
         'Como você prefere entrar em contato?',
@@ -99,8 +96,6 @@ export function ContactActionButton({
 
 const styles = StyleSheet.create({
   button: {
-    display: 'flex',
-    flexDirection: 'column',
     backgroundColor: colors.primary,
     borderRadius: 8,
     paddingVertical: 8,
