@@ -9,6 +9,7 @@ type Props = {
   backgroundColor?: string;
   style?: ViewStyle;
   edges?: Edge[];
+  disableKeyboardDismiss?: boolean;
 };
 
 export function AppScreenContainer({
@@ -16,11 +17,22 @@ export function AppScreenContainer({
   backgroundColor = colors.light,
   style,
   edges = ['top', 'right', 'bottom', 'left'],
+  disableKeyboardDismiss = false,
 }: Props) {
-  return (
+  const content = (
     <SafeAreaView edges={edges} style={[styles.container, { backgroundColor }, style]}>
       {children}
     </SafeAreaView>
+  );
+
+  if (disableKeyboardDismiss) {
+    return content;
+  }
+
+  return (
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      {content}
+    </TouchableWithoutFeedback>
   );
 }
 

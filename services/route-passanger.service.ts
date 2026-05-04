@@ -1,9 +1,10 @@
-import { apiDelete, apiGet } from './api';
+import { apiDelete, apiGet, apiPost } from './api';
 import { useSessionStore } from '@/store/session.store';
 import type {
   PassangerRouteDetailResponse,
   PassangerRouteListItem,
   RouteAbsenceResponse,
+  RoutePassangerResponse,
 } from '@/types/route.types';
 
 export function getPassangerHeaders(): Record<string, string> {
@@ -13,6 +14,45 @@ export function getPassangerHeaders(): Record<string, string> {
     'X-User-Id': user?.id ?? '',
     'X-User-Role': 'passenger',
   };
+}
+
+function getDriverHeaders(): Record<string, string> {
+  const user = useSessionStore.getState().user;
+
+  return {
+    'X-User-Id': user?.id ?? '',
+    'X-User-Role': 'driver',
+  };
+}
+
+export async function listRoutePassangers(routeId: string): Promise<RoutePassangerResponse[]> {
+  return apiGet<RoutePassangerResponse[]>(`/routes/${routeId}/passangers`, getDriverHeaders());
+}
+
+export async function acceptRequest(
+  routeId: string,
+  rpId: string,
+): Promise<RoutePassangerResponse> {
+  return apiPost<undefined, RoutePassangerResponse>(
+    `/routes/${routeId}/passangers/${rpId}/accept`,
+    undefined,
+    getDriverHeaders(),
+  );
+}
+
+export async function rejectRequest(
+  routeId: string,
+  rpId: string,
+): Promise<RoutePassangerResponse> {
+  return apiPost<undefined, RoutePassangerResponse>(
+    `/routes/${routeId}/passangers/${rpId}/reject`,
+    undefined,
+    getDriverHeaders(),
+  );
+}
+
+export async function removePassanger(routeId: string, rpId: string): Promise<void> {
+  await apiDelete<void>(`/routes/${routeId}/passangers/${rpId}`, getDriverHeaders());
 }
 
 export async function getPassangerRouteDetail(
