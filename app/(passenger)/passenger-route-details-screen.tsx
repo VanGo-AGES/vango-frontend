@@ -1,105 +1,203 @@
 import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
-import { useRouter } from 'expo-router';
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { AppScreenContainer } from '@/components/general/app-screen-container';
+import { AppSnackbar } from '@/components/general/app-snackbar';
+import { EmptyState } from '@/components/general/empty-state';
+import { PrimaryButton } from '@/components/general/primary-button';
 import { RouteTopBar } from '@/components/route/route-top-bar';
 import { RouteHeroHeader } from '@/components/route/route-hero-header';
 import { RouteStopList, type Stop } from '@/components/route/route-stop-list';
-import { PrimaryButton } from '@/components/general/primary-button';
 import AppDialog, { type DialogAction } from '@/components/general/app-dialog';
 
+import { ApiError } from '@/services/api';
+import { splitStopsByAbsence } from '@/services/route.service';
+import { useLeaveRoute } from '@/hooks/use-leave-route';
+import { usePassangerRouteAbsences } from '@/hooks/use-passanger-route-absences';
+import { usePassangerRouteDetail } from '@/hooks/use-passanger-route-detail';
+import { useReportAbsence } from '@/hooks/use-report-absence';
+import { getPassangerCTA } from '@/lib/passanger-route-cta';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
-type AbsenceStatus = 'not_notified' | 'notified';
-type TripStatus = 'before_trip' | 'during_trip' | 'after_trip';
+type CtaKind = 'avisar-ausencia' | 'acompanhar-viagem' | 'none';
+
+const MOCK_DURATION_MINUTES = 45;
+const MOCK_DISTANCE_KM = 12.5;
+
+function normalizeParam(value?: string | string[]): string | undefined {
+  if (Array.isArray(value)) {
+    return value[0];
+  }
+
+  return value;
+}
+
+function formatAddressLine(
+  address?: { label: string; street: string; number: string } | null,
+): string {
+  if (!address) {
+    return '';
+  }
+
+  return [address.label, address.street, address.number].filter(Boolean).join(' - ');
+}
+
+function getPassengerErrorMessage(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.status === 409) {
+      return typeof error.detail === 'string'
+        ? error.detail
+        : 'Não foi possível concluir esta ação.';
+    }
+
+    if (error.status === 403) {
+      return 'Você não tem permissão para acessar esta rota.';
+    }
+
+    if (error.status === 404) {
+      return 'A rota solicitada não foi encontrada.';
+    }
+  }
+
+  return 'Não foi possível carregar os dados da rota.';
+}
+
+function getAbsenceErrorMessage(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.status === 409) {
+      return typeof error.detail === 'string'
+        ? error.detail
+        : 'Não foi possível registrar a ausência para hoje.';
+    }
+
+    if (error.status === 403) {
+      return 'Você não é um passageiro ativo desta rota.';
+    }
+  }
+
+  return 'Não foi possível registrar a ausência.';
+}
+
+function getLeaveRouteErrorMessage(error: unknown): string {
+  if (error instanceof ApiError && error.status === 409) {
+    return 'Não é possível sair de uma rota em andamento.';
+  }
+
+  return 'Não foi possível sair da rota.';
+}
 
 export default function PassengerRouteDetailsScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{
+    routeId?: string | string[];
+    dependentId?: string | string[];
+  }>();
+  const routeId = normalizeParam(params.routeId);
+  const dependentId = normalizeParam(params.dependentId);
   const { height: screenHeight } = useWindowDimensions();
   const heroHeight = Math.max(320, Math.min(420, Math.round(screenHeight * 0.42)));
 
-  const [absenceStatus, setAbsenceStatus] = useState<AbsenceStatus>('not_notified');
-  const [tripStatus, setTripStatus] = useState<TripStatus>('before_trip');
-
+  const [absenceReported, setAbsenceReported] = useState(false);
   const [absenceDialogVisible, setAbsenceDialogVisible] = useState(false);
   const [leaveDialogVisible, setLeaveDialogVisible] = useState(false);
+  const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
 
-  const mockRoute = {
-    id: '1',
-    name: 'Centro → Zona Norte',
-    recurrence: 'Segunda a sexta',
-    expectedTime: '07:30',
-    durationMinutes: 45,
-    distanceKm: 12.5,
+  const { route, isLoading, isError, refetch, error } = usePassangerRouteDetail({
+    routeId,
+    dependentId,
+  });
+  const { data: absences = [] } = usePassangerRouteAbsences({
+    routeId,
+    recurrence: route?.recurrence,
+  });
+  const leaveRouteMutation = useLeaveRoute(routeId ?? '', dependentId);
+  const reportAbsenceMutation = useReportAbsence(routeId ?? '', dependentId);
+
+  const ctaKind: CtaKind =
+    route && !absenceReported
+      ? getPassangerCTA(
+          route.status,
+          route.membership_status,
+          route.current_trip_id,
+          route.recurrence,
+        )
+      : 'none';
+
+  const handleBack = () => {
+    router.back();
   };
 
-  const mockStops: Stop[] = [
-    {
-      id: '1',
-      type: 'origin',
-      address: 'Rua das Flores, 123 - Centro',
-    },
-    {
-      id: '2',
-      type: 'stop',
-      passengerName: 'João Silva',
-      address: 'Av. Paulista, 1000 - Bela Vista',
-    },
-    {
-      id: '3',
-      type: 'stop',
-      passengerName: 'Maria Santos',
-      address: 'Rua Augusta, 500 - Centro',
-    },
-    {
-      id: '4',
-      type: 'destination',
-      address: 'Av. Brasil, 2000 - Zona Norte',
-    },
-  ];
+  const handleAccompanyTrip = () => {
+    if (!route?.current_trip_id) {
+      return;
+    }
+
+    // TODO: navegar para o fluxo de acompanhamento da viagem quando existir
+  };
 
   const handleAbsencePress = () => {
     setAbsenceDialogVisible(true);
   };
 
   const handleConfirmAbsence = async () => {
-    setAbsenceDialogVisible(false);
-    setAbsenceStatus('notified');
-    // TODO: chamar API para avisar ausencia
+    if (!routeId) {
+      return;
+    }
+
+    try {
+      await reportAbsenceMutation.mutateAsync(undefined);
+      setAbsenceReported(true);
+      setAbsenceDialogVisible(false);
+    } catch (err) {
+      setAbsenceDialogVisible(false);
+      setFeedbackMessage(getAbsenceErrorMessage(err));
+    }
   };
 
   const handleLeaveRoute = async () => {
-    setLeaveDialogVisible(false);
-    // TODO: chamar API para sair da rota
-    router.back();
+    if (!routeId) {
+      return;
+    }
+
+    try {
+      await leaveRouteMutation.mutateAsync();
+      setLeaveDialogVisible(false);
+    } catch (err) {
+      setLeaveDialogVisible(false);
+      setFeedbackMessage(getLeaveRouteErrorMessage(err));
+    }
   };
 
-  const handleLeavePress = () => {
-    setLeaveDialogVisible(true);
+  const handleLeavePress = () => setLeaveDialogVisible(true);
+
+  const handleRetry = () => {
+    refetch();
   };
 
-  const handleAccompanyTrip = () => {
-    // TODO: navegar para fluxo de acompanhamento
-  };
-
-  const handleBack = () => {
-    router.back();
+  const handleDismissFeedback = () => {
+    setFeedbackMessage(null);
   };
 
   const renderCTA = () => {
-    // CTA oculto quando o passageiro ja avisou ausencia.
-    if (absenceStatus === 'notified') {
+    if (!route || absenceReported) {
       return null;
     }
 
-    if (tripStatus === 'after_trip') {
+    if (ctaKind === 'none') {
       return null;
     }
 
-    if (tripStatus === 'during_trip') {
+    if (ctaKind === 'acompanhar-viagem') {
       return (
         <PrimaryButton
           label="Acompanhar viagem"
@@ -148,7 +246,99 @@ export default function PassengerRouteDetailsScreen() {
     },
   ];
 
-  const cta = renderCTA();
+  const renderContent = () => {
+    if (isLoading || !routeId) {
+      return (
+        <View style={styles.stateContainer}>
+          <ActivityIndicator size="large" color={colors.dark} />
+        </View>
+      );
+    }
+
+    if (isError || !route) {
+      return (
+        <View style={styles.stateContainer}>
+          <EmptyState
+            icon="error-outline"
+            text={error ? getPassengerErrorMessage(error) : 'Não foi possível carregar a rota.'}
+          />
+          <PrimaryButton
+            label="Tentar novamente"
+            onPress={handleRetry}
+            style={styles.retryButton}
+          />
+        </View>
+      );
+    }
+
+    const presentStops = splitStopsByAbsence(route.stops, absences).present;
+    const sortedStops = [...presentStops].sort((a, b) => a.order_index - b.order_index);
+
+    const stops: Stop[] = [
+      {
+        id: route.origin_address.id,
+        type: 'origin',
+        address: formatAddressLine(route.origin_address),
+      },
+      ...sortedStops.map((stop) => ({
+        id: stop.id,
+        type: 'stop' as const,
+        address: formatAddressLine(stop.address),
+      })),
+      {
+        id: route.destination_address.id,
+        type: 'destination',
+        address: formatAddressLine(route.destination_address),
+      },
+    ];
+
+    const ctaElement = renderCTA();
+
+    return (
+      <>
+        <ScrollView
+          style={styles.content}
+          contentContainerStyle={styles.contentContainer}
+          scrollIndicatorInsets={{ right: 1 }}
+          showsVerticalScrollIndicator={true}
+        >
+          <View style={styles.heroSection}>
+            <RouteHeroHeader
+              routeName={route.name}
+              recurrence={route.recurrence.join(', ')}
+              expectedTime={route.expected_time}
+              durationMinutes={MOCK_DURATION_MINUTES}
+              distanceKm={MOCK_DISTANCE_KM}
+              style={[styles.heroHeader, { minHeight: heroHeight }]}
+            />
+          </View>
+
+          <View style={styles.stopsSection}>
+            <Text style={styles.sectionTitle}>Próxima partida</Text>
+            <RouteStopList stops={stops} />
+          </View>
+        </ScrollView>
+
+        {ctaElement ? <View style={styles.ctaContainer}>{ctaElement}</View> : null}
+
+        <AppDialog
+          visible={absenceDialogVisible}
+          title="Avisar ausência?"
+          description="Você não participará desta viagem e o motorista será notificado. Essa ação não poderá ser desfeita."
+          actions={absenceDialogActions}
+          onRequestClose={() => setAbsenceDialogVisible(false)}
+        />
+
+        <AppDialog
+          visible={leaveDialogVisible}
+          title="Sair da rota?"
+          description="Essa ação não pode ser desfeita."
+          actions={leaveDialogActions}
+          onRequestClose={() => setLeaveDialogVisible(false)}
+        />
+      </>
+    );
+  };
 
   return (
     <AppScreenContainer edges={['bottom']} style={styles.container}>
@@ -156,52 +346,19 @@ export default function PassengerRouteDetailsScreen() {
         <RouteTopBar
           onBackPress={handleBack}
           variant="passenger"
-          showMenu={tripStatus !== 'during_trip'}
+          showMenu={!!route && route.status !== 'em_andamento'}
           onLeavePress={handleLeavePress}
           backgroundColor="transparent"
           style={styles.topBarOverlay}
         />
       </View>
 
-      <ScrollView
-        style={styles.content}
-        contentContainerStyle={styles.contentContainer}
-        scrollIndicatorInsets={{ right: 1 }}
-        showsVerticalScrollIndicator={true}
-      >
-        <View style={styles.heroSection}>
-          <RouteHeroHeader
-            routeName={mockRoute.name}
-            recurrence={mockRoute.recurrence}
-            expectedTime={mockRoute.expectedTime}
-            durationMinutes={mockRoute.durationMinutes}
-            distanceKm={mockRoute.distanceKm}
-            style={[styles.heroHeader, { minHeight: heroHeight }]}
-          />
-        </View>
+      {renderContent()}
 
-        <View style={styles.stopsSection}>
-          <Text style={styles.sectionTitle}>Paradas</Text>
-          <RouteStopList stops={mockStops} />
-        </View>
-      </ScrollView>
-
-      {cta ? <View style={styles.ctaContainer}>{cta}</View> : null}
-
-      <AppDialog
-        visible={absenceDialogVisible}
-        title="Avisar ausência?"
-        description="Você não participará desta viagem e o motorista será notificado. Essa ação não poderá ser desfeita."
-        actions={absenceDialogActions}
-        onRequestClose={() => setAbsenceDialogVisible(false)}
-      />
-
-      <AppDialog
-        visible={leaveDialogVisible}
-        title="Sair da rota?"
-        description="Essa ação não pode ser desfeita."
-        actions={leaveDialogActions}
-        onRequestClose={() => setLeaveDialogVisible(false)}
+      <AppSnackbar
+        visible={!!feedbackMessage}
+        message={feedbackMessage ?? ''}
+        onDismiss={handleDismissFeedback}
       />
     </AppScreenContainer>
   );
@@ -249,6 +406,17 @@ const styles = StyleSheet.create({
     paddingTop: 12,
   },
   ctaButton: {
+    alignSelf: 'stretch',
+    width: '100%',
+  },
+  stateContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 16,
+    paddingHorizontal: 24,
+  },
+  retryButton: {
     alignSelf: 'stretch',
     width: '100%',
   },
