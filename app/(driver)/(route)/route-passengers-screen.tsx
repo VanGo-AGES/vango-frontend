@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
@@ -25,6 +25,7 @@ import { typography } from '@/styles/typography';
 import type { RoutePassangerResponse } from '@/types/route.types';
 
 type DialogType = 'removePassenger' | 'removeRequest' | 'maxCapacity' | null;
+const APPROVAL_SELECTION_DELAY_MS = 2000;
 
 function getPassangerName(passanger: RoutePassangerResponse): string {
   return passanger.dependent_name ?? passanger.user_name;
@@ -81,6 +82,8 @@ export default function RoutePassengersScreen() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarVisible, setSnackbarVisible] = useState(false);
+  const [approvingRequestIds, setApprovingRequestIds] = useState<Set<string>>(() => new Set());
+  const approvalTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   const acceptedPassangers = useMemo(
     () => passangers.filter((p: RoutePassangerResponse) => p.status === 'accepted'),
@@ -97,7 +100,15 @@ export default function RoutePassengersScreen() {
     [acceptedPassangers],
   );
 
-  const requests = useMemo(() => pendingPassangers.map(mapRouteRequest), [pendingPassangers]);
+  const requests = useMemo(
+    () =>
+      pendingPassangers.map((passanger: RoutePassangerResponse) => ({
+        ...mapRouteRequest(passanger),
+        checked: approvingRequestIds.has(passanger.id),
+      })),
+    [pendingPassangers, approvingRequestIds],
+  );
+
   const selectedPassenger = passengers.find((p) => p.id === selectedId);
   const acceptedCount = passengers.length;
   const capacity = route?.max_passengers ?? 0;
@@ -110,6 +121,15 @@ export default function RoutePassengersScreen() {
     rejectRequestMutation.isPending ||
     removePassangerMutation.isPending;
 
+  useEffect(() => {
+    const timers = approvalTimers.current;
+
+    return () => {
+      timers.forEach((timer) => clearTimeout(timer));
+      timers.clear();
+    };
+  }, []);
+
   const showSnackbar = (message: string) => {
     setSnackbarMessage(message);
     setSnackbarVisible(true);
@@ -117,6 +137,20 @@ export default function RoutePassengersScreen() {
 
   const showGenericError = () => {
     showSnackbar('Não foi possível concluir a ação. Tente novamente.');
+  };
+
+  const clearApprovalSelection = (id: string) => {
+    const timer = approvalTimers.current.get(id);
+    if (timer) {
+      clearTimeout(timer);
+      approvalTimers.current.delete(id);
+    }
+
+    setApprovingRequestIds((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
   };
 
   const handleRetry = () => {
@@ -152,6 +186,8 @@ export default function RoutePassengersScreen() {
   const handleConfirmRemoveRequest = () => {
     if (!routeId || !selectedId) return;
 
+    clearApprovalSelection(selectedId);
+
     rejectRequestMutation.mutate(
       { routeId, rpId: selectedId },
       {
@@ -168,26 +204,45 @@ export default function RoutePassengersScreen() {
   const handleApproveRequest = (id: string) => {
     if (!routeId || !route) return;
 
-    if (acceptedCount >= route.max_passengers) {
+    if (approvingRequestIds.has(id) || approvalTimers.current.has(id)) {
+      return;
+    }
+
+    if (acceptedCount + approvingRequestIds.size >= route.max_passengers) {
       setDialogType('maxCapacity');
       return;
     }
 
-    acceptRequestMutation.mutate(
-      { routeId, rpId: id },
-      {
-        onSuccess: () => {
-          showSnackbar('Passageiro adicionado na rota com sucesso!');
+    setApprovingRequestIds((prev) => new Set(prev).add(id));
+
+    const timer = setTimeout(() => {
+      approvalTimers.current.delete(id);
+
+      acceptRequestMutation.mutate(
+        { routeId, rpId: id },
+        {
+          onSuccess: () => {
+            showSnackbar('Passageiro adicionado na rota com sucesso!');
+          },
+          onError: (error) => {
+            if (isCapacityError(error)) {
+              setDialogType('maxCapacity');
+              return;
+            }
+            showGenericError();
+          },
+          onSettled: () => {
+            setApprovingRequestIds((prev) => {
+              const next = new Set(prev);
+              next.delete(id);
+              return next;
+            });
+          },
         },
-        onError: (error) => {
-          if (isCapacityError(error)) {
-            setDialogType('maxCapacity');
-            return;
-          }
-          showGenericError();
-        },
-      },
-    );
+      );
+    }, APPROVAL_SELECTION_DELAY_MS);
+
+    approvalTimers.current.set(id, timer);
   };
 
   const handleNavigateToInviteCode = () => {
