@@ -181,6 +181,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   sectionWithTopSpacing: {
+    flex: 1,
     gap: 12,
     marginTop: 36,
   },
@@ -206,6 +207,7 @@ const styles = StyleSheet.create({
     minHeight: 40,
   },
   routesList: {
+    flex: 1,
     paddingHorizontal: 24,
   },
   routesListContent: {
