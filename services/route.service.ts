@@ -1,11 +1,12 @@
-import { apiGet, apiPost } from './api';
+import { apiDelete, apiGet, apiPost } from './api';
 import { useSessionStore } from '@/store/session.store';
 import type {
   CreateRouteRequest,
   CreateRouteResponse,
   RouteAbsenceResponse,
+  RoutePassangerResponse,
+  RoutePassangerStatus,
   RouteResponse,
-  RouteStopResponse,
 } from '@/types/route.types';
 
 function getDriverHeaders(): Record<string, string> {
@@ -19,6 +20,97 @@ export async function createRoute(data: CreateRouteRequest): Promise<CreateRoute
 
 export async function listDriverRoutes(): Promise<RouteResponse[]> {
   return apiGet<RouteResponse[]>('/routes/', getDriverHeaders());
+}
+
+export async function getRouteById(routeId: string): Promise<RouteResponse> {
+  return apiGet<RouteResponse>(`/routes/${routeId}`, getDriverHeaders());
+}
+
+export async function deleteRoute(routeId: string): Promise<void> {
+  return apiDelete<void>(`/routes/${routeId}`, getDriverHeaders());
+}
+
+export async function removePassanger(routeId: string, rpId: string): Promise<void> {
+  return apiDelete<void>(`/routes/${routeId}/passangers/${rpId}`, getDriverHeaders());
+}
+
+export async function listRouteAbsences(
+  routeId: string,
+  date?: string,
+): Promise<RouteAbsenceResponse[]> {
+  const query = date ? `?date=${encodeURIComponent(date)}` : '';
+  return apiGet<RouteAbsenceResponse[]>(`/routes/${routeId}/absences${query}`, getDriverHeaders());
+}
+
+export function splitStopsByAbsence<T extends { route_passanger_id: string }>(
+  stops: T[],
+  absences: RouteAbsenceResponse[],
+): { present: T[]; absent: T[] } {
+  const absentRpIds = new Set(absences.map((absence) => absence.route_passanger_id));
+
+  const present: T[] = [];
+  const absent: T[] = [];
+
+  for (const stop of stops) {
+    if (absentRpIds.has(stop.route_passanger_id)) {
+      absent.push(stop);
+    } else {
+      present.push(stop);
+    }
+  }
+
+  return { present, absent };
+}
+
+export function isRouteToday(recurrence: string): boolean {
+  const todayIndex = new Date().getDay();
+
+  return recurrence
+    .split(',')
+    .map(getWeekdayIndex)
+    .some((index) => index !== null && index === todayIndex);
+}
+
+/**
+ * Retorna a data (YYYY-MM-DD) da próxima execução da rota.
+ *
+ * - Se hoje está na recorrência, retorna hoje (offset 0).
+ * - Caso contrário, o próximo dia futuro que está na recorrência (1..6 à frente).
+ * - Recorrência inválida ou vazia → null.
+ *
+ * Usa data local (mesmo critério de isRouteToday). O formato YYYY-MM-DD é o
+ * mesmo aceito por GET /routes/{id}/absences?date=YYYY-MM-DD.
+ */
+export function getNextRouteOccurrenceDate(
+  recurrence: string,
+  now: Date = new Date(),
+): string | null {
+  const recurrenceDays = recurrence
+    .split(',')
+    .map(getWeekdayIndex)
+    .filter((day): day is number => day !== null);
+
+  if (!recurrenceDays.length) {
+    return null;
+  }
+
+  const todayIndex = now.getDay();
+  let bestOffset = 7;
+  for (const target of recurrenceDays) {
+    const offset = (target - todayIndex + 7) % 7;
+    if (offset < bestOffset) {
+      bestOffset = offset;
+    }
+  }
+
+  const next = new Date(now);
+  next.setHours(0, 0, 0, 0);
+  next.setDate(next.getDate() + bestOffset);
+
+  const yyyy = next.getFullYear();
+  const mm = String(next.getMonth() + 1).padStart(2, '0');
+  const dd = String(next.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
 }
 
 function normalizeRecurrenceDay(day: string): string {
@@ -129,23 +221,6 @@ function getNextRouteOccurrence(route: RouteResponse, now: Date): Date | null {
   return closestDate;
 }
 
-export function splitStopsByAbsence(
-  stops: RouteStopResponse[],
-  absences: RouteAbsenceResponse[],
-): { present: RouteStopResponse[]; absent: RouteStopResponse[] } {
-  const absentRpIds = new Set(absences.map((a) => a.route_passanger_id));
-  const present: RouteStopResponse[] = [];
-  const absent: RouteStopResponse[] = [];
-  for (const stop of stops) {
-    if (absentRpIds.has(stop.route_passanger_id)) {
-      absent.push(stop);
-    } else {
-      present.push(stop);
-    }
-  }
-  return { present, absent };
-}
-
 export function getNextRoute(routes: RouteResponse[]): RouteResponse | null {
   const now = new Date();
   let nextRoute: RouteResponse | null = null;
@@ -165,4 +240,15 @@ export function getNextRoute(routes: RouteResponse[]): RouteResponse | null {
   }
 
   return nextRoute;
+}
+
+export async function listRoutePassangers(
+  routeId: string,
+  status?: RoutePassangerStatus,
+): Promise<RoutePassangerResponse[]> {
+  const query = status ? `?status=${encodeURIComponent(status)}` : '';
+  return apiGet<RoutePassangerResponse[]>(
+    `/routes/${routeId}/passangers${query}`,
+    getDriverHeaders(),
+  );
 }

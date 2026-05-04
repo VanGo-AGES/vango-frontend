@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   title: {
-    ...typography.header3,
+    ...typography.bodyBold,
     color: colors.dark,
     textAlign: 'center',
     marginBottom: 8,

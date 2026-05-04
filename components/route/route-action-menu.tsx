@@ -92,39 +92,39 @@ export function RouteActionMenu({
   );
 }
 
-const TOGGLE_HEIGHT = 48;
+const TOGGLE_SIZE = 40;
 const MENU_WIDTH = 72;
 
 const styles = StyleSheet.create({
   anchor: {
     alignSelf: 'flex-start',
-    width: MENU_WIDTH,
-    height: TOGGLE_HEIGHT + 16, // espaço reservado = só o toggle + padding vertical do pill
+    width: TOGGLE_SIZE,
+    height: TOGGLE_SIZE,
     zIndex: 9999, // garante que o componente não seja coberto por outros componentes
   },
   floating: {
     position: 'absolute',
     top: 0,
-    left: 0,
+    right: 0,
     zIndex: 9999, // garante que o componente não seja coberto por outros componentes
-    width: MENU_WIDTH,
     alignItems: 'center',
+  },
+  floatingOpen: {
+    width: MENU_WIDTH,
     backgroundColor: colors.accent,
     borderRadius: 32,
-    paddingVertical: 8,
+    paddingTop: 8,
+    paddingBottom: 12,
     shadowColor: colors.dark,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 12,
     elevation: 4,
   },
-  floatingOpen: {
-    paddingBottom: 12,
-  },
   toggle: {
-    width: 56,
-    height: TOGGLE_HEIGHT,
-    borderRadius: 24,
+    width: TOGGLE_SIZE,
+    height: TOGGLE_SIZE,
+    borderRadius: TOGGLE_SIZE / 2,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -83,7 +83,6 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   menuWrapper: {
-    transform: [{ scale: 0.85 }],
     alignItems: 'flex-end',
     justifyContent: 'center',
   },

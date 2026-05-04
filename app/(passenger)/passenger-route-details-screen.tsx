@@ -296,23 +296,23 @@ export default function PassengerRouteDetailsScreen() {
 
     return (
       <>
+        <View style={styles.heroSection}>
+          <RouteHeroHeader
+            routeName={route.name}
+            recurrence={route.recurrence.join(', ')}
+            expectedTime={route.expected_time}
+            durationMinutes={MOCK_DURATION_MINUTES}
+            distanceKm={MOCK_DISTANCE_KM}
+            style={[styles.heroHeader, { minHeight: heroHeight }]}
+          />
+        </View>
+
         <ScrollView
           style={styles.content}
           contentContainerStyle={styles.contentContainer}
           scrollIndicatorInsets={{ right: 1 }}
           showsVerticalScrollIndicator={true}
         >
-          <View style={styles.heroSection}>
-            <RouteHeroHeader
-              routeName={route.name}
-              recurrence={route.recurrence.join(', ')}
-              expectedTime={route.expected_time}
-              durationMinutes={MOCK_DURATION_MINUTES}
-              distanceKm={MOCK_DISTANCE_KM}
-              style={[styles.heroHeader, { minHeight: heroHeight }]}
-            />
-          </View>
-
           <View style={styles.stopsSection}>
             <Text style={styles.sectionTitle}>Próxima partida</Text>
             <RouteStopList stops={stops} />

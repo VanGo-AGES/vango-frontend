@@ -204,6 +204,7 @@ export default function EditRouteScreen() {
               label="Salvar Alterações"
               onPress={handleSave}
               icon={<MaterialIcons name="check" size={20} color={colors.light} />}
+              labelColor={colors.white}
               style={{ alignSelf: 'stretch' }}
             />
           </View>
@@ -253,9 +254,10 @@ const styles = StyleSheet.create({
   scrollContent: {
     gap: 16,
     paddingBottom: 16,
+    paddingHorizontal: 16,
   },
   sectionTitle: {
-    ...typography.header3,
+    ...typography.bodyBold,
     color: colors.dark,
     textAlign: 'center',
   },
