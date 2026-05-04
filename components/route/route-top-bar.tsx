@@ -23,7 +23,7 @@ export function RouteTopBar({
   onDeletePress,
   onLeavePress,
   showMenu = true,
-  backgroundColor = colors.light,
+  backgroundColor = 'transparent',
   style,
 }: RouteTopBarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -70,8 +70,6 @@ const styles = StyleSheet.create({
     height: 64,
     paddingVertical: 8,
     paddingHorizontal: 4,
-
-    backgroundColor: colors.light,
   },
   backButton: {
     width: 40,
