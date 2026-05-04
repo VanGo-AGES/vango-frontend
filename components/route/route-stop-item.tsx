@@ -34,7 +34,7 @@ export function RouteStopItem({
   return (
     <View style={[styles.container, { backgroundColor: isCurrent ? colors.accent : colors.light }]}>
       <MaterialCommunityIcons name={iconName} size={24} color={colors.dark} />
-      <View>
+      <View style={styles.textContainer}>
         <Text style={styles.title}>{resolvedTitle}</Text>
         <Text style={styles.subtitle}>{subtitle}</Text>
       </View>
@@ -50,6 +50,9 @@ const styles = StyleSheet.create({
     paddingLeft: 16,
     borderBottomWidth: 1,
     borderBottomColor: colors.accent,
+  },
+  textContainer: {
+    flex: 1,
   },
   title: {
     ...typography.bodyLarge,

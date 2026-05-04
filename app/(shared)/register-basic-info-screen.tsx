@@ -91,8 +91,7 @@ export default function RegisterBasicInfoScreen() {
   const watchedPhone = watch('phone');
 
   const handleLoginPress = () => {
-    // TODO: substituir por /login quando o fluxo de login for implementado
-    router.push('/register-profile-selection-screen');
+    router.push('/login');
   };
 
   const onInvalid = () => {
@@ -146,7 +145,9 @@ export default function RegisterBasicInfoScreen() {
       }
 
       const errorMessage =
-        error instanceof ApiError && error.detail ? error.detail : 'Erro ao criar usuário';
+        error instanceof ApiError && typeof error.detail === 'string'
+          ? error.detail
+          : 'Erro ao criar usuário';
 
       setError('email', {
         type: 'manual',

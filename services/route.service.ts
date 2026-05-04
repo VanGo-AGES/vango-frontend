@@ -1,6 +1,12 @@
 import { apiGet, apiPost } from './api';
 import { useSessionStore } from '@/store/session.store';
-import type { CreateRouteRequest, CreateRouteResponse, RouteResponse } from '@/types/route.types';
+import type {
+  CreateRouteRequest,
+  CreateRouteResponse,
+  RouteAbsenceResponse,
+  RouteResponse,
+  RouteStopResponse,
+} from '@/types/route.types';
 
 function getDriverHeaders(): Record<string, string> {
   const user = useSessionStore.getState().user;
@@ -121,6 +127,23 @@ function getNextRouteOccurrence(route: RouteResponse, now: Date): Date | null {
   }
 
   return closestDate;
+}
+
+export function splitStopsByAbsence(
+  stops: RouteStopResponse[],
+  absences: RouteAbsenceResponse[],
+): { present: RouteStopResponse[]; absent: RouteStopResponse[] } {
+  const absentRpIds = new Set(absences.map((a) => a.route_passanger_id));
+  const present: RouteStopResponse[] = [];
+  const absent: RouteStopResponse[] = [];
+  for (const stop of stops) {
+    if (absentRpIds.has(stop.route_passanger_id)) {
+      absent.push(stop);
+    } else {
+      present.push(stop);
+    }
+  }
+  return { present, absent };
 }
 
 export function getNextRoute(routes: RouteResponse[]): RouteResponse | null {
