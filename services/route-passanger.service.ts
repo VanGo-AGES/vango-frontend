@@ -2,10 +2,10 @@ import { apiDelete, apiGet, apiPost } from './api';
 import { useSessionStore } from '@/store/session.store';
 import type {
   JoinRouteRequest,
+  JoinRouteResponse,
   PassangerRouteDetailResponse,
   PassangerRouteListItem,
   RouteAbsenceResponse,
-  RoutePassangerResponse,
 } from '@/types/route.types';
 
 export function getPassangerHeaders(): Record<string, string> {
@@ -143,8 +143,8 @@ export function getNextPassangerRoute(
 export async function joinRoute(
   routeId: string,
   data: JoinRouteRequest,
-): Promise<RoutePassangerResponse> {
-  return apiPost<JoinRouteRequest, RoutePassangerResponse>(
+): Promise<JoinRouteResponse> {
+  return apiPost<JoinRouteRequest, JoinRouteResponse>(
     `/routes/${routeId}/passangers`,
     data,
     getPassangerHeaders(),

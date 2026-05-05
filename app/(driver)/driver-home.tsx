@@ -53,11 +53,20 @@ export default function DriverHomeScreen() {
 
   const nextRoute = getNextRoute(routesData);
   const myRoutes = routesData;
+
+  const handleOpenRouteDetails = (routeId: string) => {
+    router.push({
+      pathname: '/(driver)/(route)/route-details-screen' as never,
+      params: { routeId },
+    });
+  };
+
   const routeItems = myRoutes.map((route) => ({
     name: route.name,
     days: formatRecurrence(route.recurrence),
     duration: formatDuration(route),
     distance: formatDistance(route),
+    onPress: () => handleOpenRouteDetails(route.id),
   }));
 
   const handleProfilePress = () => {
@@ -105,6 +114,7 @@ export default function DriverHomeScreen() {
               routeName={nextRoute.name}
               dateLabel={formatRecurrence(nextRoute.recurrence) || 'Próxima rota'}
               time={formatTime(nextRoute.expected_time)}
+              onPress={() => handleOpenRouteDetails(nextRoute.id)}
             />
           ) : (
             <View style={styles.emptyStateWrapper}>
@@ -171,6 +181,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   sectionWithTopSpacing: {
+    flex: 1,
     gap: 12,
     marginTop: 36,
   },
@@ -196,6 +207,7 @@ const styles = StyleSheet.create({
     minHeight: 40,
   },
   routesList: {
+    flex: 1,
     paddingHorizontal: 24,
   },
   routesListContent: {

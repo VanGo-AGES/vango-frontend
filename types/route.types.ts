@@ -33,7 +33,9 @@ export interface AddressResponse {
 }
 
 export type RouteType = 'outbound' | 'inbound';
-export type DriverRouteStatus = 'inativa' | 'ativa';
+export type DriverRouteStatus = 'inativa' | 'em_andamento';
+export type StopType = 'embarque' | 'desembarque';
+export type RoutePassangerStatus = 'pending' | 'accepted' | 'rejected';
 export type PassengerRouteStatus = 'inativa' | 'em_andamento';
 export type PassengerMembershipStatus = 'pending' | 'accepted' | 'rejected';
 
@@ -69,6 +71,15 @@ export interface CreateRouteRequest {
   recurrence: string;
 }
 
+export interface StopResponse {
+  id: string;
+  route_passanger_id: string;
+  order_index: number;
+  type: StopType;
+  address_id: string;
+  address: AddressResponse;
+}
+
 export interface RouteResponse {
   id: string;
   name: string;
@@ -80,6 +91,7 @@ export interface RouteResponse {
   max_passengers: number;
   origin_address: AddressResponse;
   destination_address: AddressResponse;
+  stops: StopResponse[];
   distance?: string | null;
   distance_km?: number | null;
   duration?: string | null;
@@ -128,6 +140,21 @@ export interface PassangerRouteListItem {
   dependent_name: string | null;
 }
 
+export interface RoutePassangerResponse {
+  id: string;
+  route_id: string;
+  status: RoutePassangerStatus;
+  user_id: string;
+  user_name: string;
+  user_phone: string;
+  pickup_address_id: string;
+  requested_at: string;
+  joined_at: string | null;
+  dependent_id: string | null;
+  dependent_name: string | null;
+  guardian_name: string | null;
+}
+
 export type CreateRouteResponse = RouteResponse;
 
 export interface RouteInviteSummaryResponse {
@@ -148,7 +175,7 @@ export interface JoinRouteRequest {
   schedules: { day_of_week: string }[];
 }
 
-export interface RoutePassangerResponse {
+export interface JoinRouteResponse {
   id: string;
   route_id: string;
   user_id: string;

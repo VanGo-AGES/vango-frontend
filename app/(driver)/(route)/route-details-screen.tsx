@@ -1,18 +1,23 @@
 import AppDialog, { type DialogAction } from '@/components/general/app-dialog';
+import { EmptyState } from '@/components/general/empty-state';
 import { PrimaryButton } from '@/components/general/primary-button';
 import { RoutePassengerSection } from '@/components/route/passenger/route-passenger-section';
 import { RouteHeroHeader } from '@/components/route/route-hero-header';
-import { RouteStopList } from '@/components/route/route-stop-list';
+import { RouteStopList, type Stop } from '@/components/route/route-stop-list';
 import { RouteTopBar } from '@/components/route/route-top-bar';
-import { useIsRouteDay } from '@/hooks/use-is-route-day';
-import { useRouteHeroHeader } from '@/hooks/use-route-hero-header';
-import { useRoutePassengers } from '@/hooks/use-route-passenger';
-import { useRouteStops } from '@/hooks/use-route-stops';
+import { useDeleteRoute } from '@/hooks/use-delete-route';
+import { useRemovePassanger } from '@/hooks/use-remove-passanger';
+import { useRouteAbsences } from '@/hooks/use-route-absences';
+import { useRouteDetail } from '@/hooks/use-route-detail';
+import { useRoutePassangers } from '@/hooks/use-route-passangers';
+import { isRouteToday, splitStopsByAbsence } from '@/services/route.service';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
+import type { PassengerStatus } from '@/components/route/passenger/route-passenger-card';
+import type { AddressResponse, RoutePassangerResponse, StopResponse } from '@/types/route.types';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useMemo, useState } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -24,56 +29,214 @@ import {
 
 type DialogType = 'start_route' | 'delete_route' | 'delete_stop' | null;
 
+const FALLBACK_DURATION_MINUTES = 30;
+const FALLBACK_DISTANCE_KM = 10;
+
+function formatRecurrenceLabel(recurrence: string): string {
+  return recurrence
+    .split(',')
+    .map((day) => day.trim())
+    .filter(Boolean)
+    .map((day) => day.charAt(0).toUpperCase() + day.slice(1))
+    .join(' • ');
+}
+
+function formatExpectedTime(value: string): string {
+  return value.length >= 5 ? value.slice(0, 5) : value;
+}
+
+function formatAddress(address: AddressResponse): string {
+  return [address.street, address.number].filter(Boolean).join(', ');
+}
+
+function pickPassangerName(p: RoutePassangerResponse): string {
+  return p.dependent_name ?? p.user_name;
+}
+
+function buildUiStops(
+  origin: AddressResponse,
+  destination: AddressResponse,
+  stops: StopResponse[],
+  passangerByRpId: Map<string, RoutePassangerResponse>,
+): Stop[] {
+  const sortedStops = [...stops].sort((a, b) => a.order_index - b.order_index);
+
+  return [
+    {
+      id: `origin-${origin.id}`,
+      type: 'origin',
+      address: formatAddress(origin),
+    },
+    ...sortedStops.map<Stop>((stop) => {
+      const passanger = passangerByRpId.get(stop.route_passanger_id);
+      return {
+        id: stop.route_passanger_id,
+        type: 'stop',
+        passengerName: passanger ? pickPassangerName(passanger) : undefined,
+        address: formatAddress(stop.address),
+      };
+    }),
+    {
+      id: `destination-${destination.id}`,
+      type: 'destination',
+      address: formatAddress(destination),
+    },
+  ];
+}
+
+function mapPassangerStatusToCard(
+  passanger: RoutePassangerResponse,
+  absentRpIds: Set<string>,
+): PassengerStatus {
+  if (passanger.status !== 'accepted') {
+    return 'none';
+  }
+  if (absentRpIds.has(passanger.id)) {
+    return 'absent';
+  }
+  return 'confirmed';
+}
+
 export default function RouteDetailsScreen() {
   const router = useRouter();
+  const { routeId } = useLocalSearchParams<{ routeId: string }>();
   const { height: screenHeight } = useWindowDimensions();
   const heroHeight = Math.max(320, Math.min(420, Math.round(screenHeight * 0.42)));
 
-  // Mocks
-  const { data } = useRouteHeroHeader({ routeId: 'rota-123' });
-  const { stops, currentStopId, deleteStop } = useRouteStops({ routeId: 'rota-123' });
-  const { passengers } = useRoutePassengers({ routeId: 'rota-123', phase: 'pre_trip' });
+  const {
+    data: route,
+    isLoading: isRouteLoading,
+    isError: isRouteError,
+    refetch: refetchRoute,
+  } = useRouteDetail(routeId);
 
-  const isRouteDay = useIsRouteDay(data?.recurrence ?? []);
+  const recurrence = route?.recurrence;
+  const isToday = recurrence ? isRouteToday(recurrence) : false;
+  const isInProgress = route?.status === 'em_andamento';
+
+  const { data: passangers = [], isLoading: isPassangersLoading } = useRoutePassangers(routeId);
+  const { data: absences = [] } = useRouteAbsences({ routeId, recurrence });
+
+  const passangerByRpId = useMemo(() => {
+    const map = new Map<string, RoutePassangerResponse>();
+    passangers.forEach((p: RoutePassangerResponse) => map.set(p.id, p));
+    return map;
+  }, [passangers]);
+
+  const presentStops = useMemo(() => {
+    if (!route) {
+      return [];
+    }
+    return splitStopsByAbsence(route.stops, absences).present;
+  }, [route, absences]);
+
+  const stopsForView = useMemo<Stop[]>(() => {
+    if (!route) {
+      return [];
+    }
+
+    return buildUiStops(
+      route.origin_address,
+      route.destination_address,
+      presentStops,
+      passangerByRpId,
+    );
+  }, [route, presentStops, passangerByRpId]);
+
+  const absentRpIds = useMemo(
+    () => new Set(absences.map((absence) => absence.route_passanger_id)),
+    [absences],
+  );
+
+  const cardPassangers = useMemo(
+    () =>
+      passangers.map((p: RoutePassangerResponse) => ({
+        name: pickPassangerName(p),
+        status: mapPassangerStatusToCard(p, absentRpIds),
+      })),
+    [passangers, absentRpIds],
+  );
+
+  const acceptedPassangers = useMemo(
+    () => passangers.filter((p: RoutePassangerResponse) => p.status === 'accepted'),
+    [passangers],
+  );
+
+  const totalAcceptedCount = acceptedPassangers.length;
+
+  const confirmedCount = useMemo(
+    () => acceptedPassangers.filter((p: RoutePassangerResponse) => !absentRpIds.has(p.id)).length,
+    [acceptedPassangers, absentRpIds],
+  );
 
   const [activeDialog, setActiveDialog] = useState<DialogType>(null);
-  const [pendingDeleteStopId, setPendingDeleteStopId] = useState<string | null>(null);
+  const [pendingDeleteRpId, setPendingDeleteRpId] = useState<string | null>(null);
 
-  const confirmedCount = passengers.filter((p) => p.status === 'confirmed').length;
-  const totalCount = passengers.length;
+  const deleteRouteMutation = useDeleteRoute();
+  const removePassangerMutation = useRemovePassanger();
+
+  const showStartRouteCta = isToday && !isInProgress;
+  const showActionMenu = !isInProgress;
 
   const handleOnBackPress = () => {
-    router.push('/driver-home');
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+    router.replace('/driver-home');
   };
 
-  const handleDeleteStopPress = (stopId: string) => {
-    setPendingDeleteStopId(stopId);
+  const handleDeleteStopPress = (rpId: string) => {
+    setPendingDeleteRpId(rpId);
     setActiveDialog('delete_stop');
   };
 
   const handleConfirmDeleteStop = () => {
-    if (pendingDeleteStopId) {
-      deleteStop(pendingDeleteStopId);
-      setPendingDeleteStopId(null);
+    if (!routeId || !pendingDeleteRpId) {
+      setActiveDialog(null);
+      return;
     }
-    setActiveDialog(null);
+
+    removePassangerMutation.mutate(
+      { routeId, rpId: pendingDeleteRpId },
+      {
+        onSettled: () => {
+          setPendingDeleteRpId(null);
+          setActiveDialog(null);
+        },
+      },
+    );
   };
 
   const handleConfirmStartRoute = () => {
     setActiveDialog(null);
-    // TODO: navegar para a tela de viagem em andamento
+    // TODO: navegar para a tela de viagem em andamento (US futura)
     // router.push('DRIVER_TRIP_SCREEN');
   };
 
   const handleConfirmDeleteRoute = () => {
-    setActiveDialog(null);
-    // TODO: chamar API para deletar a rota e voltar
-    router.push('/driver-home');
+    if (!routeId) {
+      setActiveDialog(null);
+      return;
+    }
+
+    deleteRouteMutation.mutate(routeId, {
+      onSuccess: () => {
+        setActiveDialog(null);
+        if (router.canGoBack()) {
+          router.back();
+          return;
+        }
+        router.replace('/driver-home');
+      },
+      onError: () => {
+        setActiveDialog(null);
+      },
+    });
   };
 
   const handleNavigateToPassengers = () => {
-    // TODO: navegar para a tela de gerenciamento de passageiros
-    router.push('/route-passenger-screen' as never); // Alterar quando a tela existir
+    // TODO: navegar para a tela de gerenciamento de passageiros (US futura)
   };
 
   const startRouteDialogActions: DialogAction[] = [
@@ -91,16 +254,81 @@ export default function RouteDetailsScreen() {
     { label: 'Excluir', onPress: handleConfirmDeleteStop, variant: 'destructive', icon: 'delete' },
   ];
 
+  if (isRouteLoading) {
+    return (
+      <View style={styles.screen}>
+        <View style={styles.topBarContainer}>
+          <RouteTopBar
+            variant="driver"
+            onBackPress={handleOnBackPress}
+            backgroundColor="transparent"
+            showMenu={false}
+            style={styles.topBarOverlay}
+          />
+        </View>
+        <View style={styles.feedbackWrapper}>
+          <EmptyState icon="schedule" text="Carregando os detalhes da rota..." />
+        </View>
+      </View>
+    );
+  }
+
+  if (isRouteError || !route) {
+    return (
+      <View style={styles.screen}>
+        <View style={styles.topBarContainer}>
+          <RouteTopBar
+            variant="driver"
+            onBackPress={handleOnBackPress}
+            backgroundColor="transparent"
+            showMenu={false}
+            style={styles.topBarOverlay}
+          />
+        </View>
+        <View style={styles.feedbackWrapper}>
+          <EmptyState
+            icon="error-outline"
+            text="Não foi possível carregar a rota. Toque para tentar novamente."
+          />
+          <TouchableOpacity
+            onPress={() => refetchRoute()}
+            accessibilityRole="button"
+            style={styles.retryButton}
+          >
+            <Text style={styles.retryText}>Tentar novamente</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.screen}>
       <View style={styles.topBarContainer}>
         <RouteTopBar
           variant="driver"
           onBackPress={handleOnBackPress}
-          onEditPress={() => router.push('/edit-route-screen' as never)} // Alterar quando a tela existir
+          onEditPress={() => {
+            router.push({
+              pathname: '/(driver)/(route)/edit-route-screen' as never,
+              params: { routeId },
+            });
+          }}
           onDeletePress={() => setActiveDialog('delete_route')}
+          showMenu={showActionMenu}
           backgroundColor="transparent"
           style={styles.topBarOverlay}
+        />
+      </View>
+
+      <View style={styles.heroSection}>
+        <RouteHeroHeader
+          routeName={route.name}
+          recurrence={formatRecurrenceLabel(route.recurrence)}
+          expectedTime={formatExpectedTime(route.expected_time)}
+          durationMinutes={route.duration_minutes ?? FALLBACK_DURATION_MINUTES}
+          distanceKm={route.distance_km ?? FALLBACK_DISTANCE_KM}
+          style={[styles.heroHeader, { minHeight: heroHeight }]}
         />
       </View>
 
@@ -108,50 +336,50 @@ export default function RouteDetailsScreen() {
         style={styles.content}
         contentContainerStyle={[
           styles.contentContainer,
-          isRouteDay && styles.contentContainerWithCTA,
+          showStartRouteCta && styles.contentContainerWithCTA,
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.heroSection}>
-          {data && (
-            <RouteHeroHeader
-              routeName={data.routeName}
-              recurrence={data.recurrence.join(', ')}
-              expectedTime={data.expectedTime}
-              durationMinutes={data.durationMinutes}
-              distanceKm={data.distanceKm}
-              backgroundImage={data.backgroundImage}
-              style={[styles.heroHeader, { minHeight: heroHeight }]}
-            />
-          )}
-        </View>
-
         <View style={styles.stopsSection}>
-          <Text style={[styles.sectionTitle, styles.sectionHPadding]}>Paradas</Text>
+          <Text style={[styles.sectionTitle, styles.sectionHPadding]}>Próxima partida</Text>
           <RouteStopList
-            stops={stops}
-            currentStopId={currentStopId}
-            onDeleteStopPress={handleDeleteStopPress}
+            stops={stopsForView}
+            onDeleteStopPress={isInProgress ? undefined : handleDeleteStopPress}
           />
         </View>
 
-        <View style={styles.section}>
-          <TouchableOpacity onPress={handleNavigateToPassengers} activeOpacity={0.7}>
+        <View style={styles.passengersBlock}>
+          <TouchableOpacity
+            onPress={handleNavigateToPassengers}
+            activeOpacity={0.7}
+            style={styles.sectionHPadding}
+          >
             <View style={styles.passengerHeader}>
               <View style={styles.passengerTitleRow}>
                 <Text style={styles.sectionTitle}>Passageiros</Text>
                 <MaterialIcons name="chevron-right" size={20} color={colors.dark} />
               </View>
               <Text style={styles.passengerCount}>
-                {confirmedCount}/{totalCount} Confirmados
+                {confirmedCount}/{totalAcceptedCount} Confirmados
               </Text>
             </View>
           </TouchableOpacity>
-          <RoutePassengerSection passengers={passengers} phase="pre_trip" />
+
+          {isPassangersLoading ? (
+            <View style={styles.sectionHPadding}>
+              <EmptyState icon="schedule" text="Carregando passageiros..." />
+            </View>
+          ) : cardPassangers.length === 0 ? (
+            <View style={styles.sectionHPadding}>
+              <EmptyState icon="group" text="Nenhum passageiro nessa rota ainda." />
+            </View>
+          ) : (
+            <RoutePassengerSection passengers={cardPassangers} phase="pre_trip" />
+          )}
         </View>
       </ScrollView>
 
-      {isRouteDay && (
+      {showStartRouteCta && (
         <View style={styles.ctaFloating}>
           <PrimaryButton
             label="Iniciar rota"
@@ -233,6 +461,10 @@ const styles = StyleSheet.create({
     paddingTop: 24,
     gap: 12,
   },
+  passengersBlock: {
+    paddingTop: 24,
+    gap: 12,
+  },
   sectionTitle: {
     ...typography.subtitle,
     color: colors.dark,
@@ -257,5 +489,22 @@ const styles = StyleSheet.create({
   },
   ctaButton: {
     alignSelf: 'stretch',
+  },
+  feedbackWrapper: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+    paddingHorizontal: 16,
+  },
+  retryButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    backgroundColor: colors.accent,
+  },
+  retryText: {
+    ...typography.bodyBold,
+    color: colors.dark,
   },
 });

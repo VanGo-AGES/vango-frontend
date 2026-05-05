@@ -1,9 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Pressable, StyleProp, View, ViewStyle } from 'react-native';
-import { TextInput } from 'react-native-paper';
 import { TimePickerModal } from 'react-native-paper-dates';
 import { AppTextField } from '@/components/general/app-text-field';
-import { colors } from '@/styles/colors';
 
 export interface HourSelectorProps {
   value: string;
@@ -66,13 +64,8 @@ export function HourSelector({
             label={label}
             value={value}
             placeholder="00:00"
-            error={(has_error ? 'O horário não pode estar vazio' : undefined) as never}
+            errorMessage={has_error ? 'O horário não pode estar vazio' : undefined}
             editable={false}
-            right={
-              has_error ? (
-                <TextInput.Icon icon="alert-circle" color={colors.destructive} />
-              ) : undefined
-            }
           />
         </View>
       </Pressable>
