@@ -3,7 +3,16 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { z } from 'zod';
 
 import AppDialog from '@/components/general/app-dialog';
@@ -25,7 +34,6 @@ enum RegisterBasicInfoErrorMessage {
   NAME_EMPTY = 'Nome não pode ser vazio',
   PHONE_EMPTY = 'Telefone não pode ser vazio',
   PHONE_INVALID = 'Telefone incorreto',
-  PHONE_ALREADY_EXISTS = 'Telefone já cadastrado',
   PASSWORD_EMPTY = 'Senha não pode ser vazia',
   PASSWORD_TOO_SHORT = 'Senha deve ter pelo menos 6 caracteres',
   CPF_EMPTY = 'CPF não pode ser vazio',
@@ -47,6 +55,7 @@ const registerBasicInfoSchema = z.object({
     .trim()
     .min(1, RegisterBasicInfoErrorMessage.PASSWORD_EMPTY)
     .min(6, RegisterBasicInfoErrorMessage.PASSWORD_TOO_SHORT),
+  cpf: z.string().optional(),
   name: z.string().trim().min(1, RegisterBasicInfoErrorMessage.NAME_EMPTY),
   phone: z
     .string()
@@ -55,14 +64,6 @@ const registerBasicInfoSchema = z.object({
     .refine((value) => PHONE_REGEX.test(value), {
       message: RegisterBasicInfoErrorMessage.PHONE_INVALID,
     }),
-  cpf: z
-    .string()
-    .trim()
-    .min(1, RegisterBasicInfoErrorMessage.CPF_EMPTY)
-    .refine((value) => isValidCpf(value), {
-      message: RegisterBasicInfoErrorMessage.CPF_INVALID,
-    })
-    .optional(),
 });
 
 type RegisterBasicInfoFormData = z.infer<typeof registerBasicInfoSchema>;
@@ -91,9 +92,9 @@ export default function RegisterBasicInfoScreen() {
     defaultValues: {
       email: '',
       password: '',
+      cpf: '',
       name: '',
       phone: '',
-      cpf: '',
     },
   });
 
@@ -108,20 +109,30 @@ export default function RegisterBasicInfoScreen() {
   };
 
   const onInvalid = () => {
-    const baseFieldsEmpty =
+    const baseEmpty =
       !watchedEmail.trim() &&
       !watchedPassword.trim() &&
       !watchedName.trim() &&
       !watchedPhone.trim();
+    const allEmpty = isDriver ? baseEmpty && !watchedCpf?.trim() : baseEmpty;
 
-    const allFieldsEmpty = isDriver ? baseFieldsEmpty && !watchedCpf?.trim() : baseFieldsEmpty;
-
-    if (allFieldsEmpty) {
+    if (allEmpty) {
       setRequiredDialogVisible(true);
     }
   };
 
   const onSubmit = async (data: RegisterBasicInfoFormData) => {
+    if (isDriver) {
+      if (!data.cpf?.trim()) {
+        setError('cpf', { type: 'manual', message: RegisterBasicInfoErrorMessage.CPF_EMPTY });
+        return;
+      }
+      if (!isValidCpf(data.cpf)) {
+        setError('cpf', { type: 'manual', message: RegisterBasicInfoErrorMessage.CPF_INVALID });
+        return;
+      }
+    }
+
     try {
       const response = await mutateAsync({
         name: data.name.trim(),
@@ -147,10 +158,7 @@ export default function RegisterBasicInfoScreen() {
           ? '/register-driver-details-screen'
           : '/register-passenger-details';
 
-      router.push({
-        pathname: nextRoute,
-        params: { userId: response.id },
-      } as never);
+      router.push({ pathname: nextRoute, params: { userId: response.id } } as never);
     } catch (error) {
       if (error instanceof ApiError && error.status === 400) {
         setError('email', {
@@ -165,10 +173,7 @@ export default function RegisterBasicInfoScreen() {
           ? error.detail
           : 'Erro ao criar usuário';
 
-      setError('email', {
-        type: 'manual',
-        message: errorMessage,
-      });
+      setError('email', { type: 'manual', message: errorMessage });
     }
   };
 
@@ -182,123 +187,130 @@ export default function RegisterBasicInfoScreen() {
         <AuthHeader title="Cadastro" subtitle="Comece sua jornada na VanGO" showBackButton />
       </View>
 
-      <View style={styles.contentCard}>
-        <View style={styles.formContent}>
-          <Text style={styles.sectionTitle}>Conta</Text>
+      <KeyboardAvoidingView
+        style={styles.keyboardContainer}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.contentCard}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.formContent}>
+            <Text style={styles.sectionTitle}>Conta</Text>
 
-          <Controller
-            control={control}
-            name="email"
-            render={({ field: { onChange, value } }) => (
-              <AppTextField
-                label="E-mail"
-                placeholder="nome@gmail.com"
-                value={value}
-                onChangeText={onChange}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                errorMessage={errors.email?.message}
-              />
-            )}
-          />
-
-          <Controller
-            control={control}
-            name="password"
-            render={({ field: { onChange, value } }) => (
-              <AppTextField
-                label="Senha"
-                placeholder="Mínimo 6 caracteres"
-                value={value}
-                onChangeText={onChange}
-                secureTextEntry
-                autoCapitalize="none"
-                autoCorrect={false}
-                errorMessage={errors.password?.message}
-              />
-            )}
-          />
-
-          <View style={styles.divider} />
-
-          <Text style={styles.sectionTitle}>Contato</Text>
-
-          <Controller
-            control={control}
-            name="name"
-            render={({ field: { onChange, value } }) => (
-              <AppTextField
-                label="Nome"
-                placeholder="Nome"
-                value={value}
-                onChangeText={onChange}
-                autoCapitalize="words"
-                errorMessage={errors.name?.message}
-              />
-            )}
-          />
-
-          <Controller
-            control={control}
-            name="phone"
-            render={({ field: { onChange, value } }) => (
-              <AppTextField
-                label="Telefone"
-                placeholder="+55 51 99999-9999"
-                value={value}
-                onChangeText={(text) => {
-                  const formatted = formatPhone(text);
-                  onChange(formatted);
-
-                  if (formatted.length === 17) {
-                    Keyboard.dismiss();
-                  }
-                }}
-                keyboardType="phone-pad"
-                maxLength={17}
-                errorMessage={errors.phone?.message}
-              />
-            )}
-          />
-
-          {isDriver && (
             <Controller
               control={control}
-              name="cpf"
+              name="email"
               render={({ field: { onChange, value } }) => (
                 <AppTextField
-                  label="CPF"
-                  placeholder="999.999.999-99"
+                  label="E-mail"
+                  placeholder="nome@gmail.com"
                   value={value}
-                  onChangeText={(text) => onChange(formatCpf(text))}
-                  keyboardType="number-pad"
-                  maxLength={14}
-                  errorMessage={errors.cpf?.message}
+                  onChangeText={onChange}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  errorMessage={errors.email?.message}
                 />
               )}
             />
-          )}
-        </View>
 
-        <View style={styles.footer}>
-          <PrimaryButton
-            label="Continuar"
-            onPress={handleSubmit(onSubmit, onInvalid)}
-            disabled={isPending}
-            icon={<MaterialIcons name="arrow-forward" size={18} color={colors.light} />}
-            labelColor={colors.light}
-            style={styles.continueButton}
-          />
+            <Controller
+              control={control}
+              name="password"
+              render={({ field: { onChange, value } }) => (
+                <AppTextField
+                  label="Senha"
+                  placeholder="Mínimo 6 caracteres"
+                  value={value}
+                  onChangeText={onChange}
+                  secureTextEntry
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  errorMessage={errors.password?.message}
+                />
+              )}
+            />
 
-          <View style={styles.loginRow}>
-            <Text style={styles.loginText}>Já tem uma conta? </Text>
-            <Pressable onPress={handleLoginPress}>
-              <Text style={styles.loginLink}>Login</Text>
-            </Pressable>
+            {isDriver && (
+              <Controller
+                control={control}
+                name="cpf"
+                render={({ field: { onChange, value } }) => (
+                  <AppTextField
+                    label="CPF"
+                    placeholder="999.999.999-99"
+                    value={value}
+                    onChangeText={(text) => onChange(formatCpf(text))}
+                    keyboardType="number-pad"
+                    maxLength={14}
+                    errorMessage={errors.cpf?.message}
+                  />
+                )}
+              />
+            )}
+
+            <View style={styles.divider} />
+
+            <Text style={styles.sectionTitle}>Contato</Text>
+
+            <Controller
+              control={control}
+              name="name"
+              render={({ field: { onChange, value } }) => (
+                <AppTextField
+                  label="Nome"
+                  placeholder="Nome"
+                  value={value}
+                  onChangeText={onChange}
+                  autoCapitalize="words"
+                  errorMessage={errors.name?.message}
+                />
+              )}
+            />
+
+            <Controller
+              control={control}
+              name="phone"
+              render={({ field: { onChange, value } }) => (
+                <AppTextField
+                  label="Telefone"
+                  placeholder="+55 51 99999-9999"
+                  value={value}
+                  onChangeText={(text) => {
+                    const formatted = formatPhone(text);
+                    onChange(formatted);
+                    if (formatted.length === 17) Keyboard.dismiss();
+                  }}
+                  keyboardType="phone-pad"
+                  maxLength={17}
+                  errorMessage={errors.phone?.message}
+                />
+              )}
+            />
           </View>
-        </View>
-      </View>
+
+          <View style={styles.footer}>
+            <PrimaryButton
+              label="Continuar"
+              onPress={handleSubmit(onSubmit, onInvalid)}
+              disabled={isPending}
+              icon={<MaterialIcons name="arrow-forward" size={18} color={colors.light} />}
+              labelColor={colors.light}
+              style={styles.continueButton}
+            />
+
+            <View style={styles.loginRow}>
+              <Text style={styles.loginText}>Já tem uma conta? </Text>
+              <Pressable onPress={handleLoginPress}>
+                <Text style={styles.loginLink}>Login</Text>
+              </Pressable>
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
       <AppDialog
         visible={requiredDialogVisible}
@@ -331,16 +343,22 @@ const styles = StyleSheet.create({
     paddingBottom: 52,
     gap: 16,
   },
-  contentCard: {
+  keyboardContainer: {
+    flex: 1,
+  },
+  scrollView: {
     flex: 1,
     backgroundColor: colors.white,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     marginHorizontal: -24,
-    marginBottom: -80,
+    marginBottom: -100,
+  },
+  contentCard: {
+    flexGrow: 1,
     paddingHorizontal: 64,
     paddingTop: 24,
-    paddingBottom: 64,
+    paddingBottom: 80,
     justifyContent: 'space-between',
   },
   formContent: {
@@ -359,7 +377,7 @@ const styles = StyleSheet.create({
   footer: {
     alignItems: 'center',
     gap: 16,
-    paddingTop: 16,
+    paddingTop: 24,
   },
   continueButton: {
     alignSelf: 'center',
