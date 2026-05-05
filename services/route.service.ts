@@ -6,6 +6,7 @@ import type {
   RouteAbsenceResponse,
   RouteResponse,
   RouteStopResponse,
+  RouteInviteSummaryResponse,
 } from '@/types/route.types';
 
 function getDriverHeaders(): Record<string, string> {
@@ -165,4 +166,13 @@ export function getNextRoute(routes: RouteResponse[]): RouteResponse | null {
   }
 
   return nextRoute;
+}
+
+export async function getRouteByInviteCode(
+  inviteCode: string,
+): Promise<RouteInviteSummaryResponse> {
+  return apiGet<RouteInviteSummaryResponse>(
+    `/routes/invite/${encodeURIComponent(inviteCode)}`,
+    getDriverHeaders(),
+  );
 }

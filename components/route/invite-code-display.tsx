@@ -52,7 +52,7 @@ export function InviteCodeDisplay({
   const handleChange = (text: string, idx: number) => {
     if (!editable) return; // Trava de segurança extra
 
-    const char = text.replace(/[^0-9a-fA-F]/g, '').toUpperCase();
+    const char = text.replace(/[^0-9a-zA-Z]/g, '').toUpperCase();
 
     const newValues = [...values];
     newValues[idx] = char;
