@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { listRoutePassangers } from '@/services/route-passanger.service';
+import { listRoutePassangers } from '@/services/route.service';
 import { useSessionStore } from '@/store/session.store';
 
 export const ROUTE_PASSANGERS_QUERY_KEY = (routeId: string) => ['route-passangers', routeId];

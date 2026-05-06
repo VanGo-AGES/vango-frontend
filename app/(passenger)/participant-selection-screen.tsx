@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
@@ -8,20 +8,26 @@ import { PrimaryButton } from '@/components/general/primary-button';
 import { RouteStepIndicator } from '@/components/route/route-step-indicator';
 import AppDialog from '@/components/general/app-dialog';
 import { ParticipantSelector } from '@/components/passenger/participant-selector';
+import { useDependents } from '@/hooks/use-dependents';
 import { colors, withAlpha } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
 export default function ParticipantSelectionScreen() {
   const router = useRouter();
-  const { code } = useLocalSearchParams<{ code: string }>();
+  const { code, routeId, recurrence } = useLocalSearchParams<{
+    code: string;
+    routeId: string;
+    recurrence: string;
+  }>();
 
   const [selectedId, setSelectedId] = useState<string | undefined>();
   const [showError, setShowError] = useState(false);
 
+  const { data: dependents, isLoading: isLoadingDependents } = useDependents();
+
   const options = [
     { id: 'you', label: 'Você' },
-    { id: '1', label: 'Valentina Fonseca' },
-    { id: '2', label: 'Luiz Fonseca' },
+    ...(dependents ?? []).map((d) => ({ id: d.id, label: d.name })),
   ];
 
   const handleContinue = () => {
@@ -32,7 +38,12 @@ export default function ParticipantSelectionScreen() {
 
     router.push({
       pathname: '/(passenger)/passenger-address-screen' as any,
-      params: { code, participantId: selectedId },
+      params: {
+        code,
+        routeId,
+        recurrence,
+        participantId: selectedId,
+      },
     });
   };
 
@@ -53,7 +64,11 @@ export default function ParticipantSelectionScreen() {
       </View>
 
       <View style={styles.selectorContainer}>
-        <ParticipantSelector options={options} selectedId={selectedId} onSelect={setSelectedId} />
+        {isLoadingDependents ? (
+          <ActivityIndicator color={colors.primary} />
+        ) : (
+          <ParticipantSelector options={options} selectedId={selectedId} onSelect={setSelectedId} />
+        )}
       </View>
 
       <View style={styles.bottomContent}>

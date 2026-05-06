@@ -1,5 +1,6 @@
+import { useCallback } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 
 import { ActionPillButton } from '@/components/route/action-pill-button';
@@ -32,7 +33,13 @@ export default function PassengerHomeScreen() {
   const router = useRouter();
   const sessionUser = useSessionStore((s) => s.user);
   const localPhotoUri = useSessionStore((s) => s.localPhotoUri);
-  const { data: routesData = [], isLoading, isError } = usePassangerRoutes();
+  const { data: routesData = [], isLoading, isError, refetch } = usePassangerRoutes();
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch]),
+  );
 
   const nextRoute = getNextPassangerRoute(routesData);
   const visibleRoutes = routesData.filter((r) => r.membership_status !== 'rejected');

@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -9,31 +9,36 @@ import { InviteCodeDisplay } from '@/components/route/invite-code-display';
 import { RouteStepIndicator } from '@/components/route/route-step-indicator';
 import { PrimaryButton } from '@/components/general/primary-button';
 import AppDialog from '@/components/general/app-dialog';
+import { useRouteInvite } from '@/hooks/use-route-invite';
 import { colors } from '@/styles/colors';
 
 export default function EnterRouteCodeScreen() {
-  const [code, setCode] = useState<string | undefined>(undefined);
+  const [code, setCode] = useState('');
   const [errorDialogVisible, setErrorDialogVisible] = useState(false);
 
+  const { routeSummary, isLoading, isInvalidCode } = useRouteInvite(code);
+
   const handleCodeComplete = useCallback((completedCode: string | undefined) => {
-    setCode(completedCode);
+    setCode(completedCode ?? '');
   }, []);
 
-  const handleContinue = () => {
-    if (!code) return;
-
-    // TODO: integrar com API de validação do código
-    // Para testar sucesso, use o código "00000"
-    const isValid = code === '00000';
-
-    if (isValid) {
-      router.push({
-        pathname: '/(passenger)/participant-selection-screen' as any,
-        params: { code },
-      });
-    } else {
+  useEffect(() => {
+    if (isInvalidCode) {
       setErrorDialogVisible(true);
     }
+  }, [isInvalidCode]);
+
+  const handleContinue = () => {
+    if (!routeSummary) return;
+
+    router.push({
+      pathname: '/(passenger)/participant-selection-screen' as any,
+      params: {
+        code,
+        routeId: routeSummary.id,
+        recurrence: routeSummary.recurrence,
+      },
+    });
   };
 
   return (
@@ -57,7 +62,7 @@ export default function EnterRouteCodeScreen() {
         <PrimaryButton
           label="Continuar"
           onPress={handleContinue}
-          disabled={!code}
+          disabled={!routeSummary || isLoading}
           labelColor={colors.white}
           icon={<MaterialIcons name="arrow-forward" size={18} color={colors.white} />}
           style={styles.button}
@@ -67,13 +72,13 @@ export default function EnterRouteCodeScreen() {
       <AppDialog
         visible={errorDialogVisible}
         title="Código Inválido"
-        description="Por favor, insira um código válido"
+        description="Código Inválido — Por favor, insira um código válido."
         actions={[
           {
             label: 'Ok',
             onPress: () => {
               setErrorDialogVisible(false);
-              setCode(undefined);
+              setCode('');
             },
             icon: 'check',
             variant: 'default',

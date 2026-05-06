@@ -1,9 +1,12 @@
 import { apiDelete, apiGet, apiPost } from './api';
 import { useSessionStore } from '@/store/session.store';
 import type {
+  JoinRouteRequest,
+  JoinRouteResponse,
   PassangerRouteDetailResponse,
   PassangerRouteListItem,
   RouteAbsenceResponse,
+  RouteInviteSummaryResponse,
   RoutePassangerResponse,
 } from '@/types/route.types';
 
@@ -176,4 +179,24 @@ export function getNextPassangerRoute(
   }
 
   return next;
+}
+
+export async function joinRoute(
+  routeId: string,
+  data: JoinRouteRequest,
+): Promise<JoinRouteResponse> {
+  return apiPost<JoinRouteRequest, JoinRouteResponse>(
+    `/routes/${routeId}/passangers`,
+    data,
+    getPassangerHeaders(),
+  );
+}
+
+export async function getRouteByInviteCode(
+  inviteCode: string,
+): Promise<RouteInviteSummaryResponse> {
+  return apiGet<RouteInviteSummaryResponse>(
+    `/routes/invite/${encodeURIComponent(inviteCode)}`,
+    getPassangerHeaders(),
+  );
 }

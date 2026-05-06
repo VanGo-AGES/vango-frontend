@@ -158,3 +158,29 @@ export interface RoutePassangerResponse {
 }
 
 export type CreateRouteResponse = RouteResponse;
+
+export interface RouteInviteSummaryResponse {
+  id: string;
+  name: string;
+  route_type: RouteType;
+  recurrence: string;
+  expected_time: string;
+  max_passengers: number;
+  accepted_count: number;
+  origin_address: AddressResponse;
+  destination_address: AddressResponse;
+}
+
+export interface JoinRouteRequest {
+  dependent_id: string | null;
+  address: AddressRequest;
+  schedules: { day_of_week: string }[];
+}
+
+export interface JoinRouteResponse {
+  id: string;
+  route_id: string;
+  user_id: string;
+  dependent_id: string | null;
+  membership_status: PassengerMembershipStatus;
+}
