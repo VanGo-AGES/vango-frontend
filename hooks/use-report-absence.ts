@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { reportAbsence } from '@/services/absence.service';
 
@@ -11,6 +11,8 @@ function formatToday(): string {
 }
 
 export function useReportAbsence(routeId: string, dependentId?: string) {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: (reason?: string) =>
       reportAbsence({
@@ -19,5 +21,10 @@ export function useReportAbsence(routeId: string, dependentId?: string) {
         dependent_id: dependentId,
         reason,
       }),
+    onSuccess: () => {
+      // Invalida a query de ausências para que o stop seja filtrado
+      // e o status do passageiro seja atualizado imediatamente.
+      queryClient.invalidateQueries({ queryKey: ['passanger-route-absences', routeId] });
+    },
   });
 }

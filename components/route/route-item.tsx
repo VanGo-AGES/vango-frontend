@@ -13,6 +13,7 @@ import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import AppDialog from '@/components/general/app-dialog';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
+const DEFAULT_MAP_IMAGE = require('@/assets/images/map-mock.png');
 
 export type RouteItemStatus = 'default' | 'pending';
 
@@ -58,7 +59,7 @@ export function RouteItem({
     onPress?.();
   };
 
-  const hasImage = !!thumbnailUri || !!thumbnailSource;
+  const imageSource = thumbnailSource ?? (thumbnailUri ? { uri: thumbnailUri } : DEFAULT_MAP_IMAGE);
 
   return (
     <>
@@ -72,17 +73,7 @@ export function RouteItem({
           isPending && styles.pendingContainer,
         ]}
       >
-        {hasImage ? (
-          <Image
-            source={thumbnailSource ?? { uri: thumbnailUri }}
-            style={styles.thumbnail}
-            contentFit="cover"
-          />
-        ) : (
-          <View style={[styles.thumbnail, styles.thumbnailPlaceholder]}>
-            <Icon name="map-marker-path" size={24} color={colors.subtleText} />
-          </View>
-        )}
+        <Image source={imageSource} style={styles.thumbnail} contentFit="cover" />
 
         <View style={styles.content}>
           {isPending && (

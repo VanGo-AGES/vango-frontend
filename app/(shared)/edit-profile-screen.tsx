@@ -97,6 +97,7 @@ export default function EditProfileScreen() {
       });
 
       setPendingPhotoUri(null);
+      setLocalPhotoUri(null);
       reset({
         name: updated.name,
         cpf: isDriver ? formatCpf(updated.cpf ?? '') : undefined,

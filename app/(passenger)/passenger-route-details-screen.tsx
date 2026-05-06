@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
   ScrollView,
@@ -7,7 +7,7 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { AppScreenContainer } from '@/components/general/app-screen-container';
@@ -26,6 +26,7 @@ import { usePassangerRouteAbsences } from '@/hooks/use-passanger-route-absences'
 import { usePassangerRouteDetail } from '@/hooks/use-passanger-route-detail';
 import { useReportAbsence } from '@/hooks/use-report-absence';
 import { getPassangerCTA } from '@/lib/passanger-route-cta';
+import { useSessionStore } from '@/store/session.store';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
@@ -96,6 +97,20 @@ function getLeaveRouteErrorMessage(error: unknown): string {
   return 'Não foi possível sair da rota.';
 }
 
+function formatRecurrenceLabel(recurrence: string | string[]): string {
+  const days = Array.isArray(recurrence) ? recurrence : recurrence.split(',');
+
+  return days
+    .map((day) => day.trim())
+    .filter(Boolean)
+    .map((day) => day.charAt(0).toUpperCase() + day.slice(1))
+    .join(' • ');
+}
+
+function formatExpectedTime(value: string): string {
+  return value.length >= 5 ? value.slice(0, 5) : value;
+}
+
 export default function PassengerRouteDetailsScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{
@@ -107,6 +122,7 @@ export default function PassengerRouteDetailsScreen() {
   const { height: screenHeight } = useWindowDimensions();
   const heroHeight = Math.max(320, Math.min(420, Math.round(screenHeight * 0.42)));
 
+  const sessionUser = useSessionStore((state) => state.user);
   const [absenceReported, setAbsenceReported] = useState(false);
   const [absenceDialogVisible, setAbsenceDialogVisible] = useState(false);
   const [leaveDialogVisible, setLeaveDialogVisible] = useState(false);
@@ -116,15 +132,31 @@ export default function PassengerRouteDetailsScreen() {
     routeId,
     dependentId,
   });
-  const { data: absences = [] } = usePassangerRouteAbsences({
+  const { data: absences = [], refetch: refetchAbsences } = usePassangerRouteAbsences({
     routeId,
     recurrence: route?.recurrence,
   });
   const leaveRouteMutation = useLeaveRoute(routeId ?? '', dependentId);
   const reportAbsenceMutation = useReportAbsence(routeId ?? '', dependentId);
 
+  // Refaz o fetch sempre que a tela ganha foco — garante que ausências e
+  // status da rota estejam atualizados ao navegar de volta.
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+      refetchAbsences();
+    }, [refetch, refetchAbsences]),
+  );
+
+  // Verifica se já existe ausência registrada para hoje nos dados da API,
+  // usando user_id + dependent_id. Isso garante que o botão permaneça
+  // oculto mesmo após navegação (quando absenceReported volta para false).
+  const hasAlreadyReportedAbsence = absences.some(
+    (a) => a.user_id === sessionUser?.id && (a.dependent_id ?? null) === (dependentId ?? null),
+  );
+
   const ctaKind: CtaKind =
-    route && !absenceReported
+    route && !absenceReported && !hasAlreadyReportedAbsence
       ? getPassangerCTA(
           route.status,
           route.membership_status,
@@ -189,7 +221,7 @@ export default function PassengerRouteDetailsScreen() {
   };
 
   const renderCTA = () => {
-    if (!route || absenceReported) {
+    if (!route || absenceReported || hasAlreadyReportedAbsence) {
       return null;
     }
 
@@ -299,8 +331,8 @@ export default function PassengerRouteDetailsScreen() {
         <View style={styles.heroSection}>
           <RouteHeroHeader
             routeName={route.name}
-            recurrence={route.recurrence.join(', ')}
-            expectedTime={route.expected_time}
+            recurrence={formatRecurrenceLabel(route.recurrence)}
+            expectedTime={formatExpectedTime(route.expected_time)}
             durationMinutes={MOCK_DURATION_MINUTES}
             distanceKm={MOCK_DISTANCE_KM}
             style={[styles.heroHeader, { minHeight: heroHeight }]}

@@ -55,7 +55,7 @@ export function RouteRequestItem({
         )}
 
         <View style={styles.textContent}>
-          <Text style={styles.name} numberOfLines={1}>
+          <Text style={styles.name} numberOfLines={2}>
             {name}
           </Text>
 
@@ -104,7 +104,7 @@ export function RouteRequestItem({
 
 const styles = StyleSheet.create({
   container: {
-    height: 72,
+    minHeight: 72,
     backgroundColor: colors.light,
     borderRadius: 10,
     paddingHorizontal: 16,

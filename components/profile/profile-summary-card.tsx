@@ -75,7 +75,7 @@ export function ProfileSummaryCard({ user, style }: ProfileSummaryCardProps) {
     <View style={[styles.card, style]} accessible accessibilityRole="none">
       <Avatar uri={resolvedUser.avatarUri} fallbackUri={localPhotoUri ?? undefined} />
       <View style={styles.infoBlock}>
-        <Text style={styles.nameText} numberOfLines={1}>
+        <Text style={styles.nameText} numberOfLines={2}>
           {resolvedUser.name}
         </Text>
         {resolvedUser.location && <LocationRow location={resolvedUser.location} />}

@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 
 import { AppScreenContainer } from '@/components/general/app-screen-container';
@@ -35,6 +35,7 @@ function mapManagedPassenger(passanger: RoutePassangerResponse): ManagedPassenge
   return {
     id: passanger.id,
     name: getPassangerName(passanger),
+    avatarUrl: passanger.photo_url ?? undefined,
   };
 }
 
@@ -42,6 +43,7 @@ function mapRouteRequest(passanger: RoutePassangerResponse): RouteRequest {
   return {
     id: passanger.id,
     name: getPassangerName(passanger),
+    avatarUrl: passanger.photo_url ?? undefined,
     guardianName: passanger.guardian_name ?? undefined,
   };
 }
@@ -73,6 +75,15 @@ export default function RoutePassengersScreen() {
     isError: isPassangersError,
     refetch: refetchPassangers,
   } = useRoutePassangers(routeId);
+
+  // Refaz o fetch sempre que a tela ganha foco — garante que novas
+  // solicitações de passageiros apareçam sem precisar sair e voltar.
+  useFocusEffect(
+    useCallback(() => {
+      refetchPassangers();
+      refetchRoute();
+    }, [refetchPassangers, refetchRoute]),
+  );
 
   const acceptRequestMutation = useAcceptRequest();
   const rejectRequestMutation = useRejectRequest();

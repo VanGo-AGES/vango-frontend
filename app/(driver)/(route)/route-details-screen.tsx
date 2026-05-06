@@ -16,8 +16,8 @@ import { typography } from '@/styles/typography';
 import type { PassengerStatus } from '@/components/route/passenger/route-passenger-card';
 import type { AddressResponse, RoutePassangerResponse, StopResponse } from '@/types/route.types';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -114,8 +114,21 @@ export default function RouteDetailsScreen() {
   const isToday = recurrence ? isRouteToday(recurrence) : false;
   const isInProgress = route?.status === 'em_andamento';
 
-  const { data: passangers = [], isLoading: isPassangersLoading } = useRoutePassangers(routeId);
+  const {
+    data: passangers = [],
+    isLoading: isPassangersLoading,
+    refetch: refetchPassangers,
+  } = useRoutePassangers(routeId);
   const { data: absences = [] } = useRouteAbsences({ routeId, recurrence });
+
+  // Refaz o fetch sempre que a tela ganha foco — garante que novas
+  // solicitações de passageiros apareçam sem precisar sair e voltar.
+  useFocusEffect(
+    useCallback(() => {
+      refetchRoute();
+      refetchPassangers();
+    }, [refetchRoute, refetchPassangers]),
+  );
 
   const passangerByRpId = useMemo(() => {
     const map = new Map<string, RoutePassangerResponse>();
@@ -148,15 +161,6 @@ export default function RouteDetailsScreen() {
     [absences],
   );
 
-  const cardPassangers = useMemo(
-    () =>
-      passangers.map((p: RoutePassangerResponse) => ({
-        name: pickPassangerName(p),
-        status: mapPassangerStatusToCard(p, absentRpIds),
-      })),
-    [passangers, absentRpIds],
-  );
-
   const acceptedPassangers = useMemo(
     () => passangers.filter((p: RoutePassangerResponse) => p.status === 'accepted'),
     [passangers],
@@ -166,6 +170,16 @@ export default function RouteDetailsScreen() {
 
   const confirmedCount = useMemo(
     () => acceptedPassangers.filter((p: RoutePassangerResponse) => !absentRpIds.has(p.id)).length,
+    [acceptedPassangers, absentRpIds],
+  );
+
+  const cardPassangers = useMemo(
+    () =>
+      acceptedPassangers.map((p: RoutePassangerResponse) => ({
+        name: pickPassangerName(p),
+        avatarUrl: p.photo_url ?? undefined,
+        status: mapPassangerStatusToCard(p, absentRpIds),
+      })),
     [acceptedPassangers, absentRpIds],
   );
 
