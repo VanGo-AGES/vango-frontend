@@ -8,7 +8,6 @@ import type {
   RoutePassangerStatus,
   RouteResponse,
   RouteUpdate,
-  RouteInviteSummaryResponse,
 } from '@/types/route.types';
 
 function getDriverHeaders(): Record<string, string> {
@@ -259,15 +258,6 @@ export async function listRoutePassangers(
   const query = status ? `?status=${encodeURIComponent(status)}` : '';
   return apiGet<RoutePassangerResponse[]>(
     `/routes/${routeId}/passangers${query}`,
-    getDriverHeaders(),
-  );
-}
-
-export async function getRouteByInviteCode(
-  inviteCode: string,
-): Promise<RouteInviteSummaryResponse> {
-  return apiGet<RouteInviteSummaryResponse>(
-    `/routes/invite/${encodeURIComponent(inviteCode)}`,
     getDriverHeaders(),
   );
 }

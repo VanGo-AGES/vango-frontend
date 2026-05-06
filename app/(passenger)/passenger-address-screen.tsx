@@ -51,7 +51,9 @@ export default function PassengerAddressScreen() {
 
   const [errors, setErrors] = useState<AddressErrors>({});
   const [isErrorDialogVisible, setIsErrorDialogVisible] = useState(false);
+  const [errorDialogTitle, setErrorDialogTitle] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [isSuccessDialogVisible, setIsSuccessDialogVisible] = useState(false);
 
   const joinRoute = useJoinRoute(routeId ?? '');
 
@@ -75,8 +77,9 @@ export default function PassengerAddressScreen() {
 
   const handleSubmit = async () => {
     if (!validateForm()) {
-      setIsErrorDialogVisible(true);
+      setErrorDialogTitle('Campo obrigatório');
       setErrorMessage('Preencha seu endereço para continuar.');
+      setIsErrorDialogVisible(true);
       return;
     }
 
@@ -96,10 +99,13 @@ export default function PassengerAddressScreen() {
 
     try {
       await joinRoute.mutateAsync(payload);
+      setIsSuccessDialogVisible(true);
     } catch (error) {
       if (error instanceof ApiError && error.status === 409) {
+        setErrorDialogTitle('Não foi possível entrar na rota');
         setErrorMessage('Esta rota está lotada ou você já participa dela.');
       } else {
+        setErrorDialogTitle('Erro');
         setErrorMessage('Ocorreu um erro ao enviar sua solicitação. Tente novamente.');
       }
       setIsErrorDialogVisible(true);
@@ -153,7 +159,7 @@ export default function PassengerAddressScreen() {
 
       <AppDialog
         visible={isErrorDialogVisible}
-        title="Erro"
+        title={errorDialogTitle}
         description={errorMessage}
         onRequestClose={() => setIsErrorDialogVisible(false)}
         actions={[
@@ -161,6 +167,23 @@ export default function PassengerAddressScreen() {
             label: 'Ok',
             icon: 'check',
             onPress: () => setIsErrorDialogVisible(false),
+          },
+        ]}
+      />
+
+      <AppDialog
+        visible={isSuccessDialogVisible}
+        title="Solicitação enviada!"
+        description="Aguarde a aprovação do motorista."
+        onRequestClose={() => {}}
+        actions={[
+          {
+            label: 'Ok',
+            icon: 'check',
+            onPress: () => {
+              setIsSuccessDialogVisible(false);
+              router.navigate('/(passenger)/passenger-home-screen' as any);
+            },
           },
         ]}
       />

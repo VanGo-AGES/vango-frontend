@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { getRouteByInviteCode } from '@/services/route.service';
+import { getRouteByInviteCode } from '@/services/route-passanger.service';
 import { ApiError } from '@/services/api';
 
 export function useRouteInvite(inviteCode: string) {
@@ -15,7 +15,7 @@ export function useRouteInvite(inviteCode: string) {
 
   return {
     routeSummary: query.data ?? null,
-    isLoading: query.isLoading,
+    isLoading: query.isFetching,
     isError: query.isError,
     isInvalidCode,
   };

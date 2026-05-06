@@ -6,6 +6,7 @@ import type {
   PassangerRouteDetailResponse,
   PassangerRouteListItem,
   RouteAbsenceResponse,
+  RouteInviteSummaryResponse,
   RoutePassangerResponse,
 } from '@/types/route.types';
 
@@ -187,6 +188,15 @@ export async function joinRoute(
   return apiPost<JoinRouteRequest, JoinRouteResponse>(
     `/routes/${routeId}/passangers`,
     data,
+    getPassangerHeaders(),
+  );
+}
+
+export async function getRouteByInviteCode(
+  inviteCode: string,
+): Promise<RouteInviteSummaryResponse> {
+  return apiGet<RouteInviteSummaryResponse>(
+    `/routes/invite/${encodeURIComponent(inviteCode)}`,
     getPassangerHeaders(),
   );
 }
