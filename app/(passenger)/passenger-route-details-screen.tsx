@@ -107,6 +107,10 @@ function formatRecurrenceLabel(recurrence: string | string[]): string {
     .join(' • ');
 }
 
+function formatExpectedTime(value: string): string {
+  return value.length >= 5 ? value.slice(0, 5) : value;
+}
+
 export default function PassengerRouteDetailsScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{
