@@ -71,6 +71,8 @@ export interface CreateRouteRequest {
   recurrence: string;
 }
 
+export type RouteUpdate = Partial<CreateRouteRequest>;
+
 export interface StopResponse {
   id: string;
   route_passanger_id: string;
