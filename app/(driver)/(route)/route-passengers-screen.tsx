@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 
 import { AppScreenContainer } from '@/components/general/app-screen-container';
@@ -73,6 +73,15 @@ export default function RoutePassengersScreen() {
     isError: isPassangersError,
     refetch: refetchPassangers,
   } = useRoutePassangers(routeId);
+
+  // Refaz o fetch sempre que a tela ganha foco — garante que novas
+  // solicitações de passageiros apareçam sem precisar sair e voltar.
+  useFocusEffect(
+    useCallback(() => {
+      refetchPassangers();
+      refetchRoute();
+    }, [refetchPassangers, refetchRoute]),
+  );
 
   const acceptRequestMutation = useAcceptRequest();
   const rejectRequestMutation = useRejectRequest();

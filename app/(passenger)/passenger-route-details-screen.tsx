@@ -26,6 +26,7 @@ import { usePassangerRouteAbsences } from '@/hooks/use-passanger-route-absences'
 import { usePassangerRouteDetail } from '@/hooks/use-passanger-route-detail';
 import { useReportAbsence } from '@/hooks/use-report-absence';
 import { getPassangerCTA } from '@/lib/passanger-route-cta';
+import { useSessionStore } from '@/store/session.store';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
@@ -107,6 +108,7 @@ export default function PassengerRouteDetailsScreen() {
   const { height: screenHeight } = useWindowDimensions();
   const heroHeight = Math.max(320, Math.min(420, Math.round(screenHeight * 0.42)));
 
+  const sessionUser = useSessionStore((state) => state.user);
   const [absenceReported, setAbsenceReported] = useState(false);
   const [absenceDialogVisible, setAbsenceDialogVisible] = useState(false);
   const [leaveDialogVisible, setLeaveDialogVisible] = useState(false);
@@ -123,8 +125,15 @@ export default function PassengerRouteDetailsScreen() {
   const leaveRouteMutation = useLeaveRoute(routeId ?? '', dependentId);
   const reportAbsenceMutation = useReportAbsence(routeId ?? '', dependentId);
 
+  // Verifica se já existe ausência registrada para hoje nos dados da API,
+  // usando user_id + dependent_id. Isso garante que o botão permaneça
+  // oculto mesmo após navegação (quando absenceReported volta para false).
+  const hasAlreadyReportedAbsence = absences.some(
+    (a) => a.user_id === sessionUser?.id && (a.dependent_id ?? null) === (dependentId ?? null),
+  );
+
   const ctaKind: CtaKind =
-    route && !absenceReported
+    route && !absenceReported && !hasAlreadyReportedAbsence
       ? getPassangerCTA(
           route.status,
           route.membership_status,
@@ -189,7 +198,7 @@ export default function PassengerRouteDetailsScreen() {
   };
 
   const renderCTA = () => {
-    if (!route || absenceReported) {
+    if (!route || absenceReported || hasAlreadyReportedAbsence) {
       return null;
     }
 
