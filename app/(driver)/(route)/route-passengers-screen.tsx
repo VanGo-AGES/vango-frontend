@@ -35,6 +35,7 @@ function mapManagedPassenger(passanger: RoutePassangerResponse): ManagedPassenge
   return {
     id: passanger.id,
     name: getPassangerName(passanger),
+    avatarUrl: passanger.photo_url ?? undefined,
   };
 }
 
@@ -42,6 +43,7 @@ function mapRouteRequest(passanger: RoutePassangerResponse): RouteRequest {
   return {
     id: passanger.id,
     name: getPassangerName(passanger),
+    avatarUrl: passanger.photo_url ?? undefined,
     guardianName: passanger.guardian_name ?? undefined,
   };
 }

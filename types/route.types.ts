@@ -114,7 +114,7 @@ export interface PassangerRouteDetailResponse {
   driver_phone: string;
   membership_status: PassengerMembershipStatus;
   my_pickup_address: AddressResponse | null;
-  my_schedules: string[];
+  my_schedules: PassangerRouteSchedule[];
   current_trip_id: string | null;
   dependent_id: string | null;
   dependent_name: string | null;
@@ -149,6 +149,7 @@ export interface RoutePassangerResponse {
   user_id: string;
   user_name: string;
   user_phone: string;
+  photo_url: string | null;
   pickup_address_id: string;
   requested_at: string;
   joined_at: string | null;

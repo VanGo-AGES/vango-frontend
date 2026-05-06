@@ -11,6 +11,7 @@ export function useLeaveRoute(routeId: string, dependentId?: string) {
     mutationFn: () => leaveRoute(routeId, dependentId),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['passanger-routes'] });
+      await queryClient.invalidateQueries({ queryKey: ['passanger-route', routeId] });
       router.back();
     },
   });

@@ -56,7 +56,7 @@ export function RoutePassengerManageCard({
         )}
       </View>
 
-      <Text numberOfLines={1} style={styles.name}>
+      <Text numberOfLines={2} style={styles.name}>
         {name}
       </Text>
     </View>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
   ScrollView,
@@ -7,7 +7,7 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { AppScreenContainer } from '@/components/general/app-screen-container';
@@ -132,12 +132,21 @@ export default function PassengerRouteDetailsScreen() {
     routeId,
     dependentId,
   });
-  const { data: absences = [] } = usePassangerRouteAbsences({
+  const { data: absences = [], refetch: refetchAbsences } = usePassangerRouteAbsences({
     routeId,
     recurrence: route?.recurrence,
   });
   const leaveRouteMutation = useLeaveRoute(routeId ?? '', dependentId);
   const reportAbsenceMutation = useReportAbsence(routeId ?? '', dependentId);
+
+  // Refaz o fetch sempre que a tela ganha foco — garante que ausências e
+  // status da rota estejam atualizados ao navegar de volta.
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+      refetchAbsences();
+    }, [refetch, refetchAbsences]),
+  );
 
   // Verifica se já existe ausência registrada para hoje nos dados da API,
   // usando user_id + dependent_id. Isso garante que o botão permaneça

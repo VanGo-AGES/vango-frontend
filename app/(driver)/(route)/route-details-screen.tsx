@@ -177,6 +177,7 @@ export default function RouteDetailsScreen() {
     () =>
       acceptedPassangers.map((p: RoutePassangerResponse) => ({
         name: pickPassangerName(p),
+        avatarUrl: p.photo_url ?? undefined,
         status: mapPassangerStatusToCard(p, absentRpIds),
       })),
     [acceptedPassangers, absentRpIds],

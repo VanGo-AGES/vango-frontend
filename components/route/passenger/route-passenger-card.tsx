@@ -81,7 +81,7 @@ export function RoutePassengerCard({
         )}
       </View>
 
-      <Text style={styles.name} numberOfLines={1}>
+      <Text style={styles.name} numberOfLines={2}>
         {name}
       </Text>
 
