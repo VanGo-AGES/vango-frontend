@@ -164,7 +164,7 @@ export default function RoutePassengersScreen() {
   };
 
   const handleConfirmRemovePassenger = () => {
-    if (!routeId || !selectedId) return;
+    if (!routeId || !selectedId || removePassangerMutation.isPending) return;
 
     removePassangerMutation.mutate(
       { routeId, rpId: selectedId },
@@ -172,6 +172,7 @@ export default function RoutePassengersScreen() {
         onSuccess: () => {
           setDialogType(null);
           setSelectedId(null);
+          showSnackbar('Passageiro removido com sucesso!');
         },
         onError: showGenericError,
       },
@@ -184,7 +185,7 @@ export default function RoutePassengersScreen() {
   };
 
   const handleConfirmRemoveRequest = () => {
-    if (!routeId || !selectedId) return;
+    if (!routeId || !selectedId || rejectRequestMutation.isPending) return;
 
     clearApprovalSelection(selectedId);
 
