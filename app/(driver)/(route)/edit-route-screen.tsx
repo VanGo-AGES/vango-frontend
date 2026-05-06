@@ -69,9 +69,9 @@ function formatTimeForApi(time: string): string {
   return time.length === 5 ? `${time}:00` : time;
 }
 
-function mapAddressToRequest(address: RouteFormAddress) {
+function mapAddressToRequest(address: RouteFormAddress, label = '') {
   return {
-    label: '',
+    label,
     street: address.rua,
     number: address.numero,
     neighborhood: address.bairro,
@@ -131,6 +131,7 @@ export default function EditRouteScreen() {
   const [recurrenceError, setRecurrenceError] = useState<string | undefined>();
 
   const [successDialogVisible, setSuccessDialogVisible] = useState(false);
+  const [errorDialogVisible, setErrorDialogVisible] = useState(false);
 
   useEffect(() => {
     if (!route) return;
@@ -238,11 +239,11 @@ export default function EditRouteScreen() {
     }
 
     if (!areAddressesEqual(origin, originalOrigin)) {
-      data.origin = mapAddressToRequest(origin);
+      data.origin = mapAddressToRequest(origin, route.origin_address.label);
     }
 
     if (!areAddressesEqual(destination, originalDestination)) {
-      data.destination = mapAddressToRequest(destination);
+      data.destination = mapAddressToRequest(destination, route.destination_address.label);
     }
 
     if (Object.keys(data).length === 0) {
@@ -251,14 +252,10 @@ export default function EditRouteScreen() {
     }
 
     updateRouteMutation.mutate(
+      { id: routeId, data },
       {
-        id: routeId,
-        data,
-      },
-      {
-        onSuccess: () => {
-          setSuccessDialogVisible(true);
-        },
+        onSuccess: () => setSuccessDialogVisible(true),
+        onError: () => setErrorDialogVisible(true),
       },
     );
   };
@@ -270,7 +267,6 @@ export default function EditRouteScreen() {
         edges={['top', 'left', 'right']}
         style={styles.container}
       >
-        {/* Header fixo */}
         <SectionHeader
           title="Editar Rota"
           subtitle={'Atualize as informações\nda sua rota.'}
@@ -291,7 +287,6 @@ export default function EditRouteScreen() {
         edges={['top', 'left', 'right']}
         style={styles.container}
       >
-        {/* Header fixo */}
         <SectionHeader
           title="Editar Rota"
           subtitle={'Atualize as informações\nda sua rota.'}
@@ -319,21 +314,18 @@ export default function EditRouteScreen() {
         edges={['top', 'left', 'right']}
         style={styles.container}
       >
-        {/* Header fixo */}
         <SectionHeader
           title="Editar Rota"
           subtitle={'Atualize as informações\nda sua rota.'}
           showBackButton
         />
 
-        {/* Card scrollável */}
         <View style={styles.card}>
           <ScrollView
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={styles.scrollContent}
           >
-            {/* Informações básicas */}
             <Text style={styles.sectionTitle}>Informações</Text>
 
             <AppTextField
@@ -351,7 +343,6 @@ export default function EditRouteScreen() {
 
             <View style={styles.divider} />
 
-            {/* Endereço de Origem */}
             <AddressFormSection
               title="Endereço de Origem"
               value={origin}
@@ -361,7 +352,6 @@ export default function EditRouteScreen() {
 
             <View style={styles.divider} />
 
-            {/* Endereço de Destino */}
             <AddressFormSection
               title="Endereço de Destino"
               value={destination}
@@ -376,7 +366,6 @@ export default function EditRouteScreen() {
 
             <View style={styles.divider} />
 
-            {/* Horário e Recorrência */}
             <Text style={styles.sectionTitle}>Horário</Text>
 
             <AppTextField
@@ -399,7 +388,6 @@ export default function EditRouteScreen() {
             <View style={styles.bottomPadding} />
           </ScrollView>
 
-          {/* Botão fixo */}
           <View style={styles.footer}>
             <PrimaryButton
               label="Salvar Alterações"
@@ -418,7 +406,6 @@ export default function EditRouteScreen() {
           </View>
         )}
 
-        {/* Dialog de sucesso */}
         <AppDialog
           visible={successDialogVisible}
           title="Alterações salvas"
@@ -436,6 +423,21 @@ export default function EditRouteScreen() {
                 setSuccessDialogVisible(false);
                 router.back();
               },
+            },
+          ]}
+        />
+
+        <AppDialog
+          visible={errorDialogVisible}
+          title="Erro ao salvar"
+          description="Não foi possível salvar as alterações. Verifique se a rota não está em andamento e tente novamente."
+          onRequestClose={() => setErrorDialogVisible(false)}
+          actions={[
+            {
+              label: 'Ok',
+              icon: 'close',
+              variant: 'default',
+              onPress: () => setErrorDialogVisible(false),
             },
           ]}
         />
