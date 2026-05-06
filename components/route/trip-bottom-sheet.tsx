@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,6 +17,7 @@ export type Driver = { id: string; name: string; avatarUrl?: string; plate: stri
 export type TripBottomSheetProps = {
   nextStop: Stop;
   passenger: Passenger;
+  driver?: Driver;
   timeRemaining: number;
   estimatedArrival: string;
   distance: string;
@@ -32,13 +33,13 @@ export function TripBottomSheet({
   distance,
   onSkipStop,
 }: TripBottomSheetProps) {
-  const { height: screenHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
 
   const bottomPadding = Math.max(24, insets.bottom);
 
+  const OVERDRAW = 50;
   const MAX_HEIGHT = 570 + bottomPadding;
-  const MIN_HEIGHT = screenHeight * 0.4;
+  const MIN_HEIGHT = 310;
   const MAX_TRANSLATE_Y = MAX_HEIGHT - MIN_HEIGHT;
 
   const translateY = useSharedValue(MAX_TRANSLATE_Y);
@@ -68,7 +69,13 @@ export function TripBottomSheet({
 
   return (
     <GestureDetector gesture={panGesture}>
-      <Animated.View style={[styles.container, { height: MAX_HEIGHT }, animatedSheetStyle]}>
+      <Animated.View
+        style={[
+          styles.container,
+          { height: MAX_HEIGHT + OVERDRAW, bottom: -OVERDRAW },
+          animatedSheetStyle,
+        ]}
+      >
         <View style={styles.handleContainer}>
           <View style={styles.handle} />
         </View>
@@ -108,7 +115,7 @@ export function TripBottomSheet({
             <Text style={styles.actionsLabel}>AÇÕES RÁPIDAS</Text>
             <View style={styles.actionsRow}>
               <ContactActionButton
-                variant="passenger"
+                variant="driver"
                 phoneNumber={passenger.phoneNumber}
                 style={styles.actionButtonMain}
               />
@@ -160,7 +167,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   timeLabel: {
-    ...typography.bodyMedium,
+    ...typography.body,
     color: colors.subtleText,
     marginBottom: 4,
   },
