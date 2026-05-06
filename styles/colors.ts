@@ -11,6 +11,7 @@ export const colors = {
   lightMuted: 'rgba(250, 252, 254, 0.75)', // light com 75% de opacidade
   white: '#FFFFFF', // White - Pure white for backgrounds and elements
   destructive: '#F06163', //  Red - Destructive actions such as deleting
+  snackbar: '#322F35', // SnackBar color
 };
 
 /**
