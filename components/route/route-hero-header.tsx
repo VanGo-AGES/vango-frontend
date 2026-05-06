@@ -1,4 +1,12 @@
-import { ImageBackground, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import {
+  ImageBackground,
+  ImageSourcePropType,
+  StyleProp,
+  StyleSheet,
+  Text,
+  View,
+  ViewStyle,
+} from 'react-native';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
 import { colors } from '@/styles/colors';
@@ -11,13 +19,11 @@ export type RouteHeroHeaderProps = {
   expectedTime: string;
   durationMinutes: number;
   distanceKm: number;
-  backgroundImage?: string;
+  backgroundImage?: ImageSourcePropType;
   style?: StyleProp<ViewStyle>;
 };
 
-// URL de mock de um mapa genérico temporário
-const MOCK_MAP_IMAGE =
-  'https://static-maps.yandex.ru/1.x/?lang=en_US&ll=-51.1764,-30.0594&z=15&l=map&size=600,400';
+const DEFAULT_MAP_IMAGE = require('@/assets/images/map-mock.png');
 
 export function RouteHeroHeader({
   routeName,
@@ -25,12 +31,12 @@ export function RouteHeroHeader({
   expectedTime,
   durationMinutes,
   distanceKm,
-  backgroundImage = MOCK_MAP_IMAGE,
+  backgroundImage = DEFAULT_MAP_IMAGE,
   style,
 }: RouteHeroHeaderProps) {
   return (
     <ImageBackground
-      source={{ uri: backgroundImage }}
+      source={backgroundImage}
       style={[styles.container, style]}
       imageStyle={styles.image}
     >

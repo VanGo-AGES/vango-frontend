@@ -96,6 +96,16 @@ function getLeaveRouteErrorMessage(error: unknown): string {
   return 'Não foi possível sair da rota.';
 }
 
+function formatRecurrenceLabel(recurrence: string | string[]): string {
+  const days = Array.isArray(recurrence) ? recurrence : recurrence.split(',');
+
+  return days
+    .map((day) => day.trim())
+    .filter(Boolean)
+    .map((day) => day.charAt(0).toUpperCase() + day.slice(1))
+    .join(' • ');
+}
+
 export default function PassengerRouteDetailsScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{
@@ -299,8 +309,8 @@ export default function PassengerRouteDetailsScreen() {
         <View style={styles.heroSection}>
           <RouteHeroHeader
             routeName={route.name}
-            recurrence={route.recurrence.join(', ')}
-            expectedTime={route.expected_time}
+            recurrence={formatRecurrenceLabel(route.recurrence)}
+            expectedTime={formatExpectedTime(route.expected_time)}
             durationMinutes={MOCK_DURATION_MINUTES}
             distanceKm={MOCK_DISTANCE_KM}
             style={[styles.heroHeader, { minHeight: heroHeight }]}
