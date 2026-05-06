@@ -17,6 +17,7 @@ export type RoutePassengerListProps = {
   passengers: ManagedPassenger[];
   capacity: number;
   onDeletePassengerPress: (passengerId: string) => void;
+  actionsDisabled?: boolean;
 };
 
 export function RoutePassengerList({
@@ -24,6 +25,7 @@ export function RoutePassengerList({
   passengers,
   capacity,
   onDeletePassengerPress,
+  actionsDisabled = false,
 }: RoutePassengerListProps) {
   const capacityText = `${passengers.length}/${capacity} da Capacidade`;
 
@@ -46,6 +48,7 @@ export function RoutePassengerList({
               name={passenger.name}
               avatarUrl={passenger.avatarUrl}
               onDeletePress={() => onDeletePassengerPress(passenger.id)}
+              disabled={actionsDisabled}
             />
           ))}
         </ScrollView>

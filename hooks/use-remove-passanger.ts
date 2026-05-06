@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ROUTE_ABSENCES_QUERY_KEY } from '@/hooks/use-route-absences';
 import { ROUTE_DETAIL_QUERY_KEY } from '@/hooks/use-route-detail';
 import { ROUTE_PASSANGERS_QUERY_KEY } from '@/hooks/use-route-passangers';
-import { removePassanger } from '@/services/route.service';
+import { removePassanger } from '@/services/route-passanger.service';
 
 type RemovePassangerVariables = {
   routeId: string;
