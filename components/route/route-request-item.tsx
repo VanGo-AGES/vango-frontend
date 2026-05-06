@@ -16,6 +16,7 @@ export type RouteRequestItemProps = {
   checked?: boolean;
   onCheckPress: () => void;
   onRemovePress: () => void;
+  disabled?: boolean;
 };
 
 export function RouteRequestItem({
@@ -25,6 +26,7 @@ export function RouteRequestItem({
   checked = false,
   onCheckPress,
   onRemovePress,
+  disabled = false,
 }: RouteRequestItemProps): ReactElement {
   // Se a URL do avatar falhar no carregamento, cai pro placeholder SVG.
   // Reset quando a URL mudar pra dar nova chance de tentar carregar.
@@ -68,20 +70,27 @@ export function RouteRequestItem({
       <View style={styles.actions}>
         <TouchableRipple
           onPress={onRemovePress}
+          disabled={disabled}
           rippleColor={withAlpha(colors.destructive, 0.12)}
-          style={styles.removeButton}
+          style={[styles.removeButton, disabled && styles.actionDisabled]}
           accessibilityRole="button"
           accessibilityLabel={`Remover solicitação de ${name}`}
+          accessibilityState={{ disabled }}
         >
           <Text style={styles.removeText}>Remover</Text>
         </TouchableRipple>
 
         <TouchableRipple
           onPress={onCheckPress}
+          disabled={disabled}
           rippleColor={withAlpha(colors.secondary, 0.16)}
-          style={[styles.checkbox, checked && styles.checkboxChecked]}
+          style={[
+            styles.checkbox,
+            checked && styles.checkboxChecked,
+            disabled && styles.actionDisabled,
+          ]}
           accessibilityRole="checkbox"
-          accessibilityState={{ checked }}
+          accessibilityState={{ checked, disabled }}
           accessibilityLabel={`Aceitar solicitação de ${name}`}
         >
           <View style={styles.checkboxContent}>
@@ -153,6 +162,10 @@ const styles = StyleSheet.create({
   removeButton: {
     paddingHorizontal: 4,
     paddingVertical: 4,
+  },
+
+  actionDisabled: {
+    opacity: 0.35,
   },
 
   removeText: {

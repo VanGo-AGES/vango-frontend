@@ -1,4 +1,4 @@
-import { apiDelete, apiGet, apiPost } from './api';
+import { apiDelete, apiGet, apiPost, apiPut } from './api';
 import { useSessionStore } from '@/store/session.store';
 import type {
   CreateRouteRequest,
@@ -7,12 +7,17 @@ import type {
   RoutePassangerResponse,
   RoutePassangerStatus,
   RouteResponse,
+  RouteUpdate,
   RouteInviteSummaryResponse,
 } from '@/types/route.types';
 
 function getDriverHeaders(): Record<string, string> {
   const user = useSessionStore.getState().user;
-  return { 'X-User-Id': user?.id ?? '', 'X-User-Role': 'driver' };
+
+  return {
+    'X-User-Id': user?.id ?? '',
+    'X-User-Role': 'driver',
+  };
 }
 
 export async function createRoute(data: CreateRouteRequest): Promise<CreateRouteResponse> {
@@ -25,6 +30,10 @@ export async function listDriverRoutes(): Promise<RouteResponse[]> {
 
 export async function getRouteById(routeId: string): Promise<RouteResponse> {
   return apiGet<RouteResponse>(`/routes/${routeId}`, getDriverHeaders());
+}
+
+export async function updateRoute(routeId: string, data: RouteUpdate): Promise<RouteResponse> {
+  return apiPut<RouteUpdate, RouteResponse>(`/routes/${routeId}`, data, getDriverHeaders());
 }
 
 export async function deleteRoute(routeId: string): Promise<void> {

@@ -236,7 +236,14 @@ export default function RouteDetailsScreen() {
   };
 
   const handleNavigateToPassengers = () => {
-    // TODO: navegar para a tela de gerenciamento de passageiros (US futura)
+    if (!routeId) {
+      return;
+    }
+
+    router.push({
+      pathname: '/(driver)/(route)/route-passengers-screen' as never,
+      params: { routeId },
+    });
   };
 
   const startRouteDialogActions: DialogAction[] = [

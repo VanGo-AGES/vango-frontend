@@ -16,31 +16,20 @@ import { AppTextField } from '@/components/general/app-text-field';
 import { PrimaryButton } from '@/components/general/primary-button';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
 import { useCreateVehicle } from '@/hooks/use-create-vehicle';
-import { useUpdateUser } from '@/hooks/use-update-user';
-import {
-  formatCpf,
-  isValidBrazilianPlate,
-  isValidCpf,
-  normalizePlate,
-  onlyDigits,
-} from '@/lib/formatters';
+import { isValidBrazilianPlate, normalizePlate, onlyDigits } from '@/lib/formatters';
 import { ApiError } from '@/services/api';
-import { useSessionStore } from '@/store/session.store';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
-type FieldName = 'cpf' | 'passengerCount' | 'plate' | 'vehicleModel';
+type FieldName = 'passengerCount' | 'plate' | 'vehicleModel';
 
 const MAX_PASSENGERS = 20;
 
 export default function RegisterDriverDetailsScreen() {
   const router = useRouter();
   const { userId } = useLocalSearchParams<{ userId?: string }>();
-  const updateSessionUser = useSessionStore((s) => s.updateUser);
-  const { mutateAsync: updateUser, isPending: isUpdatingUser } = useUpdateUser();
   const { mutateAsync: createVehicle, isPending: isCreatingVehicle } = useCreateVehicle();
 
-  const [cpf, setCpf] = useState('');
   const [passengerCount, setPassengerCount] = useState('');
   const [plate, setPlate] = useState('');
   const [vehicleModel, setVehicleModel] = useState('');
@@ -48,17 +37,13 @@ export default function RegisterDriverDetailsScreen() {
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<FieldName, string>>>({});
   const [requestError, setRequestError] = useState<string | null>(null);
 
-  const isSubmitting = isUpdatingUser || isCreatingVehicle;
+  const isSubmitting = isCreatingVehicle;
 
   const validateField = (field: FieldName, value: string) => {
     const trimmedValue = value.trim();
 
     if (!trimmedValue) {
       return 'Este campo é obrigatório.';
-    }
-
-    if (field === 'cpf' && !isValidCpf(trimmedValue)) {
-      return 'CPF inválido';
     }
 
     if (field === 'passengerCount') {
@@ -82,7 +67,6 @@ export default function RegisterDriverDetailsScreen() {
 
   const validateForm = () => {
     const nextErrors: Partial<Record<FieldName, string>> = {
-      cpf: validateField('cpf', cpf),
       passengerCount: validateField('passengerCount', passengerCount),
       plate: validateField('plate', plate),
       vehicleModel: validateField('vehicleModel', vehicleModel),
@@ -101,7 +85,7 @@ export default function RegisterDriverDetailsScreen() {
     const isFormValid = validateForm();
 
     if (!isFormValid) {
-      const hasRequiredFieldError = [cpf, passengerCount, plate, vehicleModel].some(
+      const hasRequiredFieldError = [passengerCount, plate, vehicleModel].some(
         (value) => !value.trim(),
       );
       if (hasRequiredFieldError) {
@@ -110,14 +94,7 @@ export default function RegisterDriverDetailsScreen() {
       return;
     }
 
-    if (!userId) {
-      setRequestError('Não foi possível identificar o usuário do cadastro.');
-      return;
-    }
-
     try {
-      const updated = await updateUser({ id: userId, data: { cpf } });
-      updateSessionUser({ cpf: updated.cpf });
       await createVehicle({
         plate,
         capacity: Number(passengerCount),
@@ -166,7 +143,7 @@ export default function RegisterDriverDetailsScreen() {
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Informações adicionais</Text>
+          <Text style={styles.sectionTitle}>Informações do veículo</Text>
 
           <ScrollView
             contentContainerStyle={styles.scrollContent}
@@ -174,19 +151,6 @@ export default function RegisterDriverDetailsScreen() {
             keyboardShouldPersistTaps="handled"
           >
             <View style={styles.fieldsContainer}>
-              <AppTextField
-                label="CPF"
-                value={cpf}
-                onChangeText={(value) => setCpf(formatCpf(value))}
-                onBlur={() =>
-                  setFieldErrors((current) => ({ ...current, cpf: validateField('cpf', cpf) }))
-                }
-                keyboardType="number-pad"
-                placeholder="999.999.999-99"
-                maxLength={14}
-                errorMessage={fieldErrors.cpf}
-              />
-
               <AppTextField
                 label="Número de passageiros"
                 value={passengerCount}

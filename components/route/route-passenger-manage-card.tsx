@@ -11,12 +11,14 @@ export type RoutePassengerManageCardProps = {
   name: string;
   avatarUrl?: string;
   onDeletePress: () => void;
+  disabled?: boolean;
 };
 
 export function RoutePassengerManageCard({
   name,
   avatarUrl,
   onDeletePress,
+  disabled = false,
 }: RoutePassengerManageCardProps) {
   const [imageError, setImageError] = useState(false);
 
@@ -26,9 +28,15 @@ export function RoutePassengerManageCard({
     <View style={styles.card}>
       <Pressable
         onPress={onDeletePress}
+        disabled={disabled}
         accessibilityRole="button"
         accessibilityLabel={`Remover passageiro ${name}`}
-        style={({ pressed }) => [styles.deleteButton, pressed && styles.deleteButtonPressed]}
+        accessibilityState={{ disabled }}
+        style={({ pressed }) => [
+          styles.deleteButton,
+          disabled && styles.deleteButtonDisabled,
+          pressed && styles.deleteButtonPressed,
+        ]}
       >
         <Icon source="delete-outline" size={20} color={colors.destructive} />
       </Pressable>
@@ -83,6 +91,9 @@ const styles = StyleSheet.create({
   },
   deleteButtonPressed: {
     opacity: 0.7,
+  },
+  deleteButtonDisabled: {
+    opacity: 0.35,
   },
   avatarContainer: {
     width: 100,

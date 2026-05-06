@@ -15,12 +15,14 @@ export type RouteRequestListProps = {
   requests: RouteRequest[];
   onCheckRequestPress: (requestId: string) => void;
   onRemoveRequestPress: (requestId: string) => void;
+  actionsDisabled?: boolean;
 };
 
 export function RouteRequestList({
   requests,
   onCheckRequestPress,
   onRemoveRequestPress,
+  actionsDisabled = false,
 }: RouteRequestListProps) {
   return (
     <View style={styles.container}>
@@ -34,6 +36,7 @@ export function RouteRequestList({
             checked={request.checked}
             onCheckPress={() => onCheckRequestPress(request.id)}
             onRemovePress={() => onRemoveRequestPress(request.id)}
+            disabled={actionsDisabled}
           />
         </View>
       ))}
