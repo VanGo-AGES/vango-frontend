@@ -17,7 +17,6 @@ export type Driver = { id: string; name: string; avatarUrl?: string; plate: stri
 export type TripBottomSheetProps = {
   nextStop: Stop;
   passenger: Passenger;
-  driver: Driver;
   timeRemaining: number;
   estimatedArrival: string;
   distance: string;
@@ -28,7 +27,6 @@ export type TripBottomSheetProps = {
 export function TripBottomSheet({
   nextStop,
   passenger,
-  driver,
   timeRemaining,
   estimatedArrival,
   distance,
