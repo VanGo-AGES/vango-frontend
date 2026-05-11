@@ -16,9 +16,11 @@ export type SessionUser = {
 type SessionState = {
   user: SessionUser | null;
   localPhotoUri: string | null;
+  hasHydrated: boolean;
   setUser: (user: SessionUser) => void;
   updateUser: (data: Partial<Omit<SessionUser, 'id' | 'role'>>) => void;
   setLocalPhotoUri: (uri: string | null) => void;
+  setHasHydrated: (value: boolean) => void;
   clearSession: () => void;
 };
 
@@ -27,18 +29,23 @@ export const useSessionStore = create<SessionState>()(
     (set) => ({
       user: null,
       localPhotoUri: null,
+      hasHydrated: false,
       setUser: (user) => set({ user }),
       updateUser: (data) =>
         set((state) => ({
           user: state.user ? { ...state.user, ...data } : null,
         })),
       setLocalPhotoUri: (uri) => set({ localPhotoUri: uri }),
+      setHasHydrated: (value) => set({ hasHydrated: value }),
       clearSession: () => set({ user: null, localPhotoUri: null }),
     }),
     {
       name: 'session-v2',
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({ user: state.user }),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
     },
   ),
 );
