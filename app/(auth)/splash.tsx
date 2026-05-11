@@ -12,7 +12,6 @@ export default function SplashScreen() {
   const router = useRouter();
   const user = useSessionStore((s) => s.user);
   const hasHydrated = useSessionStore((s) => s.hasHydrated);
-
   useEffect(() => {
     if (!hasHydrated) return;
 
