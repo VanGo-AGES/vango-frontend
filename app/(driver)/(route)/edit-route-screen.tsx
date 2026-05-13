@@ -75,7 +75,7 @@ function mapAddressToRequest(address: RouteFormAddress, label = '') {
     street: address.rua,
     number: address.numero,
     neighborhood: address.bairro,
-    zip: address.cep,
+    zip: address.cep.replace(/\D/g, ''),
     city: address.cidade,
     state: address.estado,
   };
