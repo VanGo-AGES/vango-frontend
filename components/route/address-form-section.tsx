@@ -87,7 +87,7 @@ export function AddressFormSection({
       <AppTextField
         label="Rua"
         value={value.rua}
-        editable={false}
+        onChangeText={(text) => onChange('rua', text)}
         errorMessage={errors.rua}
         placeholder="Rua"
       />
@@ -95,7 +95,7 @@ export function AddressFormSection({
       <AppTextField
         label="Bairro"
         value={value.bairro}
-        editable={false}
+        onChangeText={(text) => onChange('bairro', text)}
         errorMessage={errors.bairro}
         placeholder="Bairro"
       />
@@ -103,7 +103,7 @@ export function AddressFormSection({
       <AppTextField
         label="Cidade"
         value={value.cidade}
-        editable={false}
+        onChangeText={(text) => onChange('cidade', text)}
         errorMessage={errors.cidade}
         placeholder="Cidade"
       />
