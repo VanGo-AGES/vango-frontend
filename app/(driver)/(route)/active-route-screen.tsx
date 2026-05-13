@@ -46,7 +46,6 @@ export default function DriverActiveRouteScreen() {
               expectedTime={data.expectedTime}
               durationMinutes={data.durationMinutes}
               distanceKm={data.distanceKm}
-              backgroundImage={data.backgroundImage}
               style={[styles.heroHeader, { minHeight: heroHeight }]}
             />
           </View>
