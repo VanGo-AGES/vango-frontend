@@ -39,22 +39,16 @@ export function NavigationFab({ isOpen, onPress }: NavigationFabProps) {
 
 const styles = StyleSheet.create({
   container: {
-    width: 116,
-    height: 120,
     alignItems: 'flex-end',
     justifyContent: 'flex-end',
+    gap: 8,
   },
 
   optionButton: {
-    position: 'absolute',
-    bottom: 64,
-
-    height: 56,
-    borderRadius: 28,
+    borderRadius: 16,
     paddingVertical: 16,
     paddingHorizontal: 24,
     backgroundColor: colors.light,
-
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
@@ -66,8 +60,7 @@ const styles = StyleSheet.create({
   },
 
   fab: {
-    width: 56,
-    height: 56,
+    padding: 16,
     borderRadius: 16,
     backgroundColor: colors.primary,
     alignItems: 'center',
