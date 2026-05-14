@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState, useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import MapView, { Marker, Polyline, type Region } from 'react-native-maps';
 
 import { colors, withAlpha } from '@/styles/colors';
@@ -16,6 +16,7 @@ export type ActiveRouteMapProps = {
     longitude: number;
   };
   onRecenterPress?: () => void;
+  containerStyle?: StyleProp<ViewStyle>;
 };
 
 const MIN_DELTA = 0.008;
@@ -103,6 +104,7 @@ export function ActiveRouteMap({
   currentLocation,
   nextStopLocation,
   onRecenterPress,
+  containerStyle,
 }: ActiveRouteMapProps) {
   const mapRef = useRef<MapView>(null);
   const [routeCoordinates, setRouteCoordinates] = useState<
@@ -132,7 +134,7 @@ export function ActiveRouteMap({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, containerStyle]}>
       <MapView
         ref={mapRef}
         style={StyleSheet.absoluteFill}
@@ -183,8 +185,8 @@ export function ActiveRouteMap({
 
 const styles = StyleSheet.create({
   container: {
+    width: '100%',
     height: 280,
-    borderRadius: 20,
     overflow: 'hidden',
     backgroundColor: colors.light,
     borderWidth: 1,

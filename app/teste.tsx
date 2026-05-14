@@ -12,6 +12,7 @@ export default function TesteScreen() {
       <ActiveRouteMap
         currentLocation={{ latitude: -23.55052, longitude: -46.633308 }}
         nextStopLocation={{ latitude: -23.55872, longitude: -46.65012 }}
+        containerStyle={{ height: 400 }} // muda aí a altura muito radicalmente 🤘🥝
       />
     </View>
   );
@@ -21,13 +22,13 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: colors.light,
-    paddingHorizontal: 16,
     paddingTop: 64,
     gap: 12,
   },
   title: {
     ...typography.header3,
     color: colors.dark,
+    paddingHorizontal: 16,
   },
   subtitle: {
     ...typography.bodyMedium,
