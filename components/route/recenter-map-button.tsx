@@ -1,8 +1,7 @@
-import { StyleProp, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
+import { StyleProp, StyleSheet, TouchableOpacity, ViewStyle } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { colors } from '@/styles/colors';
-import { typography } from '@/styles/typography';
 
 export type RecenterMapButtonProps = {
   onPress: () => void;
@@ -21,48 +20,32 @@ export function RecenterMapButton({ onPress, disabled = false, style }: Recenter
       accessibilityState={{ disabled }}
       style={[styles.button, disabled && styles.buttonDisabled, style]}
     >
-      <View style={styles.content}>
-        <MaterialCommunityIcons
-          name="crosshairs-gps"
-          size={20}
-          color={disabled ? colors.subtleText : colors.dark}
-        />
-        <Text style={[styles.label, disabled && styles.labelDisabled]}>Centralizar</Text>
-      </View>
+      <MaterialCommunityIcons
+        name="fullscreen"
+        size={32}
+        color={disabled ? colors.subtleText : colors.dark}
+      />
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   button: {
-    minHeight: 44,
-    borderRadius: 999,
-    backgroundColor: colors.light,
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    backgroundColor: colors.white,
     borderWidth: 1,
     borderColor: colors.accent,
-    paddingHorizontal: 14,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: colors.dark,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.16,
-    shadowRadius: 10,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 3,
   },
   buttonDisabled: {
-    opacity: 0.7,
-  },
-  content: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  label: {
-    ...typography.small,
-    color: colors.dark,
-  },
-  labelDisabled: {
-    color: colors.subtleText,
+    opacity: 0.65,
   },
 });
