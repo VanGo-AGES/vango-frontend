@@ -1,5 +1,6 @@
 import { StyleProp, StyleSheet, TouchableOpacity, ViewStyle } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { ReactNode } from 'react';
 
 import { colors } from '@/styles/colors';
 
@@ -7,9 +8,15 @@ export type RecenterMapButtonProps = {
   onPress: () => void;
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
+  icon?: ReactNode;
 };
 
-export function RecenterMapButton({ onPress, disabled = false, style }: RecenterMapButtonProps) {
+export function RecenterMapButton({
+  onPress,
+  disabled = false,
+  style,
+  icon,
+}: RecenterMapButtonProps) {
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -20,11 +27,15 @@ export function RecenterMapButton({ onPress, disabled = false, style }: Recenter
       accessibilityState={{ disabled }}
       style={[styles.button, disabled && styles.buttonDisabled, style]}
     >
-      <MaterialCommunityIcons
-        name="fullscreen"
-        size={32}
-        color={disabled ? colors.subtleText : colors.dark}
-      />
+      {icon ? (
+        icon
+      ) : (
+        <MaterialCommunityIcons
+          name="fullscreen"
+          size={32}
+          color={disabled ? colors.subtleText : colors.dark}
+        />
+      )}
     </TouchableOpacity>
   );
 }

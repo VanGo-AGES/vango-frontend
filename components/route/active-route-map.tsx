@@ -3,6 +3,9 @@ import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import MapView, { Marker, Polyline, type Region } from 'react-native-maps';
 
 import { colors, withAlpha } from '@/styles/colors';
+import RecenterMapButtonIcon from '@/assets/images/recenter-map-button.svg';
+import CurrentLocationPin from '@/assets/images/localizacao-atual.svg';
+import NextStopPin from '@/assets/images/proxima-parada.svg';
 
 import { RecenterMapButton } from './recenter-map-button';
 
@@ -22,17 +25,6 @@ export type ActiveRouteMapProps = {
 const MIN_DELTA = 0.008;
 const PATH_POINTS = 14;
 const MARKER_ANCHOR = { x: 0.5, y: 1 } as const;
-
-function LocationMarker({ color }: { color: string }) {
-  return (
-    <View style={styles.markerWrap}>
-      <View style={[styles.markerBody, { backgroundColor: color }]}>
-        <View style={styles.markerInner} />
-      </View>
-      <View style={[styles.markerTail, { borderTopColor: color }]} />
-    </View>
-  );
-}
 
 function buildInitialRegion(
   currentLocation: ActiveRouteMapProps['currentLocation'],
@@ -150,10 +142,10 @@ export function ActiveRouteMap({
         moveOnMarkerPress={false}
       >
         <Marker coordinate={currentLocation} title="Sua localização" anchor={MARKER_ANCHOR}>
-          <LocationMarker color={colors.primary} />
+          <CurrentLocationPin width={40} height={40} />
         </Marker>
         <Marker coordinate={nextStopLocation} title="Próxima parada" anchor={MARKER_ANCHOR}>
-          <LocationMarker color={colors.secondary} />
+          <NextStopPin width={32.04} height={50} />
         </Marker>
 
         {routeCoordinates.length > 0 && (
@@ -177,7 +169,11 @@ export function ActiveRouteMap({
       </MapView>
 
       <View pointerEvents="box-none" style={styles.overlay}>
-        <RecenterMapButton onPress={handleRecenterPress} style={styles.recenterButton} />
+        <RecenterMapButton
+          onPress={handleRecenterPress}
+          style={styles.recenterButton}
+          icon={<RecenterMapButtonIcon width={24} height={24} />}
+        />
       </View>
     </View>
   );
@@ -200,40 +196,5 @@ const styles = StyleSheet.create({
   },
   recenterButton: {
     alignSelf: 'flex-start',
-  },
-  markerWrap: {
-    width: 28,
-    alignItems: 'center',
-  },
-  markerBody: {
-    width: 25,
-    height: 25,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: colors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: colors.dark,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.22,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  markerInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 4,
-    backgroundColor: colors.white,
-  },
-  markerTail: {
-    width: 0,
-    height: 0,
-    marginTop: -1,
-    borderLeftWidth: 8,
-    borderRightWidth: 8,
-    borderTopWidth: 12,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-    borderTopColor: colors.primary,
   },
 });
