@@ -32,7 +32,7 @@ import type {
 
 function mapAddressToForm(address: AddressResponse): RouteFormAddress {
   return {
-    cep: address.zip ?? '',
+    cep: (address.zip ?? '').replace(/\D/g, ''),
     numero: address.number ?? '',
     rua: address.street ?? '',
     bairro: address.neighborhood ?? '',
