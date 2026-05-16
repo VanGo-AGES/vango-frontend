@@ -31,11 +31,17 @@ export function SettingsListItem({
     >
       <View style={styles.content}>
         <View style={styles.iconWrapper}>{icon}</View>
+        
         <View style={styles.textContent}>
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.description}>{description}</Text>
         </View>
-        {showChevron && <MaterialIcons name="arrow-forward" size={20} color={colors.subtleText} />}
+
+        {showChevron && (
+          <View style={styles.chevronWrapper}>
+            <MaterialIcons name="arrow-forward" size={20} color={colors.dark} />
+          </View>
+        )}
       </View>
     </TouchableRipple>
   );
@@ -47,20 +53,24 @@ const styles = StyleSheet.create({
   },
   content: {
     flexDirection: 'row',
-    alignItems: 'center',
+    paddingVertical: 12, 
     paddingHorizontal: 16,
-    paddingVertical: 12,
     gap: 16,
+    minHeight: 88, 
   },
   iconWrapper: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
   },
   textContent: {
     flex: 1,
+    justifyContent: 'flex-start',
+  },
+  chevronWrapper: {
+    justifyContent: 'flex-start', 
+    alignItems: 'center',
   },
   title: {
-    ...typography.body,
+    ...typography.bodyLarge,
     color: colors.dark,
   },
   description: {
