@@ -7,7 +7,7 @@ import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PaperProvider } from 'react-native-paper';
-
+import { PushNotificationHandler } from '@/components/general/push-notification-handler';
 import { queryClient } from '@/lib/query-client';
 import { fonts } from '@/styles/typography';
 
@@ -31,6 +31,8 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <PaperProvider>
+            <PushNotificationHandler />
+
             <Stack initialRouteName="index">
               <Stack.Screen name="index" options={{ headerShown: false }} />
               <Stack.Screen name="exemplo" options={{ headerShown: false }} />
