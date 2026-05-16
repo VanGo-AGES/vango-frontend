@@ -7,10 +7,14 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
 import { AuthHeader } from '@/components/auth/auth-header';
+import { PrimaryButton } from '@/components/general/primary-button';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { useAccountActions } from '@/hooks/use-account-actions';
 
 export default function ProfileDriverScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { handleLogout, handleDeleteAccount } = useAccountActions();
 
   return (
     <AppScreenContainer backgroundColor={colors.accent} style={styles.container}>
@@ -42,6 +46,26 @@ export default function ProfileDriverScreen() {
           // TODO: substituir por tela de metricas
           onReportsPress={() => router.push('/vehicle-details-screen')}
         />
+
+        <View style={styles.actionButtonsContainer}>
+          <PrimaryButton
+            label="Excluir Conta"
+            onPress={handleDeleteAccount}
+            variant="warning"
+            labelColor={colors.white}
+            icon={<MaterialIcons name="delete-outline" size={20} color={colors.white} />}
+            style={styles.deleteButton}
+          />
+
+          <PrimaryButton
+            label="Sair"
+            onPress={handleLogout}
+            variant="primary"
+            labelColor={colors.light}
+            icon={<MaterialIcons name="keyboard-return" size={20} color={colors.light} />}
+            style={styles.logoutButton}
+          />
+        </View>
       </View>
     </AppScreenContainer>
   );
@@ -87,5 +111,18 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: colors.subtleText,
     marginVertical: 32,
+  },
+  actionButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 90,
+  },
+  deleteButton: {
+    minWidth: 144,
+  },
+  logoutButton: {
+    minWidth: 85,
   },
 });
