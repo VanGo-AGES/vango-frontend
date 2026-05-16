@@ -1,7 +1,12 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  type SharedValue,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors } from '@/styles/colors';
@@ -23,6 +28,7 @@ export type TripBottomSheetProps = {
   distance: string;
   onCallPassenger?: () => void;
   onSkipStop: () => void;
+  translateY?: SharedValue<number>;
 };
 
 export function TripBottomSheet({
@@ -32,6 +38,7 @@ export function TripBottomSheet({
   estimatedArrival,
   distance,
   onSkipStop,
+  translateY: externalTranslateY,
 }: TripBottomSheetProps) {
   const insets = useSafeAreaInsets();
 
@@ -42,28 +49,29 @@ export function TripBottomSheet({
   const MIN_HEIGHT = 310;
   const MAX_TRANSLATE_Y = MAX_HEIGHT - MIN_HEIGHT;
 
-  const translateY = useSharedValue(MAX_TRANSLATE_Y);
+  const internalTranslateY = useSharedValue(MAX_TRANSLATE_Y);
+  const sheetTranslateY = externalTranslateY ?? internalTranslateY;
   const context = useSharedValue({ y: 0 });
 
   const panGesture = Gesture.Pan()
     .onStart(() => {
-      context.value = { y: translateY.value };
+      context.value = { y: sheetTranslateY.value };
     })
     .onUpdate((event) => {
       const newTranslateY = context.value.y + event.translationY;
-      translateY.value = Math.max(0, Math.min(newTranslateY, MAX_TRANSLATE_Y));
+      sheetTranslateY.value = Math.max(0, Math.min(newTranslateY, MAX_TRANSLATE_Y));
     })
     .onEnd((event) => {
-      if (event.velocityY > 500 || translateY.value > MAX_TRANSLATE_Y / 2) {
-        translateY.value = withSpring(MAX_TRANSLATE_Y, { damping: 15, stiffness: 100 });
+      if (event.velocityY > 500 || sheetTranslateY.value > MAX_TRANSLATE_Y / 2) {
+        sheetTranslateY.value = withSpring(MAX_TRANSLATE_Y, { damping: 15, stiffness: 100 });
       } else {
-        translateY.value = withSpring(0, { damping: 15, stiffness: 100 });
+        sheetTranslateY.value = withSpring(0, { damping: 15, stiffness: 100 });
       }
     });
 
   const animatedSheetStyle = useAnimatedStyle(() => {
     return {
-      transform: [{ translateY: translateY.value }],
+      transform: [{ translateY: sheetTranslateY.value }],
     };
   });
 
