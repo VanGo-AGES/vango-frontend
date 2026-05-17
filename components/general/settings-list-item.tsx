@@ -31,7 +31,7 @@ export function SettingsListItem({
     >
       <View style={styles.content}>
         <View style={styles.iconWrapper}>{icon}</View>
-        
+
         <View style={styles.textContent}>
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.description}>{description}</Text>
@@ -53,10 +53,10 @@ const styles = StyleSheet.create({
   },
   content: {
     flexDirection: 'row',
-    paddingVertical: 12, 
+    paddingVertical: 12,
     paddingHorizontal: 16,
     gap: 16,
-    minHeight: 88, 
+    minHeight: 88,
   },
   iconWrapper: {
     justifyContent: 'flex-start',
@@ -66,8 +66,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   chevronWrapper: {
-    justifyContent: 'flex-start', 
-    alignItems: 'center',
+    justifyContent: 'flex-start',
   },
   title: {
     ...typography.bodyLarge,
