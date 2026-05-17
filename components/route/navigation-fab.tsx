@@ -6,18 +6,20 @@ import { typography } from '@/styles/typography';
 
 type NavigationFabProps = {
   isOpen: boolean;
-  onPress: () => void;
+  onToggle: () => void;
+  onWazePress: () => void;
 };
 
-export function NavigationFab({ isOpen, onPress }: NavigationFabProps) {
+export function NavigationFab({ isOpen, onToggle, onWazePress }: NavigationFabProps) {
   return (
     <View style={styles.container}>
       {isOpen && (
         <TouchableOpacity
           style={styles.optionButton}
-          onPress={onPress}
+          onPress={onWazePress}
           activeOpacity={0.8}
           accessibilityRole="button"
+          accessibilityLabel="abrir Waze"
         >
           <WazeIcon width={20} height={20} />
 
@@ -27,9 +29,10 @@ export function NavigationFab({ isOpen, onPress }: NavigationFabProps) {
 
       <TouchableOpacity
         style={styles.fab}
-        onPress={onPress}
+        onPress={onToggle}
         activeOpacity={0.8}
         accessibilityRole="button"
+        accessibilityLabel={isOpen ? 'fechar menu de navegação' : 'abrir menu de navegação'}
       >
         <FabIcon width={20} height={20} />
       </TouchableOpacity>

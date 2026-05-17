@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Stack, useRouter } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
+import { Alert, Linking, StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -8,7 +8,11 @@ import { ActiveRouteMap } from '@/components/route/active-route-map';
 import { NavigationFab } from '@/components/route/navigation-fab';
 import { RouteTopBar } from '@/components/route/route-top-bar';
 import { TripBottomSheet } from '@/components/route/trip-bottom-sheet';
+import { useRouteStops } from '@/hooks/use-route-stops';
+import { openWazeNavigation, getWazeUrls } from '@/lib/waze-navigation';
 import { colors } from '@/styles/colors';
+
+const ROUTE_ID = 'route-1';
 
 const MOCK_CURRENT_LOCATION = {
   latitude: -30.0346,
@@ -37,11 +41,36 @@ export default function DriverActiveRouteScreen() {
   const insets = useSafeAreaInsets();
   const [navigationMenuOpen, setNavigationMenuOpen] = useState(false);
 
+  const { stops, currentStopId } = useRouteStops({ routeId: ROUTE_ID });
+
+  const nextStop = useMemo(() => {
+    const currentStopIndex = currentStopId
+      ? stops.findIndex((stop) => stop.id === currentStopId)
+      : -1;
+
+    if (currentStopIndex >= 0) {
+      const currentStop = stops[currentStopIndex];
+
+      if (currentStop?.type === 'stop') {
+        return currentStop;
+      }
+
+      const nextStopAfterCurrent = stops
+        .slice(currentStopIndex + 1)
+        .find((stop) => stop.type === 'stop');
+
+      if (nextStopAfterCurrent) {
+        return nextStopAfterCurrent;
+      }
+    }
+
+    return stops.find((stop) => stop.type === 'stop');
+  }, [currentStopId, stops]);
+
   const bottomPadding = Math.max(24, insets.bottom);
   const sheetMaxHeight = 570 + bottomPadding;
   const sheetMinHeight = 310;
   const sheetMaxTranslateY = sheetMaxHeight - sheetMinHeight;
-  const floatingActionsBottom = sheetMaxHeight + 32;
 
   const sheetTranslateY = useSharedValue(sheetMaxTranslateY);
 
@@ -61,6 +90,55 @@ export default function DriverActiveRouteScreen() {
 
   const handleSkipStop = () => undefined;
 
+  const handleOpenWaze = async () => {
+    setNavigationMenuOpen(false);
+
+    const lat = nextStop?.latitude;
+    const lng = nextStop?.longitude;
+    let opened = false;
+
+    if (typeof lat === 'number' && typeof lng === 'number') {
+      opened = await openWazeNavigation({ latitude: lat, longitude: lng });
+    } else {
+      const nextStopAddress = nextStop?.address?.trim();
+
+      if (!nextStopAddress) {
+        Alert.alert('Navegação', 'Não foi possível identificar a próxima parada.');
+        return;
+      }
+
+      opened = await openWazeNavigation({ address: nextStopAddress });
+    }
+
+    if (!opened) {
+      const urls = getWazeUrls({
+        latitude: lat ?? undefined,
+        longitude: lng ?? undefined,
+        address: nextStop?.address ?? undefined,
+      });
+
+      const webUrl = urls.find((url) => url.startsWith('https://'));
+
+      Alert.alert(
+        'Navegação',
+        'Não foi possível abrir o Waze neste dispositivo. Deseja abrir a versão web?',
+        [
+          {
+            text: 'Abrir Waze Web',
+            onPress: () => {
+              if (webUrl) {
+                Linking.openURL(webUrl);
+              } else {
+                Alert.alert('Navegação', 'URL de fallback não disponível.');
+              }
+            },
+          },
+          { text: 'Cancelar', style: 'cancel' },
+        ],
+      );
+    }
+  };
+
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
@@ -79,7 +157,11 @@ export default function DriverActiveRouteScreen() {
         </View>
 
         <Animated.View pointerEvents="box-none" style={[styles.fabContainer, floatingButtonsStyle]}>
-          <NavigationFab isOpen={navigationMenuOpen} onPress={handleNavigationPress} />
+          <NavigationFab
+            isOpen={navigationMenuOpen}
+            onToggle={handleNavigationPress}
+            onWazePress={handleOpenWaze}
+          />
         </Animated.View>
 
         <TripBottomSheet
