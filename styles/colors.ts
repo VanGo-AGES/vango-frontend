@@ -12,6 +12,7 @@ export const colors = {
   white: '#FFFFFF', // White - Pure white for backgrounds and elements
   destructive: '#F06163', //  Red - Destructive actions such as deleting
   snackbar: '#322F35', // SnackBar color
+  separator: '#CAC4D0', // Separator lines
 };
 
 /**

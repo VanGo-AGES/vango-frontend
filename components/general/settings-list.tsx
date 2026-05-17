@@ -19,7 +19,7 @@ export type SettingsListProps = {
 
 export function SettingsList({ items }: SettingsListProps): ReactElement {
   return (
-    <View style={styles.container}>
+    <View>
       {items.map((item, index) => (
         <View key={item.id}>
           {index > 0 && <View style={styles.separator} />}
@@ -37,9 +37,8 @@ export function SettingsList({ items }: SettingsListProps): ReactElement {
 }
 
 const styles = StyleSheet.create({
-  container: {},
   separator: {
     height: 1,
-    backgroundColor: colors.accent,
+    backgroundColor: colors.separator,
   },
 });
