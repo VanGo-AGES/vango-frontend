@@ -26,9 +26,13 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
   return requestedPermission.status as NotificationPermissionStatus;
 }
 
-export async function getPushNotificationToken(): Promise<string | null> {
+export type PushNotificationTokenResult =
+  | { token: string; reason: 'success' }
+  | { token: null; reason: 'not-a-device' | 'permission-denied' };
+
+export async function getPushNotificationToken(): Promise<PushNotificationTokenResult> {
   if (!Device.isDevice) {
-    return null;
+    return { token: null, reason: 'not-a-device' };
   }
 
   await configureNotificationChannel();
@@ -36,9 +40,9 @@ export async function getPushNotificationToken(): Promise<string | null> {
   const permissionStatus = await requestNotificationPermission();
 
   if (permissionStatus !== 'granted') {
-    return null;
+    return { token: null, reason: 'permission-denied' };
   }
 
   const devicePushToken = await Notifications.getDevicePushTokenAsync();
-  return devicePushToken.data;
+  return { token: devicePushToken.data, reason: 'success' };
 }

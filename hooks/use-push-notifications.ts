@@ -2,15 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import * as Notifications from 'expo-notifications';
 import { getPushNotificationToken } from '@/services/notification.service';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: false,
-    shouldSetBadge: false,
-  }),
-});
-
 export function usePushNotifications() {
   const [pushNotificationToken, setPushNotificationToken] = useState<string | null>(null);
 
@@ -21,27 +12,36 @@ export function usePushNotifications() {
   const notificationResponseListener = useRef<Notifications.EventSubscription | null>(null);
 
   useEffect(() => {
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowBanner: true,
+        shouldShowList: true,
+        shouldPlaySound: false,
+        shouldSetBadge: false,
+      }),
+    });
     async function registerPushNotifications() {
-      const token = await getPushNotificationToken();
-
+      const { token, reason } = await getPushNotificationToken();
       if (!token) {
-        setPermissionDenied(true);
+        if (reason === 'permission-denied') {
+          setPermissionDenied(true);
+        }
         return;
       }
 
       setPushNotificationToken(token);
       setPermissionDenied(false);
+
+      foregroundNotificationListener.current = Notifications.addNotificationReceivedListener(
+        () => {},
+      );
+
+      notificationResponseListener.current = Notifications.addNotificationResponseReceivedListener(
+        () => {},
+      );
     }
 
     registerPushNotifications();
-
-    foregroundNotificationListener.current = Notifications.addNotificationReceivedListener(
-      (notification) => {},
-    );
-
-    notificationResponseListener.current = Notifications.addNotificationResponseReceivedListener(
-      (response) => {},
-    );
 
     return () => {
       foregroundNotificationListener.current?.remove();
