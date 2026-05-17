@@ -10,6 +10,8 @@ export type Stop = {
   type: 'origin' | 'stop' | 'destination';
   passengerName?: string;
   address: string;
+  latitude?: number;
+  longitude?: number;
 };
 
 export type RouteStopListProps = {

@@ -1,15 +1,24 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import {
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+  Linking,
+} from 'react-native';
 import { useRouter } from 'expo-router';
-import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { useMemo, useState } from 'react';
 
-import { PrimaryButton } from '@/components/general/primary-button';
 import { RoutePassengerCard } from '@/components/route/passenger/route-passenger-card';
+import { NavigationFab } from '@/components/route/navigation-fab';
 import { RouteHeroHeader } from '@/components/route/route-hero-header';
 import { RouteStopList } from '@/components/route/route-stop-list';
 import { RouteTopBar } from '@/components/route/route-top-bar';
 import { useRouteHeroHeader } from '@/hooks/use-route-hero-header';
 import { useRoutePassengers } from '@/hooks/use-route-passenger';
 import { useRouteStops } from '@/hooks/use-route-stops';
+import { openWazeNavigation, getWazeUrls } from '@/lib/waze-navigation';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
@@ -23,9 +32,80 @@ export default function DriverActiveRouteScreen() {
   const { data } = useRouteHeroHeader({ routeId: ROUTE_ID });
   const { stops, currentStopId } = useRouteStops({ routeId: ROUTE_ID });
   const { passengers } = useRoutePassengers({ routeId: ROUTE_ID, phase: 'pickup' });
+  const [isNavigationMenuOpen, setIsNavigationMenuOpen] = useState(false);
+
+  const nextStop = useMemo(() => {
+    const currentStopIndex = currentStopId
+      ? stops.findIndex((stop) => stop.id === currentStopId)
+      : -1;
+
+    if (currentStopIndex >= 0) {
+      const currentStop = stops[currentStopIndex];
+      if (currentStop?.type === 'stop') {
+        return currentStop;
+      }
+
+      const nextStopAfterCurrent = stops
+        .slice(currentStopIndex + 1)
+        .find((stop) => stop.type === 'stop');
+      if (nextStopAfterCurrent) {
+        return nextStopAfterCurrent;
+      }
+    }
+
+    return stops.find((stop) => stop.type === 'stop');
+  }, [currentStopId, stops]);
 
   const deliveredCount = passengers.filter((p) => p.status === 'boarded').length;
   const totalCount = passengers.length;
+
+  const handleOpenWaze = async () => {
+    setIsNavigationMenuOpen(false);
+    // Preferir latitude/longitude se disponível, caso contrário usar endereço
+    const lat = nextStop?.latitude;
+    const lng = nextStop?.longitude;
+    let opened = false;
+
+    if (typeof lat === 'number' && typeof lng === 'number') {
+      opened = await openWazeNavigation({ latitude: lat, longitude: lng });
+    } else {
+      const nextStopAddress = nextStop?.address?.trim();
+      if (!nextStopAddress) {
+        Alert.alert('Navegação', 'Não foi possível identificar a próxima parada.');
+        return;
+      }
+
+      opened = await openWazeNavigation({ address: nextStopAddress });
+    }
+
+    if (!opened) {
+      const urls = getWazeUrls({
+        latitude: lat ?? undefined,
+        longitude: lng ?? undefined,
+        address: nextStop?.address ?? undefined,
+      });
+
+      const webUrl = urls.find((u) => u.startsWith('https://'));
+
+      Alert.alert(
+        'Navegação',
+        'Não foi possível abrir o Waze neste dispositivo. Deseja abrir a versão web?',
+        [
+          {
+            text: 'Abrir Waze Web',
+            onPress: () => {
+              if (webUrl) {
+                Linking.openURL(webUrl);
+              } else {
+                Alert.alert('Navegação', 'URL de fallback não disponível.');
+              }
+            },
+          },
+          { text: 'Cancelar', style: 'cancel' },
+        ],
+      );
+    }
+  };
 
   return (
     <View style={styles.screen}>
@@ -57,16 +137,6 @@ export default function DriverActiveRouteScreen() {
           <RouteStopList stops={stops} currentStopId={currentStopId} />
         </View>
 
-        <View style={styles.navButtonSection}>
-          <PrimaryButton
-            label="Navegação"
-            onPress={() => router.push('/')}
-            style={styles.navButton}
-            labelColor={colors.white}
-            icon={<MaterialIcons name="arrow-forward" size={20} color={colors.white} />}
-          />
-        </View>
-
         <View style={styles.section}>
           <View style={styles.passengerHeader}>
             <Text style={styles.sectionTitle}>Passageiros</Text>
@@ -91,6 +161,14 @@ export default function DriverActiveRouteScreen() {
           </ScrollView>
         </View>
       </ScrollView>
+
+      <View style={styles.navigationFabContainer}>
+        <NavigationFab
+          isOpen={isNavigationMenuOpen}
+          onToggle={() => setIsNavigationMenuOpen((v) => !v)}
+          onWazePress={handleOpenWaze}
+        />
+      </View>
     </View>
   );
 }
@@ -129,13 +207,6 @@ const styles = StyleSheet.create({
     ...typography.subtitle,
     color: colors.dark,
   },
-  navButtonSection: {
-    paddingHorizontal: 16,
-    paddingTop: 24,
-  },
-  navButton: {
-    alignSelf: 'stretch',
-  },
   passengerHeader: {
     gap: 2,
   },
@@ -147,5 +218,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
     paddingRight: 16,
+  },
+  navigationFabContainer: {
+    position: 'absolute',
+    right: 16,
+    bottom: 32,
+    zIndex: 20,
   },
 });

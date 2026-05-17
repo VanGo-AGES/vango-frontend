@@ -12,7 +12,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "vango.app.com",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "LSApplicationQueriesSchemes": ["waze"]
       }
     },
     "android": {
