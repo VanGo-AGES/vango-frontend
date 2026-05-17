@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import type { ImageSourcePropType } from 'react-native';
 
 type RouteHeroHeaderData = {
   routeName: string;
@@ -7,7 +6,7 @@ type RouteHeroHeaderData = {
   expectedTime: string;
   durationMinutes: number;
   distanceKm: number;
-  backgroundImage?: ImageSourcePropType;
+  backgroundImage?: string;
 };
 
 // Mock, deletar quando fizer a integração
