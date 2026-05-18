@@ -4,15 +4,14 @@ import { useRouter } from 'expo-router';
 import { getNotificationDestination } from '@/lib/notification-navigation';
 import { getPushNotificationToken } from '@/services/notification.service';
 import type { NotificationPayload } from '@/types/notification.types';
+import { useSessionStore } from '@/store/session.store';
 
 export function usePushNotifications() {
   const router = useRouter();
+  const userRole = useSessionStore((state) => state.user?.role);
   const [pushNotificationToken, setPushNotificationToken] = useState<string | null>(null);
-
   const [permissionDenied, setPermissionDenied] = useState(false);
-
   const foregroundNotificationListener = useRef<Notifications.EventSubscription | null>(null);
-
   const notificationResponseListener = useRef<Notifications.EventSubscription | null>(null);
 
   useEffect(() => {
@@ -50,6 +49,12 @@ export function usePushNotifications() {
               pathname: destination.path as never,
               params: destination.params,
             });
+          } else {
+            const fallback =
+              userRole == 'driver'
+                ? '/(driver)/driver-home-screen'
+                : '/(passenger)/passenger-home-screen';
+            router.push({ pathname: fallback as never });
           }
         },
       );
