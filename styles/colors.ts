@@ -13,6 +13,10 @@ export const colors = {
   destructive: '#F06163', //  Red - Destructive actions such as deleting
   snackbar: '#322F35', // SnackBar color
   separator: '#CAC4D0', // Separator lines
+  sheetTitle: '#1D1B20', // Text used in configuration sheet titles
+  sheetText: '#49454F', // Text used in configuration sheet descriptions
+  bottomSheetHandle: '#79747E', // Handle indicator for bottom sheets
+  switchInactive: '#938F99', // Inactive switch border and thumb color
 };
 
 /**
