@@ -1,8 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import * as Notifications from 'expo-notifications';
+import { useRouter } from 'expo-router';
+import { getNotificationDestination } from '@/lib/notification-navigation';
 import { getPushNotificationToken } from '@/services/notification.service';
+import type { NotificationPayload } from '@/types/notification.types';
 
 export function usePushNotifications() {
+  const router = useRouter();
   const [pushNotificationToken, setPushNotificationToken] = useState<string | null>(null);
 
   const [permissionDenied, setPermissionDenied] = useState(false);
@@ -37,7 +41,17 @@ export function usePushNotifications() {
       );
 
       notificationResponseListener.current = Notifications.addNotificationResponseReceivedListener(
-        () => {},
+        (response) => {
+          const payload = response.notification.request.content.data as NotificationPayload;
+          const destination = getNotificationDestination(payload);
+
+          if (destination) {
+            router.push({
+              pathname: destination.path as never,
+              params: destination.params,
+            });
+          }
+        },
       );
     }
 
