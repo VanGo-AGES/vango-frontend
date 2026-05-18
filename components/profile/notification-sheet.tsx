@@ -50,7 +50,10 @@ export function NotificationSheet({ visible, onClose, userType }: NotificationSh
   const [allowUserWarnings, setAllowUserWarnings] = useState(false);
   const [allowTrafficAlerts, setAllowTrafficAlerts] = useState(false);
 
-  const sheetTranslateY = useRef(new Animated.Value(0)).current;
+  const sheetTranslateY = useRef(new Animated.Value(400)).current;
+
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   const warningTitle = userType === 'driver' ? 'Avisos dos Passageiros' : 'Avisos do Motorista';
 
@@ -59,14 +62,25 @@ export function NotificationSheet({ visible, onClose, userType }: NotificationSh
       ? 'Receba notificações dos passageiros'
       : 'Receba notificações do motorista';
 
-  const closeWithAnimation = () => {
+  useEffect(() => {
+    if (visible) {
+      Animated.timing(sheetTranslateY, {
+        toValue: 0,
+        duration: 280,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [visible, sheetTranslateY]);
+
+  const closeRef = useRef(() => {});
+  closeRef.current = () => {
     Animated.timing(sheetTranslateY, {
       toValue: 400,
       duration: 180,
       useNativeDriver: true,
     }).start(() => {
-      sheetTranslateY.setValue(0);
-      onClose();
+      sheetTranslateY.setValue(400);
+      onCloseRef.current();
     });
   };
 
@@ -83,7 +97,7 @@ export function NotificationSheet({ visible, onClose, userType }: NotificationSh
 
       onPanResponderRelease: (_, gestureState) => {
         if (gestureState.dy > 80) {
-          closeWithAnimation();
+          closeRef.current();
           return;
         }
 
@@ -96,11 +110,16 @@ export function NotificationSheet({ visible, onClose, userType }: NotificationSh
   ).current;
 
   return (
-    <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="none"
+      onRequestClose={() => closeRef.current()}
+    >
       <View style={styles.backdrop}>
         <Pressable
           style={styles.closeArea}
-          onPress={onClose}
+          onPress={() => closeRef.current()}
           accessibilityRole="button"
           accessibilityLabel="fechar notificações"
         />
@@ -122,7 +141,9 @@ export function NotificationSheet({ visible, onClose, userType }: NotificationSh
           <View style={styles.optionRow}>
             <MaterialIcons name="volume-up" size={24} color={colors.sheetText} />
 
-            <Text style={styles.optionTitle}>Permitir sons & alertas</Text>
+            <View style={styles.optionTextArea}>
+              <Text style={styles.optionTitle}>Permitir sons & alertas</Text>
+            </View>
 
             <View style={styles.switchContainer}>
               <NotificationSwitch value={allowSounds} onValueChange={setAllowSounds} />
@@ -181,9 +202,8 @@ const styles = StyleSheet.create({
     paddingBottom: 35,
   },
   handleTouchArea: {
-    width: 120,
+    alignSelf: 'stretch',
     height: 36,
-    alignSelf: 'center',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -230,7 +250,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   switchContainer: {
-    marginLeft: 'auto',
     alignSelf: 'center',
   },
   switchTrack: {
