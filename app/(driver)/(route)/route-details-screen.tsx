@@ -167,7 +167,7 @@ export default function RouteDetailsScreen() {
   );
 
   const hasPendingPassengers = useMemo(
-    () => passangers.some((p: RoutePassangerResponse) => p.status !== 'accepted'),
+    () => passangers.some((p: RoutePassangerResponse) => p.status === 'pending'),
     [passangers],
   );
 
