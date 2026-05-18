@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   arrivedTitle: {
-    ...typography.header2,
+    ...typography.header3,
     color: colors.dark,
     marginBottom: 4,
   },
