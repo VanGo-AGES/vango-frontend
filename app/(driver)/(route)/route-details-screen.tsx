@@ -101,7 +101,7 @@ export default function RouteDetailsScreen() {
   const router = useRouter();
   const { routeId } = useLocalSearchParams<{ routeId: string }>();
   const { height: screenHeight } = useWindowDimensions();
-  const heroHeight = Math.max(320, Math.min(420, Math.round(screenHeight * 0.42)));
+  const heroHeight = Math.max(220, Math.min(300, Math.round(screenHeight * 0.3)));
 
   const {
     data: route,
@@ -163,6 +163,11 @@ export default function RouteDetailsScreen() {
 
   const acceptedPassangers = useMemo(
     () => passangers.filter((p: RoutePassangerResponse) => p.status === 'accepted'),
+    [passangers],
+  );
+
+  const hasPendingPassengers = useMemo(
+    () => passangers.some((p: RoutePassangerResponse) => p.status === 'pending'),
     [passangers],
   );
 
@@ -378,6 +383,16 @@ export default function RouteDetailsScreen() {
             <View style={styles.passengerHeader}>
               <View style={styles.passengerTitleRow}>
                 <Text style={styles.sectionTitle}>Passageiros</Text>
+
+                {hasPendingPassengers && (
+                  <MaterialIcons
+                    name="warning"
+                    size={18}
+                    color={colors.destructive}
+                    style={styles.warningIcon}
+                  />
+                )}
+
                 <MaterialIcons name="chevron-right" size={20} color={colors.dark} />
               </View>
               <Text style={styles.passengerCount}>
@@ -496,6 +511,9 @@ const styles = StyleSheet.create({
   passengerTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  warningIcon: {
+    marginLeft: 6,
   },
   passengerCount: {
     ...typography.small,

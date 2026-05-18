@@ -80,7 +80,7 @@ export function RouteHeroHeader({
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    minHeight: 260,
+    minHeight: 220,
     justifyContent: 'flex-end',
   },
   image: {
