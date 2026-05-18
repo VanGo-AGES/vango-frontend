@@ -1,11 +1,12 @@
-import { useMemo, useRef, useState, useEffect } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import MapView, { Marker, Polyline, type Region } from 'react-native-maps';
+import Animated, { type AnimatedStyle } from 'react-native-reanimated';
 
-import { colors, withAlpha } from '@/styles/colors';
-import RecenterMapButtonIcon from '@/assets/images/recenter-map-button.svg';
 import CurrentLocationPin from '@/assets/images/localizacao-atual.svg';
 import NextStopPin from '@/assets/images/proxima-parada.svg';
+import RecenterMapButtonIcon from '@/assets/images/recenter-map-button.svg';
+import { colors, withAlpha } from '@/styles/colors';
 
 import { RecenterMapButton } from './recenter-map-button';
 
@@ -20,6 +21,7 @@ export type ActiveRouteMapProps = {
   };
   onRecenterPress?: () => void;
   containerStyle?: StyleProp<ViewStyle>;
+  recenterButtonStyle?: StyleProp<ViewStyle> | AnimatedStyle<ViewStyle>;
 };
 
 const MIN_DELTA = 0.008;
@@ -97,6 +99,7 @@ export function ActiveRouteMap({
   nextStopLocation,
   onRecenterPress,
   containerStyle,
+  recenterButtonStyle,
 }: ActiveRouteMapProps) {
   const mapRef = useRef<MapView>(null);
   const [routeCoordinates, setRouteCoordinates] = useState<
@@ -144,6 +147,7 @@ export function ActiveRouteMap({
         <Marker coordinate={currentLocation} title="Sua localização" anchor={MARKER_ANCHOR}>
           <CurrentLocationPin width={40} height={40} />
         </Marker>
+
         <Marker coordinate={nextStopLocation} title="Próxima parada" anchor={MARKER_ANCHOR}>
           <NextStopPin width={32.04} height={50} />
         </Marker>
@@ -157,6 +161,7 @@ export function ActiveRouteMap({
               lineCap="round"
               lineJoin="round"
             />
+
             <Polyline
               coordinates={routeCoordinates}
               strokeColor={colors.secondary}
@@ -169,11 +174,13 @@ export function ActiveRouteMap({
       </MapView>
 
       <View pointerEvents="box-none" style={styles.overlay}>
-        <RecenterMapButton
-          onPress={handleRecenterPress}
-          style={styles.recenterButton}
-          icon={<RecenterMapButtonIcon width={24} height={24} />}
-        />
+        <Animated.View style={recenterButtonStyle}>
+          <RecenterMapButton
+            onPress={handleRecenterPress}
+            style={styles.recenterButton}
+            icon={<RecenterMapButtonIcon width={24} height={24} />}
+          />
+        </Animated.View>
       </View>
     </View>
   );

@@ -1,38 +1,47 @@
-import {
-  Alert,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-  useWindowDimensions,
-  Linking,
-} from 'react-native';
-import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
+import { Stack, useRouter } from 'expo-router';
+import { Alert, Linking, StyleSheet, View } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { RoutePassengerCard } from '@/components/route/passenger/route-passenger-card';
+import { ActiveRouteMap } from '@/components/route/active-route-map';
 import { NavigationFab } from '@/components/route/navigation-fab';
-import { RouteHeroHeader } from '@/components/route/route-hero-header';
-import { RouteStopList } from '@/components/route/route-stop-list';
 import { RouteTopBar } from '@/components/route/route-top-bar';
-import { useRouteHeroHeader } from '@/hooks/use-route-hero-header';
-import { useRoutePassengers } from '@/hooks/use-route-passenger';
+import { TripBottomSheet } from '@/components/route/trip-bottom-sheet';
 import { useRouteStops } from '@/hooks/use-route-stops';
 import { openWazeNavigation, getWazeUrls } from '@/lib/waze-navigation';
 import { colors } from '@/styles/colors';
-import { typography } from '@/styles/typography';
 
-const ROUTE_ID = 'rota-123';
+const ROUTE_ID = 'route-1';
+
+const MOCK_CURRENT_LOCATION = {
+  latitude: -30.0346,
+  longitude: -51.2177,
+};
+
+const MOCK_NEXT_STOP_LOCATION = {
+  latitude: -30.0378,
+  longitude: -51.2232,
+};
+
+const MOCK_NEXT_STOP = {
+  id: 'stop-1',
+  address: 'Av. Bento Gonçalves, 500',
+};
+
+const MOCK_PASSENGER = {
+  id: 'passenger-1',
+  name: 'Mateus Cunha',
+  avatarUrl: undefined,
+  phoneNumber: '51999999999',
+};
 
 export default function DriverActiveRouteScreen() {
   const router = useRouter();
-  const { height: screenHeight } = useWindowDimensions();
-  const heroHeight = Math.max(320, Math.min(420, Math.round(screenHeight * 0.42)));
+  const insets = useSafeAreaInsets();
+  const [navigationMenuOpen, setNavigationMenuOpen] = useState(false);
 
-  const { data } = useRouteHeroHeader({ routeId: ROUTE_ID });
   const { stops, currentStopId } = useRouteStops({ routeId: ROUTE_ID });
-  const { passengers } = useRoutePassengers({ routeId: ROUTE_ID, phase: 'pickup' });
-  const [isNavigationMenuOpen, setIsNavigationMenuOpen] = useState(false);
 
   const nextStop = useMemo(() => {
     const currentStopIndex = currentStopId
@@ -41,6 +50,7 @@ export default function DriverActiveRouteScreen() {
 
     if (currentStopIndex >= 0) {
       const currentStop = stops[currentStopIndex];
+
       if (currentStop?.type === 'stop') {
         return currentStop;
       }
@@ -48,6 +58,7 @@ export default function DriverActiveRouteScreen() {
       const nextStopAfterCurrent = stops
         .slice(currentStopIndex + 1)
         .find((stop) => stop.type === 'stop');
+
       if (nextStopAfterCurrent) {
         return nextStopAfterCurrent;
       }
@@ -56,12 +67,32 @@ export default function DriverActiveRouteScreen() {
     return stops.find((stop) => stop.type === 'stop');
   }, [currentStopId, stops]);
 
-  const deliveredCount = passengers.filter((p) => p.status === 'boarded').length;
-  const totalCount = passengers.length;
+  const bottomPadding = Math.max(24, insets.bottom);
+  const sheetMaxHeight = 570 + bottomPadding;
+  const sheetMinHeight = 310;
+  const sheetMaxTranslateY = sheetMaxHeight - sheetMinHeight;
+
+  const sheetTranslateY = useSharedValue(sheetMaxTranslateY);
+
+  const floatingButtonsStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: sheetTranslateY.value }],
+  }));
+
+  const handleBackPress = () => {
+    router.push('/driver-home');
+  };
+
+  const handleNavigationPress = () => {
+    setNavigationMenuOpen((current) => !current);
+  };
+
+  const handleRecenterPress = () => undefined;
+
+  const handleSkipStop = () => undefined;
 
   const handleOpenWaze = async () => {
-    setIsNavigationMenuOpen(false);
-    // Preferir latitude/longitude se disponível, caso contrário usar endereço
+    setNavigationMenuOpen(false);
+
     const lat = nextStop?.latitude;
     const lng = nextStop?.longitude;
     let opened = false;
@@ -70,6 +101,7 @@ export default function DriverActiveRouteScreen() {
       opened = await openWazeNavigation({ latitude: lat, longitude: lng });
     } else {
       const nextStopAddress = nextStop?.address?.trim();
+
       if (!nextStopAddress) {
         Alert.alert('Navegação', 'Não foi possível identificar a próxima parada.');
         return;
@@ -85,7 +117,7 @@ export default function DriverActiveRouteScreen() {
         address: nextStop?.address ?? undefined,
       });
 
-      const webUrl = urls.find((u) => u.startsWith('https://'));
+      const webUrl = urls.find((url) => url.startsWith('https://'));
 
       Alert.alert(
         'Navegação',
@@ -108,68 +140,41 @@ export default function DriverActiveRouteScreen() {
   };
 
   return (
-    <View style={styles.screen}>
-      <View style={styles.topBarContainer}>
-        <RouteTopBar onBackPress={() => router.push('/driver-home')} />
-      </View>
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
 
-      <ScrollView
-        style={styles.content}
-        contentContainerStyle={styles.contentContainer}
-        showsVerticalScrollIndicator={false}
-      >
-        {data && (
-          <View style={styles.heroSection}>
-            <RouteHeroHeader
-              routeName={data.routeName}
-              recurrence={data.recurrence.join(', ')}
-              expectedTime={data.expectedTime}
-              durationMinutes={data.durationMinutes}
-              distanceKm={data.distanceKm}
-              backgroundImage={data.backgroundImage ? { uri: data.backgroundImage } : undefined}
-              style={[styles.heroHeader, { minHeight: heroHeight }]}
-            />
-          </View>
-        )}
+      <View style={styles.screen}>
+        <ActiveRouteMap
+          currentLocation={MOCK_CURRENT_LOCATION}
+          nextStopLocation={MOCK_NEXT_STOP_LOCATION}
+          onRecenterPress={handleRecenterPress}
+          containerStyle={styles.map}
+          recenterButtonStyle={[styles.recenterButtonPosition, floatingButtonsStyle]}
+        />
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Paradas</Text>
-          <RouteStopList stops={stops} currentStopId={currentStopId} />
+        <View style={styles.topBarContainer}>
+          <RouteTopBar onBackPress={handleBackPress} showMenu={false} />
         </View>
 
-        <View style={styles.section}>
-          <View style={styles.passengerHeader}>
-            <Text style={styles.sectionTitle}>Passageiros</Text>
-            <Text style={styles.passengerCount}>
-              {deliveredCount}/{totalCount} Embarcados
-            </Text>
-          </View>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.passengerList}
-          >
-            {passengers.map((passenger, index) => (
-              <RoutePassengerCard
-                key={`${passenger.name}-${index}`}
-                name={passenger.name}
-                avatarUrl={passenger.avatarUrl}
-                status={passenger.status}
-                phase="pickup"
-              />
-            ))}
-          </ScrollView>
-        </View>
-      </ScrollView>
+        <Animated.View pointerEvents="box-none" style={[styles.fabContainer, floatingButtonsStyle]}>
+          <NavigationFab
+            isOpen={navigationMenuOpen}
+            onToggle={handleNavigationPress}
+            onWazePress={handleOpenWaze}
+          />
+        </Animated.View>
 
-      <View style={styles.navigationFabContainer}>
-        <NavigationFab
-          isOpen={isNavigationMenuOpen}
-          onToggle={() => setIsNavigationMenuOpen((v) => !v)}
-          onWazePress={handleOpenWaze}
+        <TripBottomSheet
+          nextStop={MOCK_NEXT_STOP}
+          passenger={MOCK_PASSENGER}
+          timeRemaining={6}
+          estimatedArrival="18h43"
+          distance="1.4km"
+          onSkipStop={handleSkipStop}
+          translateY={sheetTranslateY}
         />
       </View>
-    </View>
+    </>
   );
 }
 
@@ -178,51 +183,25 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.light,
   },
+  map: {
+    ...StyleSheet.absoluteFillObject,
+    height: undefined,
+    borderWidth: 0,
+  },
   topBarContainer: {
     position: 'absolute',
     top: 52,
     left: 4,
     right: 4,
-    zIndex: 10,
-    backgroundColor: 'transparent',
+    zIndex: 20,
   },
-  content: {
-    flex: 1,
-  },
-  contentContainer: {
-    paddingBottom: 48,
-  },
-  heroSection: {
-    marginBottom: 16,
-  },
-  heroHeader: {
-    width: '100%',
-  },
-  section: {
-    paddingHorizontal: 16,
-    paddingTop: 24,
-    gap: 12,
-  },
-  sectionTitle: {
-    ...typography.subtitle,
-    color: colors.dark,
-  },
-  passengerHeader: {
-    gap: 2,
-  },
-  passengerCount: {
-    ...typography.small,
-    color: colors.subtleText,
-  },
-  passengerList: {
-    flexDirection: 'row',
-    gap: 8,
-    paddingRight: 16,
-  },
-  navigationFabContainer: {
+  fabContainer: {
     position: 'absolute',
     right: 16,
-    bottom: 32,
-    zIndex: 20,
+    bottom: 636,
+    alignItems: 'flex-end',
+  },
+  recenterButtonPosition: {
+    marginBottom: 620,
   },
 });
