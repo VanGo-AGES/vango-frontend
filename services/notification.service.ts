@@ -1,6 +1,9 @@
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { apiPost } from './api';
+import { useSessionStore } from '@/store/session.store';
 
 export type NotificationPermissionStatus = 'granted' | 'denied' | 'undetermined';
 
@@ -45,4 +48,31 @@ export async function getPushNotificationToken(): Promise<PushNotificationTokenR
 
   const devicePushToken = await Notifications.getDevicePushTokenAsync();
   return { token: devicePushToken.data, reason: 'success' };
+}
+
+const PUSH_LAST_SENT_KEY = '@vango:push:last-sent-token';
+
+export async function registerPushToken(token: string): Promise<void> {
+  try {
+    if (!token) return;
+
+    const last = await AsyncStorage.getItem(PUSH_LAST_SENT_KEY);
+    if (last === token) return; // already registered
+
+    // send to backend; backend is expected to accept { token }
+    const user = useSessionStore.getState().user;
+    const headers = {
+      'X-User-Id': user?.id ?? '',
+      'X-User-Role': user?.role ?? '',
+    } as Record<string, string>;
+
+    await apiPost<{ token: string }, void>('/users/me/push-token', { token }, headers);
+
+    await AsyncStorage.setItem(PUSH_LAST_SENT_KEY, token);
+  } catch (error) {
+    // fail silently — do not block app usage
+    // keep a lightweight debug log
+    // eslint-disable-next-line no-console
+    console.debug('registerPushToken failed', error);
+  }
 }
