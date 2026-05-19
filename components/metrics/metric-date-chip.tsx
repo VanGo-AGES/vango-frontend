@@ -9,7 +9,7 @@ export type MetricDateChipProps = {
 
 export function MetricDateChip({ label }: MetricDateChipProps) {
   return (
-    <View style={[styles.chip, styles.shadow]}>
+    <View style={styles.chip}>
       <Text style={styles.label} numberOfLines={1}>
         {label}
       </Text>
@@ -19,22 +19,14 @@ export function MetricDateChip({ label }: MetricDateChipProps) {
 
 const styles = StyleSheet.create({
   chip: {
-    height: 32,
-    borderRadius: 10,
+    height: 34,
+    borderRadius: 8,
     alignSelf: 'flex-start',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.light,
-    paddingHorizontal: 12,
-    borderWidth: 1,
-    borderColor: colors.accent,
-  },
-  shadow: {
-    shadowColor: colors.dark,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.15,
-    shadowRadius: 2,
-    elevation: 1,
+    backgroundColor: colors.accent,
+    paddingHorizontal: 11,
+    paddingVertical: 6,
   },
   label: {
     ...typography.small,
