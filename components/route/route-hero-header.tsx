@@ -1,17 +1,10 @@
-import {
-  ImageBackground,
-  ImageSourcePropType,
-  StyleProp,
-  StyleSheet,
-  Text,
-  View,
-  ViewStyle,
-} from 'react-native';
+import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 import { RouteInfoChip } from '@/components/route/route-info-chip';
+import { RouteMapPreview, type Coordinates } from '@/components/route/route-map-preview';
 
 export type RouteHeroHeaderProps = {
   routeName: string;
@@ -19,11 +12,10 @@ export type RouteHeroHeaderProps = {
   expectedTime: string;
   durationMinutes: number;
   distanceKm: number;
-  backgroundImage?: ImageSourcePropType;
+  origin?: Coordinates;
+  destination?: Coordinates;
   style?: StyleProp<ViewStyle>;
 };
-
-const DEFAULT_MAP_IMAGE = require('@/assets/images/map-mock.png');
 
 export function RouteHeroHeader({
   routeName,
@@ -31,15 +23,14 @@ export function RouteHeroHeader({
   expectedTime,
   durationMinutes,
   distanceKm,
-  backgroundImage = DEFAULT_MAP_IMAGE,
+  origin,
+  destination,
   style,
 }: RouteHeroHeaderProps) {
   return (
-    <ImageBackground
-      source={backgroundImage}
-      style={[styles.container, style]}
-      imageStyle={styles.image}
-    >
+    <View style={[styles.container, style]}>
+      <RouteMapPreview origin={origin} destination={destination} variant="hero" />
+
       <Svg height="100%" width="100%" style={StyleSheet.absoluteFill}>
         <Defs>
           <LinearGradient id="darkGradient" x1="0" y1="0" x2="0" y2="1">
@@ -73,7 +64,7 @@ export function RouteHeroHeader({
           <RouteInfoChip variant="distance" distanceKm={distanceKm} />
         </View>
       </View>
-    </ImageBackground>
+    </View>
   );
 }
 
