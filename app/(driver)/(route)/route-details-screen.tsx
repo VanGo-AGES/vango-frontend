@@ -31,6 +31,8 @@ type DialogType = 'start_route' | 'delete_route' | 'delete_stop' | null;
 
 const FALLBACK_DURATION_MINUTES = 30;
 const FALLBACK_DISTANCE_KM = 10;
+const MOCK_ORIGIN = { latitude: -30.0277, longitude: -51.1632 }; // Shopping Iguatemi
+const MOCK_DESTINATION = { latitude: -30.0495, longitude: -51.2287 }; // Shopping Praia de Belas
 
 function formatRecurrenceLabel(recurrence: string): string {
   return recurrence
@@ -354,6 +356,22 @@ export default function RouteDetailsScreen() {
           expectedTime={formatExpectedTime(route.expected_time)}
           durationMinutes={route.duration_minutes ?? FALLBACK_DURATION_MINUTES}
           distanceKm={route.distance_km ?? FALLBACK_DISTANCE_KM}
+          origin={
+            route.origin_address?.latitude && route.origin_address?.longitude
+              ? {
+                  latitude: route.origin_address.latitude,
+                  longitude: route.origin_address.longitude,
+                }
+              : MOCK_ORIGIN
+          }
+          destination={
+            route.destination_address?.latitude && route.destination_address?.longitude
+              ? {
+                  latitude: route.destination_address.latitude,
+                  longitude: route.destination_address.longitude,
+                }
+              : MOCK_DESTINATION
+          }
           style={[styles.heroHeader, { minHeight: heroHeight }]}
         />
       </View>
