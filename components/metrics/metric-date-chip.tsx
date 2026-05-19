@@ -1,7 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '@/styles/colors';
-import { typography } from '@/styles/typography';
 
 export type MetricDateChipProps = {
   label: string;
@@ -29,7 +28,9 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   label: {
-    ...typography.small,
+    fontFamily: 'WorkSans_400Regular',
+    fontSize: 17,
+    lineHeight: 22,
     color: colors.dark,
     textAlign: 'center',
   },
