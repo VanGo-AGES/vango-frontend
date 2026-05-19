@@ -20,19 +20,21 @@ export function MetricDateChip({ label }: MetricDateChipProps) {
 const styles = StyleSheet.create({
   chip: {
     height: 32,
-    borderRadius: 8,
+    borderRadius: 10,
     alignSelf: 'flex-start',
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: colors.light,
     paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: colors.accent,
   },
   shadow: {
     shadowColor: colors.dark,
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.15,
     shadowRadius: 2,
-    elevation: 2,
+    elevation: 1,
   },
   label: {
     ...typography.small,
