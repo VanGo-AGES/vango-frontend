@@ -41,7 +41,7 @@ const STATUS_BY_PHASE: Record<
     none: null,
   },
   pickup: {
-    boarded: { label: 'Embarcado', color: colors.success },
+    boarded: { label: 'Embarcou', color: colors.success },
     next: { label: 'Próximo', color: colors.dark },
     pending: { label: 'Pendente', color: colors.subtleText },
     missed_pickup: { label: 'Não embarcou', color: colors.destructive },
