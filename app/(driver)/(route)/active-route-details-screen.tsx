@@ -233,7 +233,7 @@ export default function DriverActiveRouteDetailsScreen() {
 
   const stopsForView = useMemo(() => {
     if (!route) return [];
-    return buildUiStops(route.origin_address, route.destination_address, stops, passangerByRpId);
+    return buildUiStops(route.origin_address, route.destination_address, stops, passangerByRpId, currentStopId);
   }, [route, passangerByRpId]);
 
   const cardPassangers = useMemo(() => {
@@ -326,7 +326,7 @@ export default function DriverActiveRouteDetailsScreen() {
             </View>
             <Text style={styles.passengerCount}>
               {deliveredCount}/{totalPassangersCount}{' '}
-              {tripDirection === 'ida' ? 'Entregues' : 'Entregues'}{' '}
+              {tripDirection === 'ida' ? 'Embarcados' : 'Entregues'}{' '}
             </Text>
           </View>
 
