@@ -1,6 +1,7 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -9,7 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors } from '@/styles/colors';
+import { colors, withAlpha } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 import { TripDetailsCard } from '@/components/route/trip-details-card';
 import { ContactActionButton } from '@/components/route/contact-action-button';
@@ -29,6 +30,12 @@ export type TripBottomSheetProps = {
   onCallPassenger?: () => void;
   onSkipStop: () => void;
   translateY?: SharedValue<number>;
+  stopArrival?: {
+    tripType: 'pickup' | 'dropoff';
+    countdownSeconds?: number;
+    onConfirmPress: () => void;
+    onAbsentPress: () => void;
+  };
 };
 
 export function TripBottomSheet({
@@ -39,14 +46,17 @@ export function TripBottomSheet({
   distance,
   onSkipStop,
   translateY: externalTranslateY,
+  stopArrival,
 }: TripBottomSheetProps) {
   const insets = useSafeAreaInsets();
+  const isArrivalSheet = Boolean(stopArrival);
+  const arrivalButtonWidth = stopArrival?.tripType === 'dropoff' ? '80%' : '72%';
 
   const bottomPadding = Math.max(24, insets.bottom);
 
   const OVERDRAW = 50;
-  const MAX_HEIGHT = 570 + bottomPadding;
-  const MIN_HEIGHT = 310;
+  const MAX_HEIGHT = (isArrivalSheet ? 326 : 570) + bottomPadding;
+  const MIN_HEIGHT = isArrivalSheet ? 260 : 310;
   const MAX_TRANSLATE_Y = MAX_HEIGHT - MIN_HEIGHT;
 
   const internalTranslateY = useSharedValue(MAX_TRANSLATE_Y);
@@ -75,6 +85,32 @@ export function TripBottomSheet({
     };
   });
 
+  const initialSeconds = stopArrival?.countdownSeconds ?? 120;
+  const [secondsLeft, setSecondsLeft] = useState(initialSeconds);
+
+  useEffect(() => {
+    if (!stopArrival) return;
+    setSecondsLeft(initialSeconds);
+    const t = setInterval(() => {
+      setSecondsLeft((s) => {
+        if (s <= 1) {
+          clearInterval(t);
+          return 0;
+        }
+        return s - 1;
+      });
+    }, 1000);
+    return () => clearInterval(t);
+  }, [stopArrival]);
+
+  const formatTime = (s: number) => {
+    const m = Math.floor(s / 60)
+      .toString()
+      .padStart(2, '0');
+    const ss = (s % 60).toString().padStart(2, '0');
+    return `${m}:${ss}`;
+  };
+
   return (
     <GestureDetector gesture={panGesture}>
       <Animated.View
@@ -89,52 +125,106 @@ export function TripBottomSheet({
         </View>
 
         <View style={[styles.content, { paddingBottom: bottomPadding }]}>
-          <View style={styles.header}>
-            <Text style={styles.timeLabel}>tempo até a próxima parada:</Text>
+          {stopArrival ? (
+            <View style={styles.arrivalContainer}>
+              <Text style={styles.arrivalTitle}>chegou na parada!</Text>
 
-            <View style={styles.timeHighlightContainer}>
-              <Text style={styles.timeBig}>{timeRemaining.toString().padStart(2, '0')} </Text>
-              <Text style={styles.timeUnit}>min</Text>
+              <Text style={styles.arrivalSubtitle}>
+                {stopArrival.tripType === 'pickup'
+                  ? 'tempo para o embarque:'
+                  : 'tempo para o desembarque:'}
+              </Text>
+
+              <Text style={styles.arrivalTimer}>{formatTime(secondsLeft)}</Text>
+
+              <View style={styles.arrivalDivider} />
+
+              <TouchableOpacity
+                activeOpacity={0.9}
+                style={[styles.primaryButton, { width: arrivalButtonWidth }]}
+                onPress={stopArrival.onConfirmPress}
+                accessibilityRole="button"
+              >
+                <MaterialCommunityIcons
+                  name="check"
+                  size={20}
+                  color={colors.white}
+                  style={styles.buttonIcon}
+                />
+                <Text style={styles.primaryButtonText}>
+                  {stopArrival.tripType === 'pickup'
+                    ? 'Confirmar Embarque'
+                    : 'Confirmar Desembarque'}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                activeOpacity={0.9}
+                style={[styles.secondaryButton, { width: arrivalButtonWidth }]}
+                onPress={stopArrival.onAbsentPress}
+                accessibilityRole="button"
+              >
+                <MaterialCommunityIcons
+                  name="close"
+                  size={20}
+                  color={colors.destructive}
+                  style={styles.buttonIcon}
+                />
+                <Text style={styles.secondaryButtonText}>
+                  {stopArrival.tripType === 'pickup' ? 'Não embarcou' : 'Não desembarcou'}
+                </Text>
+              </TouchableOpacity>
             </View>
+          ) : (
+            <>
+              <View style={styles.header}>
+                <Text style={styles.timeLabel}>tempo até a próxima parada:</Text>
 
-            <View style={styles.statsContainer}>
-              <Text style={styles.statText}>{estimatedArrival}</Text>
-              <View style={styles.statDivider} />
-              <Text style={styles.statText}>{distance}</Text>
-            </View>
-          </View>
+                <View style={styles.timeHighlightContainer}>
+                  <Text style={styles.timeBig}>{timeRemaining.toString().padStart(2, '0')} </Text>
+                  <Text style={styles.timeUnit}>min</Text>
+                </View>
 
-          <View style={styles.cardsContainer}>
-            <TripDetailsCard
-              variant="passenger"
-              label="PASSAGEIRO:"
-              name={passenger.name}
-              avatarUrl={passenger.avatarUrl}
-            />
-
-            <View style={styles.divider} />
-
-            <TripDetailsCard variant="address" label="ENDEREÇO:" address={nextStop.address} />
-          </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.actionsSection}>
-            <Text style={styles.actionsLabel}>AÇÕES RÁPIDAS</Text>
-            <View style={styles.actionsRow}>
-              <ContactActionButton
-                variant="driver"
-                phoneNumber={passenger.phoneNumber}
-                style={styles.actionButtonMain}
-              />
-
-              <View style={styles.buttonDividerWrapper}>
-                <View style={styles.buttonDividerLine} />
+                <View style={styles.statsContainer}>
+                  <Text style={styles.statText}>{estimatedArrival}</Text>
+                  <View style={styles.statDivider} />
+                  <Text style={styles.statText}>{distance}</Text>
+                </View>
               </View>
 
-              <SkipActionButton onPress={onSkipStop} style={styles.actionButtonSkip} />
-            </View>
-          </View>
+              <View style={styles.cardsContainer}>
+                <TripDetailsCard
+                  variant="passenger"
+                  label="PASSAGEIRO:"
+                  name={passenger.name}
+                  avatarUrl={passenger.avatarUrl}
+                />
+
+                <View style={styles.divider} />
+
+                <TripDetailsCard variant="address" label="ENDEREÇO:" address={nextStop.address} />
+              </View>
+
+              <View style={styles.divider} />
+
+              <View style={styles.actionsSection}>
+                <Text style={styles.actionsLabel}>AÇÕES RÁPIDAS</Text>
+                <View style={styles.actionsRow}>
+                  <ContactActionButton
+                    variant="driver"
+                    phoneNumber={passenger.phoneNumber}
+                    style={styles.actionButtonMain}
+                  />
+
+                  <View style={styles.buttonDividerWrapper}>
+                    <View style={styles.buttonDividerLine} />
+                  </View>
+
+                  <SkipActionButton onPress={onSkipStop} style={styles.actionButtonSkip} />
+                </View>
+              </View>
+            </>
+          )}
         </View>
       </Animated.View>
     </GestureDetector>
@@ -244,5 +334,64 @@ const styles = StyleSheet.create({
   },
   actionButtonSkip: {
     flexShrink: 0,
+  },
+  arrivalContainer: {
+    alignItems: 'center',
+    width: '100%',
+  },
+  arrivalTitle: {
+    ...typography.bodyBold,
+    textTransform: 'none',
+    marginBottom: 8,
+  },
+  arrivalSubtitle: {
+    ...typography.body,
+    color: colors.subtleText,
+  },
+  arrivalTimer: {
+    ...typography.header1,
+    marginBottom: 16,
+  },
+  arrivalDivider: {
+    width: '100%',
+    height: 1,
+    backgroundColor: colors.subtleText,
+    marginBottom: 16,
+  },
+  primaryButton: {
+    alignSelf: 'center',
+    width: '72%',
+    backgroundColor: colors.dark,
+    paddingVertical: 10,
+    borderRadius: 999,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  primaryButtonText: {
+    ...typography.bodyBold,
+    color: colors.white,
+    fontSize: 16,
+  },
+  secondaryButton: {
+    alignSelf: 'center',
+    width: '72%',
+    backgroundColor: withAlpha(colors.destructive, 0.12),
+    paddingVertical: 10,
+    borderRadius: 999,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonIcon: {
+    marginRight: 6,
+  },
+  secondaryButtonText: {
+    ...typography.bodyBold,
+    color: colors.destructive,
+    fontSize: 16,
   },
 });
