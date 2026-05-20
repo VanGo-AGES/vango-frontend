@@ -51,8 +51,11 @@ export async function getPushNotificationToken(): Promise<PushNotificationTokenR
 }
 
 const PUSH_LAST_SENT_KEY = '@vango:push:last-sent-token';
+let registrationInProgress = false;
 
 export async function registerPushToken(token: string): Promise<void> {
+  if (registrationInProgress) return;
+  registrationInProgress = true;
   try {
     if (!token) return;
 
@@ -74,5 +77,7 @@ export async function registerPushToken(token: string): Promise<void> {
     // keep a lightweight debug log
     // eslint-disable-next-line no-console
     console.debug('registerPushToken failed', error);
+  } finally {
+    registrationInProgress = false;
   }
 }

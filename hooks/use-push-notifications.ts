@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import * as Notifications from 'expo-notifications';
 import { useRouter } from 'expo-router';
 import { getNotificationDestination } from '@/lib/notification-navigation';
-import { getPushNotificationToken, registerPushToken  } from '@/services/notification.service';
+import { getPushNotificationToken, registerPushToken } from '@/services/notification.service';
 import type { NotificationPayload } from '@/types/notification.types';
 import { useSessionStore } from '@/store/session.store';
 
