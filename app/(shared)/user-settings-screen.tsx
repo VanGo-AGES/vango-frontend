@@ -129,7 +129,6 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     paddingTop: 16,
     paddingBottom: 77,
-    gap: 10,
     marginTop: 94,
   },
   option: {
@@ -137,7 +136,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     paddingHorizontal: 16,
-    paddingTop: 12,
+    paddingVertical: 12,
   },
   optionIcon: {
     width: 24,
