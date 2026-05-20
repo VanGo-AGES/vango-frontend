@@ -62,6 +62,8 @@ export default function RootLayout() {
               />
               <Stack.Screen name="(shared)/edit-profile-screen" options={{ headerShown: false }} />
 
+              <Stack.Screen name="(shared)/user-settings-screen" options={{ headerShown: false }} />
+
               {/* driver */}
               <Stack.Screen name="(driver)/driver-home" options={{ headerShown: false }} />
               <Stack.Screen
