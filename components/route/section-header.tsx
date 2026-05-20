@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    ...typography.subtitle,
+    ...typography.header3,
     color: colors.dark,
     textAlign: 'center',
   },
