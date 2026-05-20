@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Modal, PanResponder, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -15,6 +16,8 @@ type NotificationSwitchProps = {
   value: boolean;
   onValueChange: (value: boolean) => void;
 };
+
+const NOTIFICATION_PREFERENCES_STORAGE_KEY = '@vango:notification-preferences';
 
 function NotificationSwitch({ value, onValueChange }: NotificationSwitchProps) {
   const translateX = useRef(new Animated.Value(value ? 24 : 0)).current;
@@ -55,12 +58,38 @@ export function NotificationSheet({ visible, onClose, userType }: NotificationSh
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
 
+  const storageKey = `${NOTIFICATION_PREFERENCES_STORAGE_KEY}:${userType}`;
+
   const warningTitle = userType === 'driver' ? 'Avisos dos Passageiros' : 'Avisos do Motorista';
 
   const warningDescription =
     userType === 'driver'
       ? 'Receba notificações dos passageiros'
       : 'Receba notificações do motorista';
+
+  useEffect(() => {
+    async function loadNotificationPreferences() {
+      try {
+        const storedPreferences = await AsyncStorage.getItem(storageKey);
+
+        if (!storedPreferences) {
+          return;
+        }
+
+        const preferences = JSON.parse(storedPreferences);
+
+        setAllowSounds(Boolean(preferences.allowSounds));
+        setAllowUserWarnings(Boolean(preferences.allowUserWarnings));
+        setAllowTrafficAlerts(Boolean(preferences.allowTrafficAlerts));
+      } catch {
+        // Evita que erro no storage quebre a tela.
+      }
+    }
+
+    if (visible) {
+      loadNotificationPreferences();
+    }
+  }, [visible, storageKey]);
 
   useEffect(() => {
     if (visible) {
@@ -71,6 +100,38 @@ export function NotificationSheet({ visible, onClose, userType }: NotificationSh
       }).start();
     }
   }, [visible, sheetTranslateY]);
+
+  async function saveNotificationPreferences(
+    nextAllowSounds: boolean,
+    nextAllowUserWarnings: boolean,
+    nextAllowTrafficAlerts: boolean,
+  ) {
+    try {
+      await AsyncStorage.setItem(
+        storageKey,
+        JSON.stringify({
+          allowSounds: nextAllowSounds,
+          allowUserWarnings: nextAllowUserWarnings,
+          allowTrafficAlerts: nextAllowTrafficAlerts,
+        }),
+      );
+    } catch {}
+  }
+
+  function handleAllowSoundsChange(value: boolean) {
+    setAllowSounds(value);
+    saveNotificationPreferences(value, allowUserWarnings, allowTrafficAlerts);
+  }
+
+  function handleAllowUserWarningsChange(value: boolean) {
+    setAllowUserWarnings(value);
+    saveNotificationPreferences(allowSounds, value, allowTrafficAlerts);
+  }
+
+  function handleAllowTrafficAlertsChange(value: boolean) {
+    setAllowTrafficAlerts(value);
+    saveNotificationPreferences(allowSounds, allowUserWarnings, value);
+  }
 
   const closeRef = useRef(() => {});
   closeRef.current = () => {
@@ -146,7 +207,7 @@ export function NotificationSheet({ visible, onClose, userType }: NotificationSh
             </View>
 
             <View style={styles.switchContainer}>
-              <NotificationSwitch value={allowSounds} onValueChange={setAllowSounds} />
+              <NotificationSwitch value={allowSounds} onValueChange={handleAllowSoundsChange} />
             </View>
           </View>
 
@@ -161,7 +222,10 @@ export function NotificationSheet({ visible, onClose, userType }: NotificationSh
             </View>
 
             <View style={styles.switchContainer}>
-              <NotificationSwitch value={allowUserWarnings} onValueChange={setAllowUserWarnings} />
+              <NotificationSwitch
+                value={allowUserWarnings}
+                onValueChange={handleAllowUserWarningsChange}
+              />
             </View>
           </View>
 
@@ -174,7 +238,7 @@ export function NotificationSheet({ visible, onClose, userType }: NotificationSh
             <View style={styles.switchContainer}>
               <NotificationSwitch
                 value={allowTrafficAlerts}
-                onValueChange={setAllowTrafficAlerts}
+                onValueChange={handleAllowTrafficAlertsChange}
               />
             </View>
           </View>
