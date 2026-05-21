@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
-import MapView, { Marker, Polyline, type Region } from 'react-native-maps';
+import { Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import MapView, { Marker, Polyline, PROVIDER_GOOGLE, type Region } from 'react-native-maps';
 import Animated, { type AnimatedStyle } from 'react-native-reanimated';
 
 import CurrentLocationPin from '@/assets/images/localizacao-atual.svg';
@@ -22,8 +22,11 @@ export type ActiveRouteMapProps = {
   onRecenterPress?: () => void;
   containerStyle?: StyleProp<ViewStyle>;
   recenterButtonStyle?: StyleProp<ViewStyle> | AnimatedStyle<ViewStyle>;
+  liveRefreshIntervalMs?: number;
+  followCurrentLocation?: boolean;
 };
 
+const DEFAULT_LIVE_REFRESH_INTERVAL_MS = 10_000;
 const MIN_DELTA = 0.008;
 const PATH_POINTS = 14;
 const MARKER_ANCHOR = { x: 0.5, y: 1 } as const;
@@ -100,8 +103,11 @@ export function ActiveRouteMap({
   onRecenterPress,
   containerStyle,
   recenterButtonStyle,
+  liveRefreshIntervalMs = DEFAULT_LIVE_REFRESH_INTERVAL_MS,
+  followCurrentLocation = true,
 }: ActiveRouteMapProps) {
   const mapRef = useRef<MapView>(null);
+  const requestIdRef = useRef(0);
   const [routeCoordinates, setRouteCoordinates] = useState<
     { latitude: number; longitude: number }[]
   >([]);
@@ -112,8 +118,51 @@ export function ActiveRouteMap({
   );
 
   useEffect(() => {
-    fetchRealRoutePoints(currentLocation, nextStopLocation).then(setRouteCoordinates);
-  }, [currentLocation, nextStopLocation]);
+    let isActive = true;
+    requestIdRef.current += 1;
+    const requestId = requestIdRef.current;
+
+    const syncRoute = async () => {
+      const points = await fetchRealRoutePoints(currentLocation, nextStopLocation);
+
+      if (isActive && requestId === requestIdRef.current) {
+        setRouteCoordinates(points);
+      }
+    };
+
+    void syncRoute();
+
+    if (liveRefreshIntervalMs <= 0) {
+      return () => {
+        isActive = false;
+      };
+    }
+
+    const intervalId = setInterval(() => {
+      void syncRoute();
+    }, liveRefreshIntervalMs);
+
+    return () => {
+      isActive = false;
+      clearInterval(intervalId);
+    };
+  }, [currentLocation, nextStopLocation, liveRefreshIntervalMs]);
+
+  useEffect(() => {
+    if (!followCurrentLocation) {
+      return;
+    }
+
+    mapRef.current?.animateToRegion(
+      {
+        latitude: currentLocation.latitude,
+        longitude: currentLocation.longitude,
+        latitudeDelta: initialRegion.latitudeDelta,
+        longitudeDelta: initialRegion.longitudeDelta,
+      },
+      350,
+    );
+  }, [currentLocation, followCurrentLocation, initialRegion]);
 
   const handleRecenterPress = () => {
     mapRef.current?.animateToRegion(
@@ -132,6 +181,7 @@ export function ActiveRouteMap({
     <View style={[styles.container, containerStyle]}>
       <MapView
         ref={mapRef}
+        provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
         style={StyleSheet.absoluteFill}
         initialRegion={initialRegion}
         zoomEnabled
