@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Stack, useRouter } from 'expo-router';
 import { Alert, Linking, StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
@@ -8,11 +8,13 @@ import { ActiveRouteMap } from '@/components/route/active-route-map';
 import { NavigationFab } from '@/components/route/navigation-fab';
 import { RouteTopBar } from '@/components/route/route-top-bar';
 import { TripBottomSheet } from '@/components/route/trip-bottom-sheet';
+import AppDialog from '@/components/general/app-dialog';
 import { useRouteStops } from '@/hooks/use-route-stops';
 import { openWazeNavigation, getWazeUrls } from '@/lib/waze-navigation';
 import { colors } from '@/styles/colors';
 
 const ROUTE_ID = 'route-1';
+const TRIP_TYPE: 'pickup' | 'dropoff' = 'pickup';
 
 const MOCK_CURRENT_LOCATION = {
   latitude: -30.0346,
@@ -36,36 +38,46 @@ const MOCK_PASSENGER = {
   phoneNumber: '51999999999',
 };
 
+type TripStatus = 'driving' | 'arrival' | 'stopCompleted' | 'completed';
+
+type ActiveDialog =
+  | 'confirmPickup'
+  | 'confirmDropoff'
+  | 'confirmAbsence'
+  | 'confirmNotDropoff'
+  | 'skipStop'
+  | 'routeFinished'
+  | null;
+
 export default function DriverActiveRouteScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [navigationMenuOpen, setNavigationMenuOpen] = useState(false);
+  const [tripStatus, setTripStatus] = useState<TripStatus>('driving');
+  const [activeDialog, setActiveDialog] = useState<ActiveDialog>(null);
 
-  const { stops, currentStopId } = useRouteStops({ routeId: ROUTE_ID });
+  const { stops, currentStopId, setCurrentStopId } = useRouteStops({ routeId: ROUTE_ID });
 
-  const nextStop = useMemo(() => {
-    const currentStopIndex = currentStopId
-      ? stops.findIndex((stop) => stop.id === currentStopId)
-      : -1;
+  const routeStops = useMemo(() => stops.filter((stop) => stop.type === 'stop'), [stops]);
 
-    if (currentStopIndex >= 0) {
-      const currentStop = stops[currentStopIndex];
+  const currentStopIndex = useMemo(
+    () => routeStops.findIndex((stop) => stop.id === currentStopId),
+    [routeStops, currentStopId],
+  );
 
-      if (currentStop?.type === 'stop') {
-        return currentStop;
-      }
+  const currentStop = currentStopIndex >= 0 ? routeStops[currentStopIndex] : routeStops[0];
 
-      const nextStopAfterCurrent = stops
-        .slice(currentStopIndex + 1)
-        .find((stop) => stop.type === 'stop');
+  const nextStop = currentStop;
 
-      if (nextStopAfterCurrent) {
-        return nextStopAfterCurrent;
-      }
-    }
+  useEffect(() => {
+    if (tripStatus !== 'driving') return;
 
-    return stops.find((stop) => stop.type === 'stop');
-  }, [currentStopId, stops]);
+    const arrivalTimeout = setTimeout(() => {
+      setTripStatus('arrival');
+    }, 5000);
+
+    return () => clearTimeout(arrivalTimeout);
+  }, [tripStatus, currentStopId]);
 
   const bottomPadding = Math.max(24, insets.bottom);
   const sheetMaxHeight = 570 + bottomPadding;
@@ -88,7 +100,27 @@ export default function DriverActiveRouteScreen() {
 
   const handleRecenterPress = () => undefined;
 
-  const handleSkipStop = () => undefined;
+  const handleSkipStop = () => {
+    setActiveDialog('skipStop');
+  };
+
+  const advanceToNextStop = () => {
+    const nextRouteStop = routeStops[currentStopIndex + 1];
+
+    if (!nextRouteStop) {
+      setTripStatus('completed');
+      setActiveDialog('routeFinished');
+      return;
+    }
+
+    setCurrentStopId(nextRouteStop.id);
+    setTripStatus('driving');
+    setActiveDialog(null);
+  };
+
+  const closeDialog = () => {
+    setActiveDialog(null);
+  };
 
   const handleOpenWaze = async () => {
     setNavigationMenuOpen(false);
@@ -139,6 +171,54 @@ export default function DriverActiveRouteScreen() {
     }
   };
 
+  const dialogConfig = {
+    confirmPickup: {
+      title: 'Confirmar embarque?',
+      description: 'O passageiro será marcado como embarcado.',
+      confirmLabel: 'Confirmar',
+      confirmVariant: 'default' as const,
+      onConfirm: advanceToNextStop,
+    },
+    confirmDropoff: {
+      title: 'Confirmar desembarque?',
+      description: 'O passageiro será marcado como entregue.',
+      confirmLabel: 'Confirmar',
+      confirmVariant: 'default' as const,
+      onConfirm: advanceToNextStop,
+    },
+    confirmAbsence: {
+      title: 'Confirmar ausência?',
+      description: 'O passageiro não embarcou e será marcado como ausente.',
+      confirmLabel: 'Confirmar',
+      confirmVariant: 'destructive' as const,
+      onConfirm: advanceToNextStop,
+    },
+    confirmNotDropoff: {
+      title: 'Confirmar não desembarque?',
+      description: 'O passageiro será marcado como não entregue.',
+      confirmLabel: 'Confirmar',
+      confirmVariant: 'destructive' as const,
+      onConfirm: advanceToNextStop,
+    },
+    skipStop: {
+      title: 'Pular parada?',
+      description:
+        'O passageiro desta parada não será embarcado.\nA rota seguirá para o próximo destino.',
+      confirmLabel: 'Pular',
+      confirmVariant: 'destructive' as const,
+      onConfirm: advanceToNextStop,
+    },
+    routeFinished: {
+      title: 'Rota finalizada!',
+      description: 'Todas as paradas foram concluídas com sucesso.',
+      confirmLabel: 'Ok',
+      confirmVariant: 'default' as const,
+      onConfirm: closeDialog,
+    },
+  };
+
+  const currentDialog = activeDialog ? dialogConfig[activeDialog] : null;
+
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
@@ -164,15 +244,72 @@ export default function DriverActiveRouteScreen() {
           />
         </Animated.View>
 
-        <TripBottomSheet
-          nextStop={MOCK_NEXT_STOP}
-          passenger={MOCK_PASSENGER}
-          timeRemaining={6}
-          estimatedArrival="18h43"
-          distance="1.4km"
-          onSkipStop={handleSkipStop}
-          translateY={sheetTranslateY}
-        />
+        {currentStop && (
+          <TripBottomSheet
+            nextStop={{
+              id: currentStop.id,
+              address: currentStop.address,
+            }}
+            passenger={{
+              id: currentStop.id,
+              name: currentStop.passengerName ?? 'Passageiro',
+              avatarUrl: undefined,
+              phoneNumber: '51999999999',
+            }}
+            timeRemaining={tripStatus === 'arrival' ? 0 : 6}
+            estimatedArrival="18h43"
+            distance="1.4km"
+            onSkipStop={handleSkipStop}
+            translateY={sheetTranslateY}
+            stopArrival={
+              tripStatus === 'arrival'
+                ? {
+                    tripType: TRIP_TYPE,
+                    countdownSeconds: 120,
+                    onConfirmPress: () =>
+                      setActiveDialog(TRIP_TYPE === 'pickup' ? 'confirmPickup' : 'confirmDropoff'),
+                    onAbsentPress: () =>
+                      setActiveDialog(
+                        TRIP_TYPE === 'pickup' ? 'confirmAbsence' : 'confirmNotDropoff',
+                      ),
+                  }
+                : undefined
+            }
+          />
+        )}
+
+        {currentDialog && (
+          <AppDialog
+            visible={Boolean(currentDialog)}
+            title={currentDialog.title}
+            description={currentDialog.description}
+            onRequestClose={closeDialog}
+            actions={
+              activeDialog === 'routeFinished'
+                ? [
+                    {
+                      label: currentDialog.confirmLabel,
+                      onPress: currentDialog.onConfirm,
+                      variant: currentDialog.confirmVariant,
+                    },
+                  ]
+                : [
+                    {
+                      label: 'Cancelar',
+                      onPress: closeDialog,
+                      variant: 'cancel',
+                      icon: 'close',
+                    },
+                    {
+                      label: currentDialog.confirmLabel,
+                      onPress: currentDialog.onConfirm,
+                      variant: currentDialog.confirmVariant,
+                      icon: activeDialog === 'skipStop' ? 'chevron-double-right' : 'check',
+                    },
+                  ]
+            }
+          />
+        )}
       </View>
     </>
   );
