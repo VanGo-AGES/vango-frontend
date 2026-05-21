@@ -1,4 +1,4 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import type { ComponentProps, ReactElement } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -13,44 +13,46 @@ export type MetricItemProps = {
 };
 
 type MetricConfig = {
-  iconName: ComponentProps<typeof Ionicons>['name'];
+  iconName: ComponentProps<typeof MaterialIcons>['name'];
   title: string;
-  unit: string;
+  unit: (value: string | number) => string;
 };
 
 const METRIC_CONFIG: Record<MetricType, MetricConfig> = {
   distance: {
-    iconName: 'bus-outline',
+    iconName: 'directions-bus',
     title: 'Km rodados',
-    unit: 'km',
+    unit: () => 'km',
   },
   duration: {
-    iconName: 'time-outline',
+    iconName: 'alarm',
     title: 'Tempo da viagem',
-    unit: 'min',
+    unit: () => 'min',
   },
   passengers: {
-    iconName: 'walk-outline',
+    iconName: 'directions-walk',
     title: 'Passageiros Transportados',
-    unit: 'passageiros',
+    unit: (val) => (Number(val) === 1 ? 'passageiro' : 'passageiros'),
   },
   trips: {
-    iconName: 'swap-horizontal-outline',
+    iconName: 'swap-horiz',
     title: 'Viagens Realizadas',
-    unit: 'viagens',
+    unit: (val) => (Number(val) === 1 ? 'viagem' : 'viagens'),
   },
 };
 
 export function MetricItem({ type, value }: MetricItemProps): ReactElement {
   const { iconName, title, unit } = METRIC_CONFIG[type];
 
+  const currentUnit = unit(value);
+
   return (
     <View style={styles.container}>
-      <Ionicons name={iconName} size={20} color={colors.text} testID={`icon-${type}`} />
+      <MaterialIcons name={iconName} size={24} color={colors.dark} testID={`icon-${type}`} />
       <View style={styles.textContainer}>
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.value}>
-          {value} {unit}
+          {value} {currentUnit}
         </Text>
       </View>
     </View>
@@ -64,20 +66,18 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.separator,
-    borderRadius: 8,
+    backgroundColor: colors.light,
   },
   textContainer: {
     flexDirection: 'column',
+    flex: 1,
   },
   title: {
-    ...typography.small,
+    ...typography.bodyLarge,
     color: colors.dark,
   },
   value: {
-    ...typography.small,
-    color: colors.text,
+    ...typography.bodyMedium,
+    color: colors.dark,
   },
 });
