@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -8,7 +8,6 @@ import { PassengerTripBottomSheet } from '@/components/route/passenger/passenger
 import { RouteTopBar } from '@/components/route/route-top-bar';
 import { usePassangerRouteDetail } from '@/hooks/use-passanger-route-detail';
 import { colors, withAlpha } from '@/styles/colors';
-import { typography } from '@/styles/typography';
 import type { AddressResponse, PassangerRouteDetailResponse } from '@/types/route.types';
 
 type RoutePoint = {
@@ -225,22 +224,7 @@ export default function PassengerActiveRouteScreen() {
           />
         </View>
 
-        <View pointerEvents="none" style={styles.loadingBadgeContainer}>
-          {route ? null : (
-            <View style={styles.loadingBadge}>
-              <ActivityIndicator size="small" color={colors.dark} />
-              <Text style={styles.loadingText}>Carregando viagem</Text>
-            </View>
-          )}
-        </View>
-
-        <View pointerEvents="none" style={styles.subtitleContainer}>
-          <View style={styles.subtitleBadge}>
-            <Text style={styles.subtitleText} numberOfLines={1}>
-              {subtitle}
-            </Text>
-          </View>
-        </View>
+        {/* Top badges removed to match design (Figma) */}
 
         <PassengerTripBottomSheet
           state="driver_on_the_way"
@@ -282,44 +266,5 @@ const styles = StyleSheet.create({
   },
   recenterButton: {
     marginBottom: 336,
-  },
-  loadingBadgeContainer: {
-    position: 'absolute',
-    top: 96,
-    left: 16,
-    zIndex: 25,
-  },
-  loadingBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: withAlpha(colors.light, 0.92),
-    borderWidth: 1,
-    borderColor: colors.accent,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 999,
-  },
-  loadingText: {
-    ...typography.small,
-    color: colors.text,
-  },
-  subtitleContainer: {
-    position: 'absolute',
-    top: 96,
-    right: 16,
-    zIndex: 25,
-    alignItems: 'flex-end',
-  },
-  subtitleBadge: {
-    maxWidth: 240,
-    backgroundColor: withAlpha(colors.dark, 0.84),
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 999,
-  },
-  subtitleText: {
-    ...typography.labelLarge,
-    color: colors.light,
   },
 });
