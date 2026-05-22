@@ -25,6 +25,14 @@ export function TripDetailsCard({
   plate,
   address,
 }: TripDetailsCardProps) {
+  const initials = (name ?? '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('');
+
   const renderContent = () => {
     switch (variant) {
       case 'passenger':
@@ -35,7 +43,13 @@ export function TripDetailsCard({
               {avatarUrl ? (
                 <Avatar.Image size={40} source={{ uri: avatarUrl }} />
               ) : (
-                <Avatar.Icon size={40} icon="account" style={styles.avatarPlaceholder} />
+                <Avatar.Text
+                  size={40}
+                  label={initials || 'M'}
+                  color={colors.dark}
+                  labelStyle={styles.avatarLabel}
+                  style={styles.avatarPlaceholder}
+                />
               )}
               <Text style={styles.userName} numberOfLines={1}>
                 {name}
@@ -104,7 +118,11 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   avatarPlaceholder: {
-    backgroundColor: colors.subtleText,
+    backgroundColor: colors.primary,
+  },
+  avatarLabel: {
+    ...typography.bodyBold,
+    color: colors.dark,
   },
   plateBadge: {
     backgroundColor: colors.light,

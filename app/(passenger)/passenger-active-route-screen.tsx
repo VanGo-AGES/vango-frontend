@@ -7,7 +7,7 @@ import { ActiveRouteMap } from '@/components/route/active-route-map';
 import { PassengerTripBottomSheet } from '@/components/route/passenger/passenger-trip-bottom-sheet';
 import { RouteTopBar } from '@/components/route/route-top-bar';
 import { usePassangerRouteDetail } from '@/hooks/use-passanger-route-detail';
-import { colors, withAlpha } from '@/styles/colors';
+import { colors } from '@/styles/colors';
 import type { AddressResponse, PassangerRouteDetailResponse } from '@/types/route.types';
 
 type RoutePoint = {
@@ -148,11 +148,6 @@ function formatDistance(distanceKm: number): string {
   return `${distanceKm < 10 ? distanceKm.toFixed(1) : Math.round(distanceKm)} km`.replace('.', ',');
 }
 
-function formatSheetSubtitle(route: PassangerRouteDetailResponse): string {
-  const label = route.dependent_name ?? route.driver_name;
-  return route.dependent_name ? `${label} • ${route.name}` : route.name;
-}
-
 export default function PassengerActiveRouteScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -198,11 +193,30 @@ export default function PassengerActiveRouteScreen() {
     };
   }, [activeRoute]);
 
-  const subtitle = formatSheetSubtitle(activeRoute);
-
   const handleBackPress = () => {
     router.back();
   };
+
+  const routeWithOptionalFields = activeRoute as PassangerRouteDetailResponse & {
+    driver_plate?: string;
+    driver_avatar_url?: string;
+    avatar_url?: string;
+    driver_photo_url?: string;
+  };
+
+  const driverName = activeRoute.driver_name || 'João Silva';
+  const driverPlate = routeWithOptionalFields.driver_plate || 'ABC-1234';
+  const driverAvatarUrl =
+    routeWithOptionalFields.driver_avatar_url ||
+    routeWithOptionalFields.avatar_url ||
+    routeWithOptionalFields.driver_photo_url ||
+    undefined;
+
+  const realAddress =
+    activeRoute.my_pickup_address || activeRoute.destination_address || activeRoute.origin_address;
+  const deliveryAddress = realAddress
+    ? [realAddress.street, realAddress.number].filter(Boolean).join(', ')
+    : 'Av. Bento Gonçalves, 500';
 
   return (
     <>
@@ -224,20 +238,19 @@ export default function PassengerActiveRouteScreen() {
           />
         </View>
 
-        {/* Top badges removed to match design (Figma) */}
-
         <PassengerTripBottomSheet
           state="driver_on_the_way"
           driver={{
             id: 'driver-active-route',
-            name: activeRoute.driver_name,
-            avatarUrl: undefined,
-            plate: '',
+            name: driverName,
+            avatarUrl: driverAvatarUrl,
+            plate: driverPlate,
           }}
           timeRemaining={mapPoints.timeRemaining}
           estimatedArrival={mapPoints.estimatedArrival}
           distance={formatDistance(mapPoints.distanceKm)}
           countdownSeconds={mapPoints.timeRemaining * 60}
+          address={deliveryAddress}
         />
       </View>
     </>
