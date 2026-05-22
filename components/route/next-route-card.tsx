@@ -1,8 +1,9 @@
-import { ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { RouteInfoChip } from '@/components/route/route-info-chip';
+import { RouteMapPreview, type Coordinates } from '@/components/route/route-map-preview';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
@@ -10,17 +11,24 @@ export type NextRouteCardProps = {
   routeName: string;
   dateLabel: string;
   time: string;
+  origin?: Coordinates;
+  destination?: Coordinates;
   onPress?: () => void;
 };
 
-export function NextRouteCard({ routeName, dateLabel, time, onPress }: NextRouteCardProps) {
+export function NextRouteCard({
+  routeName,
+  dateLabel,
+  time,
+  origin,
+  destination,
+  onPress,
+}: NextRouteCardProps) {
   return (
     <View style={styles.container}>
-      <ImageBackground
-        source={require('@/assets/images/map-mock.png')}
-        style={styles.card}
-        imageStyle={styles.cardImage}
-      >
+      <View style={styles.card}>
+        <RouteMapPreview origin={origin} destination={destination} variant="card" />
+
         <LinearGradient
           colors={['rgba(255,255,255,0)', 'rgba(0,0,0,0.5)']}
           start={{ x: 0, y: 0 }}
@@ -36,7 +44,7 @@ export function NextRouteCard({ routeName, dateLabel, time, onPress }: NextRoute
             <RouteInfoChip variant="time" time={time} />
           </View>
         </LinearGradient>
-      </ImageBackground>
+      </View>
 
       <Pressable
         onPress={onPress}

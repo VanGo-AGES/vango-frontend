@@ -133,6 +133,10 @@ export interface PassangerRouteListItem {
   driver_phone: string;
   origin_label: string;
   destination_label: string;
+  origin_latitude: number | null;
+  origin_longitude: number | null;
+  destination_latitude: number | null;
+  destination_longitude: number | null;
   expected_time: string;
   recurrence: string[];
   status: PassengerRouteStatus;

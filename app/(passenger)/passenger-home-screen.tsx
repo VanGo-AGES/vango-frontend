@@ -16,6 +16,9 @@ import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
 const headerLocation = 'Porto Alegre, RS';
+// TODO: Remover estes mocks quando o backend enviar as coordenadas
+const MOCK_ORIGIN = { latitude: -30.0277, longitude: -51.1632 }; // Shopping Iguatemi
+const MOCK_DESTINATION = { latitude: -30.0495, longitude: -51.2287 }; // Shopping Praia de Belas
 
 function formatRecurrence(recurrence: string[]): string {
   return recurrence
@@ -44,11 +47,29 @@ export default function PassengerHomeScreen() {
   const nextRoute = getNextPassangerRoute(routesData);
   const visibleRoutes = routesData.filter((r) => r.membership_status !== 'rejected');
   const routeItems = visibleRoutes.map((route) => ({
+    id: route.route_id,
     name: route.route_name,
     days: formatRecurrence(route.recurrence),
     duration: '30min',
     distance: '10 km',
     status: route.membership_status === 'pending' ? ('pending' as const) : ('default' as const),
+
+    // <-- AJUSTE AQUI: Lendo os campos 'achatados' direto da raiz
+    origin:
+      route.origin_latitude && route.origin_longitude
+        ? {
+            latitude: Number(route.origin_latitude),
+            longitude: Number(route.origin_longitude),
+          }
+        : MOCK_ORIGIN,
+    destination:
+      route.destination_latitude && route.destination_longitude
+        ? {
+            latitude: Number(route.destination_latitude),
+            longitude: Number(route.destination_longitude),
+          }
+        : MOCK_DESTINATION,
+
     onPress:
       route.membership_status === 'accepted'
         ? () =>
@@ -111,6 +132,22 @@ export default function PassengerHomeScreen() {
               routeName={nextRoute.route_name}
               dateLabel={formatRecurrence(nextRoute.recurrence) || 'Próxima rota'}
               time={formatTime(nextRoute.expected_time)}
+              origin={
+                nextRoute.origin_latitude && nextRoute.origin_longitude
+                  ? {
+                      latitude: Number(nextRoute.origin_latitude),
+                      longitude: Number(nextRoute.origin_longitude),
+                    }
+                  : MOCK_ORIGIN
+              }
+              destination={
+                nextRoute.destination_latitude && nextRoute.destination_longitude
+                  ? {
+                      latitude: Number(nextRoute.destination_latitude),
+                      longitude: Number(nextRoute.destination_longitude),
+                    }
+                  : MOCK_DESTINATION
+              }
               onPress={handleNextRoutePress}
             />
           ) : (
