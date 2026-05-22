@@ -1,8 +1,7 @@
-import { useMemo } from 'react';
 import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
 import { MaterialIcons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 
 import { EmptyState } from '@/components/general/empty-state';
 import { PrimaryButton } from '@/components/general/primary-button';
@@ -11,7 +10,9 @@ import { RouteStopList, type Stop } from '@/components/route/route-stop-list';
 import { RouteTopBar } from '@/components/route/route-top-bar';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
-import type { AddressResponse, StopResponse } from '@/types/route.types';
+import type { AddressResponse, RoutePassangerResponse, StopResponse } from '@/types/route.types';
+
+type RoutePassangerStopInfo = Pick<RoutePassangerResponse, 'id' | 'user_name' | 'dependent_name'>;
 
 const FALLBACK_DURATION_MINUTES = 30;
 const FALLBACK_DISTANCE_KM = 10;
@@ -33,10 +34,15 @@ function formatAddress(address: AddressResponse): string {
   return [address.street, address.number].filter(Boolean).join(', ');
 }
 
+function pickPassangerName(p: RoutePassangerStopInfo): string {
+  return p.dependent_name ?? p.user_name;
+}
+
 function buildUiStops(
   origin: AddressResponse,
   destination: AddressResponse,
   stops: StopResponse[],
+  passangerByRpId: Map<string, RoutePassangerStopInfo>,
   currentStopId?: string,
 ): (Stop & { isCurrent?: boolean })[] {
   const sortedStops = [...stops].sort((a, b) => a.order_index - b.order_index);
@@ -47,13 +53,17 @@ function buildUiStops(
       type: 'origin',
       address: formatAddress(origin),
     },
-    ...sortedStops.map<Stop & { isCurrent?: boolean }>((stop) => ({
-      id: stop.route_passanger_id,
-      type: 'stop',
-      passengerName: stop.address.label?.replace('Casa do ', ''),
-      address: formatAddress(stop.address),
-      isCurrent: stop.route_passanger_id === currentStopId,
-    })),
+    ...sortedStops.map<Stop & { isCurrent?: boolean }>((stop) => {
+      const passanger = passangerByRpId.get(stop.route_passanger_id);
+
+      return {
+        id: stop.route_passanger_id,
+        type: 'stop',
+        passengerName: passanger ? pickPassangerName(passanger) : undefined,
+        address: formatAddress(stop.address),
+        isCurrent: stop.route_passanger_id === currentStopId,
+      };
+    }),
     {
       id: `destination-${destination.id}`,
       type: 'destination',
@@ -64,11 +74,6 @@ function buildUiStops(
 
 export default function PassengerActiveRouteDetailsScreen() {
   const router = useRouter();
-
-  const { routeId, tripId } = useLocalSearchParams<{
-    routeId: string;
-    tripId: string;
-  }>();
 
   const { height: screenHeight } = useWindowDimensions();
   const heroHeight = Math.max(320, Math.min(420, Math.round(screenHeight * 0.42)));
@@ -163,6 +168,24 @@ export default function PassengerActiveRouteDetailsScreen() {
     },
   ];
 
+  const passangers: RoutePassangerStopInfo[] = [
+    {
+      id: 'rp-1',
+      user_name: 'Bernardo',
+      dependent_name: null,
+    },
+    {
+      id: 'rp-2',
+      user_name: 'Mateus',
+      dependent_name: null,
+    },
+    {
+      id: 'rp-3',
+      user_name: 'Miguel',
+      dependent_name: null,
+    },
+  ];
+
   const currentStopId = 'rp-2';
 
   const handleOnBackPress = () => {
@@ -177,19 +200,22 @@ export default function PassengerActiveRouteDetailsScreen() {
     /**
      * TODO(US11): a PassengerActiveRouteScreen está bloqueada no momento.
      * Reativar navegação quando a implementação da tela for liberada.
-     *
-     * router.push({
-     *   pathname: '/(passenger)/passenger-active-route-screen',
-     *   params: { routeId, tripId },
-     * });
+     * router.push('/(passenger)/passenger-active-route-screen');
      */
   };
 
-  const stopsForView = useMemo(() => {
-    if (!route) return [];
+  const passangerByRpId = new Map<string, RoutePassangerStopInfo>();
+  passangers.forEach((p) => passangerByRpId.set(p.id, p));
 
-    return buildUiStops(route.origin_address, route.destination_address, stops, currentStopId);
-  }, [route]);
+  const stopsForView = route
+    ? buildUiStops(
+        route.origin_address,
+        route.destination_address,
+        stops,
+        passangerByRpId,
+        currentStopId,
+      )
+    : [];
 
   if (isRouteLoading) {
     return (
