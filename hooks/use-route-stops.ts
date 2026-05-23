@@ -11,6 +11,7 @@ type UseRouteStopsReturn = {
   isLoading: boolean;
   error: string | null;
   deleteStop: (stopId: string) => void;
+  setCurrentStopId: (stopId: string | undefined) => void;
 };
 
 export function useRouteStops({ routeId }: UseRouteStopsParams): UseRouteStopsReturn {
@@ -83,5 +84,6 @@ export function useRouteStops({ routeId }: UseRouteStopsParams): UseRouteStopsRe
     isLoading,
     error,
     deleteStop,
+    setCurrentStopId,
   };
 }
