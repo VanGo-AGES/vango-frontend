@@ -100,6 +100,21 @@ export default function DriverActiveRouteScreen() {
 
   const handleRecenterPress = () => undefined;
 
+  const stopArrivalProps = useMemo(
+    () =>
+      tripStatus === 'arrival'
+        ? {
+            tripType: TRIP_TYPE,
+            countdownSeconds: 120,
+            onConfirmPress: () =>
+              setActiveDialog(TRIP_TYPE === 'pickup' ? 'confirmPickup' : 'confirmDropoff'),
+            onAbsentPress: () =>
+              setActiveDialog(TRIP_TYPE === 'pickup' ? 'confirmAbsence' : 'confirmNotDropoff'),
+          }
+        : undefined,
+    [tripStatus],
+  );
+
   const handleSkipStop = () => {
     setActiveDialog('skipStop');
   };
@@ -261,20 +276,7 @@ export default function DriverActiveRouteScreen() {
             distance="1.4km"
             onSkipStop={handleSkipStop}
             translateY={sheetTranslateY}
-            stopArrival={
-              tripStatus === 'arrival'
-                ? {
-                    tripType: TRIP_TYPE,
-                    countdownSeconds: 120,
-                    onConfirmPress: () =>
-                      setActiveDialog(TRIP_TYPE === 'pickup' ? 'confirmPickup' : 'confirmDropoff'),
-                    onAbsentPress: () =>
-                      setActiveDialog(
-                        TRIP_TYPE === 'pickup' ? 'confirmAbsence' : 'confirmNotDropoff',
-                      ),
-                  }
-                : undefined
-            }
+            stopArrival={stopArrivalProps}
           />
         )}
 
