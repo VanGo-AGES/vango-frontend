@@ -1,19 +1,10 @@
 import { useState } from 'react';
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-  type ImageSourcePropType,
-  type StyleProp,
-  type ViewStyle,
-} from 'react-native';
-import { Image } from 'expo-image';
+import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import AppDialog from '@/components/general/app-dialog';
+import { RouteMapPreview, type Coordinates } from '@/components/route/route-map-preview';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
-const DEFAULT_MAP_IMAGE = require('@/assets/images/map-mock.png');
 
 export type RouteItemStatus = 'default' | 'pending';
 
@@ -23,8 +14,8 @@ export type RouteItemProps = {
   duration: string;
   distance: string;
   status?: RouteItemStatus;
-  thumbnailUri?: string;
-  thumbnailSource?: ImageSourcePropType;
+  origin?: Coordinates;
+  destination?: Coordinates;
   onPress?: () => void;
   style?: StyleProp<ViewStyle>;
   pendingBadgeLabel?: string;
@@ -38,8 +29,8 @@ export function RouteItem({
   duration = '30',
   distance = '10',
   status = 'default',
-  thumbnailUri,
-  thumbnailSource,
+  origin,
+  destination,
   onPress,
   style,
   pendingBadgeLabel = 'CONVITE PENDENTE',
@@ -47,7 +38,6 @@ export function RouteItem({
   pendingDialogDescription = 'Você ainda não foi aceito nessa rota. Quando o motorista aceitar os detalhes completos do trajeto ficarão disponíveis.',
 }: RouteItemProps) {
   const [isPendingDialogVisible, setIsPendingDialogVisible] = useState(false);
-
   const isPending = status === 'pending';
 
   const handlePress = () => {
@@ -55,11 +45,8 @@ export function RouteItem({
       setIsPendingDialogVisible(true);
       return;
     }
-
     onPress?.();
   };
-
-  const imageSource = thumbnailSource ?? (thumbnailUri ? { uri: thumbnailUri } : DEFAULT_MAP_IMAGE);
 
   return (
     <>
@@ -73,7 +60,7 @@ export function RouteItem({
           isPending && styles.pendingContainer,
         ]}
       >
-        <Image source={imageSource} style={styles.thumbnail} contentFit="cover" />
+        <RouteMapPreview origin={origin} destination={destination} variant="thumbnail" />
 
         <View style={styles.content}>
           {isPending && (

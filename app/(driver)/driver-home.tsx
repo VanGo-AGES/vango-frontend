@@ -15,6 +15,9 @@ import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
 const headerLocation = 'Porto Alegre, RS';
+// TODO: Remover estes mocks quando o backend enviar as coordenadas
+const MOCK_ORIGIN = { latitude: -30.0277, longitude: -51.1632 }; // Shopping Iguatemi
+const MOCK_DESTINATION = { latitude: -30.0495, longitude: -51.2287 }; // Shopping Praia de Belas
 
 function formatRecurrence(recurrence: string) {
   return recurrence
@@ -62,10 +65,22 @@ export default function DriverHomeScreen() {
   };
 
   const routeItems = myRoutes.map((route) => ({
+    id: route.id,
     name: route.name,
     days: formatRecurrence(route.recurrence),
     duration: formatDuration(route),
     distance: formatDistance(route),
+    origin:
+      route.origin_address?.latitude && route.origin_address?.longitude
+        ? { latitude: route.origin_address.latitude, longitude: route.origin_address.longitude }
+        : MOCK_ORIGIN,
+    destination:
+      route.destination_address?.latitude && route.destination_address?.longitude
+        ? {
+            latitude: route.destination_address.latitude,
+            longitude: route.destination_address.longitude,
+          }
+        : MOCK_DESTINATION,
     onPress: () => handleOpenRouteDetails(route.id),
   }));
 
@@ -114,6 +129,22 @@ export default function DriverHomeScreen() {
               routeName={nextRoute.name}
               dateLabel={formatRecurrence(nextRoute.recurrence) || 'Próxima rota'}
               time={formatTime(nextRoute.expected_time)}
+              origin={
+                nextRoute.origin_address?.latitude && nextRoute.origin_address?.longitude
+                  ? {
+                      latitude: nextRoute.origin_address.latitude,
+                      longitude: nextRoute.origin_address.longitude,
+                    }
+                  : MOCK_ORIGIN
+              }
+              destination={
+                nextRoute.destination_address?.latitude && nextRoute.destination_address?.longitude
+                  ? {
+                      latitude: nextRoute.destination_address.latitude,
+                      longitude: nextRoute.destination_address.longitude,
+                    }
+                  : MOCK_DESTINATION
+              }
               onPress={() => handleOpenRouteDetails(nextRoute.id)}
             />
           ) : (

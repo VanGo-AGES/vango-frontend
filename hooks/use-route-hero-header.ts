@@ -1,48 +1,59 @@
-import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { getRouteById } from '@/services/route.service';
+import { useSessionStore } from '@/store/session.store';
 
-type RouteHeroHeaderData = {
+export type RouteHeroHeaderData = {
   routeName: string;
   recurrence: string[];
   expectedTime: string;
   durationMinutes: number;
   distanceKm: number;
-  backgroundImage?: string;
-};
-
-// Mock, deletar quando fizer a integração
-const MOCK_ROUTE: RouteHeroHeaderData = {
-  routeName: 'Rota teste',
-  recurrence: ['Sab'],
-  expectedTime: '8:30',
-  durationMinutes: 40,
-  distanceKm: 10,
+  origin_address?: { latitude: number; longitude: number };
+  destination_address?: { latitude: number; longitude: number };
 };
 
 type UseRouteHeroHeaderParams = {
   routeId: string;
 };
 
-type UseRouteHeroHeaderReturn = {
-  data: RouteHeroHeaderData | null;
-  isLoading: boolean;
-  error: string | null;
-};
+export function useRouteHeroHeader({ routeId }: UseRouteHeroHeaderParams) {
+  const sessionUser = useSessionStore((state) => state.user);
 
-export function useRouteHeroHeader({
-  routeId,
-}: UseRouteHeroHeaderParams): UseRouteHeroHeaderReturn {
-  const [data] = useState<RouteHeroHeaderData | null>(MOCK_ROUTE);
-  const [isLoading] = useState(false);
-  const [error] = useState<string | null>(null);
+  const query = useQuery({
+    queryKey: ['route-hero-header', routeId],
+    queryFn: () => getRouteById(routeId),
+    enabled: !!sessionUser?.id && !!routeId,
+  });
 
-  // TODO: buscar dados do back
-  // useEffect(() => {
-  //   setIsLoading(true);
-  //   api.get(`/routes/${routeId}`)
-  //     .then((data) => setData(data))
-  //     .catch(() => setError('Erro ao carregar rota'))
-  //     .finally(() => setIsLoading(false));
-  // }, [routeId]);
+  const mappedData: RouteHeroHeaderData | null = query.data
+    ? {
+        routeName: query.data.name,
+        recurrence: query.data.recurrence.split(',').map((d) => d.trim()),
+        expectedTime: query.data.expected_time,
+        durationMinutes: query.data.duration_minutes ?? 30,
+        distanceKm: query.data.distance_km ?? 10,
 
-  return { data, isLoading, error };
+        origin_address:
+          query.data.origin_address?.latitude && query.data.origin_address?.longitude
+            ? {
+                latitude: query.data.origin_address.latitude,
+                longitude: query.data.origin_address.longitude,
+              }
+            : undefined,
+
+        destination_address:
+          query.data.destination_address?.latitude && query.data.destination_address?.longitude
+            ? {
+                latitude: query.data.destination_address.latitude,
+                longitude: query.data.destination_address.longitude,
+              }
+            : undefined,
+      }
+    : null;
+
+  return {
+    data: mappedData,
+    isLoading: query.isLoading,
+    error: query.error ? 'Erro ao carregar rota' : null,
+  };
 }

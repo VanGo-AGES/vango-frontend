@@ -15,18 +15,18 @@ import { colors } from '@/styles/colors';
 const ROUTE_ID = 'route-1';
 
 const MOCK_CURRENT_LOCATION = {
-  latitude: -30.0346,
-  longitude: -51.2177,
+  latitude: -30.0277,
+  longitude: -51.1632,
 };
 
 const MOCK_NEXT_STOP_LOCATION = {
-  latitude: -30.0378,
-  longitude: -51.2232,
+  latitude: -30.0495,
+  longitude: -51.2287,
 };
 
 const MOCK_NEXT_STOP = {
   id: 'stop-1',
-  address: 'Av. Bento Gonçalves, 500',
+  address: 'Shopping Praia de Belas',
 };
 
 const MOCK_PASSENGER = {
