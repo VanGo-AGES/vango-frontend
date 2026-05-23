@@ -26,7 +26,9 @@ export type ActiveRouteMapProps = {
   followCurrentLocation?: boolean;
 };
 
-const DEFAULT_LIVE_REFRESH_INTERVAL_MS = 10_000;
+// Default 0 = polling desligado. Telas que precisam de refresh contínuo
+// (ex.: tracking em tempo real) devem passar liveRefreshIntervalMs={N} explicitamente.
+const DEFAULT_LIVE_REFRESH_INTERVAL_MS = 0;
 const MIN_DELTA = 0.008;
 const PATH_POINTS = 14;
 const MARKER_ANCHOR = { x: 0.5, y: 1 } as const;

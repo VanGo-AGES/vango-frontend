@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { EmptyState } from '@/components/general/empty-state';
 import { ActiveRouteMap } from '@/components/route/active-route-map';
 import { PassengerTripBottomSheet } from '@/components/route/passenger/passenger-trip-bottom-sheet';
 import { RouteTopBar } from '@/components/route/route-top-bar';
@@ -13,70 +14,6 @@ import type { AddressResponse, PassangerRouteDetailResponse } from '@/types/rout
 type RoutePoint = {
   latitude: number;
   longitude: number;
-};
-
-const FALLBACK_ROUTE: PassangerRouteDetailResponse = {
-  route_id: 'fallback-route',
-  name: 'Rota em andamento',
-  route_type: 'outbound',
-  status: 'em_andamento',
-  recurrence: ['seg', 'qua', 'sex'],
-  expected_time: '07:30',
-  origin_address: {
-    id: 'origin-fallback',
-    label: 'Ponto de partida',
-    street: 'Av. Protásio Alves',
-    number: '3500',
-    neighborhood: 'Petrópolis',
-    zip: '90410-000',
-    city: 'Porto Alegre',
-    state: 'RS',
-    latitude: -30.0346,
-    longitude: -51.2177,
-  },
-  destination_address: {
-    id: 'destination-fallback',
-    label: 'Destino',
-    street: 'PUCRS - Av. Ipiranga',
-    number: '6681',
-    neighborhood: 'Partenon',
-    zip: '90619-900',
-    city: 'Porto Alegre',
-    state: 'RS',
-    latitude: -30.0402,
-    longitude: -51.2291,
-  },
-  stops: [
-    {
-      id: 'stop-fallback',
-      route_passanger_id: 'route-passenger-fallback',
-      order_index: 1,
-      address: {
-        label: 'Parada do passageiro',
-        street: 'Rua Vicente da Fontoura',
-        number: '1280',
-      },
-    },
-  ],
-  driver_name: 'Motorista',
-  driver_phone: '(51) 99999-9999',
-  membership_status: 'accepted',
-  my_pickup_address: {
-    id: 'pickup-fallback',
-    label: 'Parada do passageiro',
-    street: 'Rua Vicente da Fontoura',
-    number: '1280',
-    neighborhood: 'Santana',
-    zip: '90640-000',
-    city: 'Porto Alegre',
-    state: 'RS',
-    latitude: -30.0379,
-    longitude: -51.2233,
-  },
-  my_schedules: [],
-  current_trip_id: 'trip-fallback',
-  dependent_id: null,
-  dependent_name: null,
 };
 
 function normalizeParam(value?: string | string[]): string | undefined {
@@ -159,26 +96,87 @@ export default function PassengerActiveRouteScreen() {
   const routeId = normalizeParam(params.routeId);
   const dependentId = normalizeParam(params.dependentId);
 
-  const { route } = usePassangerRouteDetail({ routeId, dependentId });
+  const { route, isLoading, isError } = usePassangerRouteDetail({ routeId, dependentId });
 
-  const activeRoute = route ?? FALLBACK_ROUTE;
+  const handleBackPress = () => {
+    router.back();
+  };
 
+  // Loading: enquanto routeId está válido e a query está rodando.
+  if (isLoading) {
+    return (
+      <FeedbackScreen
+        topInset={insets.top}
+        onBackPress={handleBackPress}
+        icon="schedule"
+        text="Carregando o acompanhamento da viagem..."
+      />
+    );
+  }
+
+  // Erro: falha no fetch ou ausência de route (ex.: routeId não passado / inválido).
+  if (isError || !route) {
+    return (
+      <FeedbackScreen
+        topInset={insets.top}
+        onBackPress={handleBackPress}
+        icon="error-outline"
+        text="Não foi possível carregar a viagem. Toque para tentar novamente."
+      />
+    );
+  }
+
+  return <ActiveRouteContent route={route} insets={insets} onBackPress={handleBackPress} />;
+}
+
+type FeedbackScreenProps = {
+  topInset: number;
+  onBackPress: () => void;
+  icon: 'schedule' | 'error-outline';
+  text: string;
+};
+
+function FeedbackScreen({ topInset, onBackPress, icon, text }: FeedbackScreenProps) {
+  return (
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <View style={styles.screen}>
+        <View style={[styles.topBarContainer, { top: topInset + 8 }]}>
+          <RouteTopBar onBackPress={onBackPress} showMenu={false} backgroundColor="transparent" />
+        </View>
+        <View style={styles.feedbackWrapper}>
+          <EmptyState icon={icon} text={text} />
+        </View>
+      </View>
+    </>
+  );
+}
+
+type ActiveRouteContentProps = {
+  route: PassangerRouteDetailResponse;
+  insets: { top: number };
+  onBackPress: () => void;
+};
+
+export function ActiveRouteContent({ route, insets, onBackPress }: ActiveRouteContentProps) {
   const mapPoints = useMemo(() => {
-    const originPoint = toPoint(activeRoute.origin_address) ??
-      toPoint(activeRoute.destination_address) ??
-      toPoint(activeRoute.my_pickup_address) ?? {
+    const originPoint = toPoint(route.origin_address) ??
+      toPoint(route.destination_address) ??
+      toPoint(route.my_pickup_address) ?? {
         latitude: -30.0346,
         longitude: -51.2177,
       };
 
-    const passengerStopPoint = toPoint(activeRoute.my_pickup_address) ??
-      toPoint(activeRoute.origin_address) ??
-      toPoint(activeRoute.destination_address) ?? {
+    const passengerStopPoint = toPoint(route.my_pickup_address) ??
+      toPoint(route.origin_address) ??
+      toPoint(route.destination_address) ?? {
         latitude: -30.0378,
         longitude: -51.2232,
       };
 
-    const driverProgress = activeRoute.current_trip_id ? 0.42 : 0.28;
+    // TODO(US11-integração): substituir geometria mockada por posição real
+    // do motorista vinda do Socket.IO (location_update).
+    const driverProgress = route.current_trip_id ? 0.42 : 0.28;
 
     const driverPoint = interpolatePoint(originPoint, passengerStopPoint, driverProgress);
     const distanceKm = Math.max(calculateDistanceKm(driverPoint, passengerStopPoint), 0.3);
@@ -191,20 +189,18 @@ export default function PassengerActiveRouteScreen() {
       timeRemaining,
       estimatedArrival: formatArrivalTime(timeRemaining),
     };
-  }, [activeRoute]);
+  }, [route]);
 
-  const handleBackPress = () => {
-    router.back();
-  };
-
-  const routeWithOptionalFields = activeRoute as PassangerRouteDetailResponse & {
+  // TODO(US11-integração): trocar fallbacks hardcoded por CurrentTripResponse
+  // (driver_name, driver_photo_url, vehicle_plate vindos do GET /routes/{id}/trips/current).
+  const routeWithOptionalFields = route as PassangerRouteDetailResponse & {
     driver_plate?: string;
     driver_avatar_url?: string;
     avatar_url?: string;
     driver_photo_url?: string;
   };
 
-  const driverName = activeRoute.driver_name || 'João Silva';
+  const driverName = route.driver_name || 'João Silva';
   const driverPlate = routeWithOptionalFields.driver_plate || 'ABC-1234';
   const driverAvatarUrl =
     routeWithOptionalFields.driver_avatar_url ||
@@ -212,8 +208,7 @@ export default function PassengerActiveRouteScreen() {
     routeWithOptionalFields.driver_photo_url ||
     undefined;
 
-  const realAddress =
-    activeRoute.my_pickup_address || activeRoute.destination_address || activeRoute.origin_address;
+  const realAddress = route.my_pickup_address || route.destination_address || route.origin_address;
   const deliveryAddress = realAddress
     ? [realAddress.street, realAddress.number].filter(Boolean).join(', ')
     : 'Av. Bento Gonçalves, 500';
@@ -231,11 +226,7 @@ export default function PassengerActiveRouteScreen() {
         />
 
         <View style={[styles.topBarContainer, { top: insets.top + 8 }]}>
-          <RouteTopBar
-            onBackPress={handleBackPress}
-            showMenu={false}
-            backgroundColor="transparent"
-          />
+          <RouteTopBar onBackPress={onBackPress} showMenu={false} backgroundColor="transparent" />
         </View>
 
         <PassengerTripBottomSheet
@@ -279,5 +270,12 @@ const styles = StyleSheet.create({
   },
   recenterButton: {
     marginBottom: 336,
+  },
+  feedbackWrapper: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+    paddingHorizontal: 16,
   },
 });
