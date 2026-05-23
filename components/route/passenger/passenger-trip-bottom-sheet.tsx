@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -22,6 +23,8 @@ export type PassengerTripBottomSheetProps = {
   estimatedArrival: string;
   distance: string;
   countdownSeconds?: number;
+  address?: string;
+  onCallPress?: () => void;
 };
 
 function CountdownTimer({ initialSeconds }: { initialSeconds: number }) {
@@ -52,6 +55,8 @@ export function PassengerTripBottomSheet({
   estimatedArrival,
   distance,
   countdownSeconds = 120,
+  address,
+  onCallPress,
 }: PassengerTripBottomSheetProps) {
   const insets = useSafeAreaInsets();
   const bottomPadding = Math.max(24, insets.bottom);
@@ -122,6 +127,28 @@ export function PassengerTripBottomSheet({
                 avatarUrl={driver.avatarUrl}
                 plate={driver.plate}
               />
+
+              <View style={styles.sectionSpacer} />
+
+              <TripDetailsCard
+                variant="address"
+                label="ENDEREÇO DE ENTREGA"
+                address={address ?? 'Av. Bento Gonçalves, 500'}
+              />
+
+              <View style={styles.sectionSpacer} />
+
+              <View style={styles.quickActionsContainer}>
+                <Text style={styles.quickActionsTitle}>AÇÕES RÁPIDAS</Text>
+
+                <Pressable
+                  onPress={onCallPress}
+                  style={({ pressed }) => [styles.callButton, pressed && styles.callButtonPressed]}
+                >
+                  <MaterialCommunityIcons name="phone-outline" size={18} color={colors.dark} />
+                  <Text style={styles.callButtonText}>Chamar Motorista</Text>
+                </Pressable>
+              </View>
             </>
           )}
 
@@ -251,5 +278,32 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: colors.accent,
     marginVertical: 16,
+  },
+  sectionSpacer: {
+    height: 16,
+  },
+  quickActionsContainer: {
+    gap: 12,
+  },
+  quickActionsTitle: {
+    ...typography.preTitle,
+    color: colors.text,
+  },
+  callButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 10,
+    backgroundColor: colors.primary,
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+  },
+  callButtonPressed: {
+    opacity: 0.85,
+  },
+  callButtonText: {
+    ...typography.bodyBold,
+    color: colors.dark,
   },
 });

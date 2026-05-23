@@ -197,11 +197,9 @@ export default function PassengerActiveRouteDetailsScreen() {
   };
 
   const handleAccompanyTrip = () => {
-    /**
-     * TODO(US11): a PassengerActiveRouteScreen está bloqueada no momento.
-     * Reativar navegação quando a implementação da tela for liberada.
-     * router.push('/(passenger)/passenger-active-route-screen');
-     */
+    // TODO(US11-integração): passar routeId/dependentId reais quando esta tela
+    // for integrada com o backend (hoje a details-screen ainda usa mocks).
+    router.push('/(passenger)/passenger-active-route-screen' as never);
   };
 
   const passangerByRpId = new Map<string, RoutePassangerStopInfo>();
