@@ -1,18 +1,19 @@
-import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
 import { MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { EmptyState } from '@/components/general/empty-state';
 import { PrimaryButton } from '@/components/general/primary-button';
 import { RouteHeroHeader } from '@/components/route/route-hero-header';
 import { RouteStopList, type Stop } from '@/components/route/route-stop-list';
 import { RouteTopBar } from '@/components/route/route-top-bar';
+import { useCurrentTrip } from '@/hooks/use-current-trip';
+import { usePassangerRouteDetail } from '@/hooks/use-passanger-route-detail';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
-import type { AddressResponse, RoutePassangerResponse, StopResponse } from '@/types/route.types';
-
-type RoutePassangerStopInfo = Pick<RoutePassangerResponse, 'id' | 'user_name' | 'dependent_name'>;
+import type { AddressResponse, RouteStopResponse } from '@/types/route.types';
+import { useSessionStore } from '@/store/session.store';
 
 const FALLBACK_DURATION_MINUTES = 30;
 const FALLBACK_DISTANCE_KM = 10;
@@ -30,20 +31,27 @@ function formatExpectedTime(value: string): string {
   return value.length >= 5 ? value.slice(0, 5) : value;
 }
 
-function formatAddress(address: AddressResponse): string {
-  return [address.street, address.number].filter(Boolean).join(', ');
+function normalizeParam(value?: string | string[]): string | undefined {
+  if (Array.isArray(value)) {
+    return value[0];
+  }
+
+  return value;
 }
 
-function pickPassangerName(p: RoutePassangerStopInfo): string {
-  return p.dependent_name ?? p.user_name;
+function normalizeRecurrence(recurrence: string | string[]): string {
+  return Array.isArray(recurrence) ? recurrence.join(',') : recurrence;
+}
+
+function formatAddress(address: AddressResponse): string {
+  return [address.street, address.number].filter(Boolean).join(', ');
 }
 
 function buildUiStops(
   origin: AddressResponse,
   destination: AddressResponse,
-  stops: StopResponse[],
-  passangerByRpId: Map<string, RoutePassangerStopInfo>,
-  currentStopId?: string,
+  stops: RouteStopResponse[],
+  currentStopId?: string | null,
 ): (Stop & { isCurrent?: boolean })[] {
   const sortedStops = [...stops].sort((a, b) => a.order_index - b.order_index);
 
@@ -53,17 +61,14 @@ function buildUiStops(
       type: 'origin',
       address: formatAddress(origin),
     },
-    ...sortedStops.map<Stop & { isCurrent?: boolean }>((stop) => {
-      const passanger = passangerByRpId.get(stop.route_passanger_id);
-
-      return {
-        id: stop.route_passanger_id,
-        type: 'stop',
-        passengerName: passanger ? pickPassangerName(passanger) : undefined,
-        address: formatAddress(stop.address),
-        isCurrent: stop.route_passanger_id === currentStopId,
-      };
-    }),
+    ...sortedStops.map<Stop & { isCurrent?: boolean }>((stop) => ({
+      id: stop.route_passanger_id,
+      type: 'stop',
+      address: [stop.address.label, stop.address.street, stop.address.number]
+        .filter(Boolean)
+        .join(' - '),
+      isCurrent: stop.route_passanger_id === currentStopId,
+    })),
     {
       id: `destination-${destination.id}`,
       type: 'destination',
@@ -74,119 +79,34 @@ function buildUiStops(
 
 export default function PassengerActiveRouteDetailsScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{
+    routeId?: string | string[];
+    dependentId?: string | string[];
+  }>();
+
+  const routeId = normalizeParam(params.routeId);
+  const dependentId = normalizeParam(params.dependentId);
+  const sessionUser = useSessionStore((state) => state.user);
 
   const { height: screenHeight } = useWindowDimensions();
   const heroHeight = Math.max(320, Math.min(420, Math.round(screenHeight * 0.42)));
 
-  const isRouteLoading = false;
-  const isRouteError = false;
+  const {
+    route,
+    isLoading: isRouteLoading,
+    isError: isRouteError,
+    error: routeError,
+  } = usePassangerRouteDetail({
+    routeId,
+    dependentId,
+  });
 
-  // TODO: substituir mocks por dados reais da rota em andamento
-  const route: any = {
-    name: 'PUCRS',
-    recurrence: 'seg, qua, sex',
-    expected_time: '07:30-08:00',
-    duration_minutes: 32,
-    distance_km: 10,
-    origin_address: {
-      id: 'addr-initial',
-      street: 'Av. Protásio Alves',
-      number: '3500',
-      neighborhood: 'Petrópolis',
-      city: 'Porto Alegre',
-      state: 'RS',
-      zip_code: '',
-    },
-    destination_address: {
-      id: 'addr-final',
-      street: 'PUCRS - Av. Ipiranga',
-      number: '6681',
-      neighborhood: 'Partenon',
-      city: 'Porto Alegre',
-      state: 'RS',
-      zip_code: '',
-    },
-  };
+  const { data: currentTrip, isLoading: isCurrentTripLoading } = useCurrentTrip(
+    routeId,
+    dependentId,
+  );
 
-  const stops: StopResponse[] = [
-    {
-      id: 'stop-1',
-      route_passanger_id: 'rp-1',
-      order_index: 1,
-      type: 'embarque',
-      address_id: 'addr-1',
-      address: {
-        id: 'addr-1',
-        label: 'Bernardo',
-        street: 'Rua Carazinho',
-        number: '500',
-        neighborhood: '',
-        zip: '',
-        city: 'Porto Alegre',
-        state: 'RS',
-        longitude: null,
-        latitude: null,
-      },
-    },
-    {
-      id: 'stop-2',
-      route_passanger_id: 'rp-2',
-      order_index: 2,
-      type: 'embarque',
-      address_id: 'addr-2',
-      address: {
-        id: 'addr-2',
-        label: 'Mateus',
-        street: 'Av. Nilo Peçanha',
-        number: '1200',
-        neighborhood: '',
-        zip: '',
-        city: 'Porto Alegre',
-        state: 'RS',
-        longitude: null,
-        latitude: null,
-      },
-    },
-    {
-      id: 'stop-3',
-      route_passanger_id: 'rp-3',
-      order_index: 3,
-      type: 'embarque',
-      address_id: 'addr-3',
-      address: {
-        id: 'addr-3',
-        label: 'Miguel',
-        street: 'Rua Silva Só',
-        number: '900',
-        neighborhood: '',
-        zip: '',
-        city: 'Porto Alegre',
-        state: 'RS',
-        longitude: null,
-        latitude: null,
-      },
-    },
-  ];
-
-  const passangers: RoutePassangerStopInfo[] = [
-    {
-      id: 'rp-1',
-      user_name: 'Bernardo',
-      dependent_name: null,
-    },
-    {
-      id: 'rp-2',
-      user_name: 'Mateus',
-      dependent_name: null,
-    },
-    {
-      id: 'rp-3',
-      user_name: 'Miguel',
-      dependent_name: null,
-    },
-  ];
-
-  const currentStopId = 'rp-2';
+  const isLoading = isRouteLoading || isCurrentTripLoading;
 
   const handleOnBackPress = () => {
     if (router.canGoBack()) {
@@ -197,25 +117,27 @@ export default function PassengerActiveRouteDetailsScreen() {
   };
 
   const handleAccompanyTrip = () => {
-    // TODO(US11-integração): passar routeId/dependentId reais quando esta tela
-    // for integrada com o backend (hoje a details-screen ainda usa mocks).
-    router.push('/(passenger)/passenger-active-route-screen' as never);
+    if (!routeId || !currentTrip?.trip_id) {
+      Alert.alert('Viagem ainda não iniciada', 'Aguarde o motorista iniciar a viagem.');
+      return;
+    }
+
+    router.push({
+      pathname: '/(passenger)/passenger-active-route-screen' as never,
+      params: {
+        routeId,
+        ...(dependentId ? { dependentId } : {}),
+      },
+    });
   };
 
-  const passangerByRpId = new Map<string, RoutePassangerStopInfo>();
-  passangers.forEach((p) => passangerByRpId.set(p.id, p));
+  const currentStopId = route?.current_trip_id ?? currentTrip?.trip_id ?? null;
 
   const stopsForView = route
-    ? buildUiStops(
-        route.origin_address,
-        route.destination_address,
-        stops,
-        passangerByRpId,
-        currentStopId,
-      )
+    ? buildUiStops(route.origin_address, route.destination_address, route.stops, currentStopId)
     : [];
 
-  if (isRouteLoading) {
+  if (isLoading) {
     return (
       <View style={styles.screen}>
         <View style={styles.topBarContainer}>
@@ -235,7 +157,7 @@ export default function PassengerActiveRouteDetailsScreen() {
     );
   }
 
-  if (isRouteError || !route) {
+  if (!isLoading && (isRouteError || !route)) {
     return (
       <View style={styles.screen}>
         <View style={styles.topBarContainer}>
@@ -273,10 +195,10 @@ export default function PassengerActiveRouteDetailsScreen() {
       <View style={styles.heroSection}>
         <RouteHeroHeader
           routeName={route.name}
-          recurrence={formatRecurrenceLabel(route.recurrence)}
+          recurrence={formatRecurrenceLabel(normalizeRecurrence(route.recurrence))}
           expectedTime={formatExpectedTime(route.expected_time)}
-          durationMinutes={route.duration_minutes ?? FALLBACK_DURATION_MINUTES}
-          distanceKm={route.distance_km ?? FALLBACK_DISTANCE_KM}
+          durationMinutes={FALLBACK_DURATION_MINUTES}
+          distanceKm={FALLBACK_DISTANCE_KM}
           style={[styles.heroHeader, { minHeight: heroHeight }]}
         />
       </View>
@@ -289,7 +211,7 @@ export default function PassengerActiveRouteDetailsScreen() {
         <View style={styles.stopsSection}>
           <Text style={[styles.sectionTitle, styles.sectionHPadding]}>Paradas</Text>
 
-          <RouteStopList stops={stopsForView} currentStopId={currentStopId} />
+          <RouteStopList stops={stopsForView} currentStopId={currentStopId ?? undefined} />
         </View>
       </ScrollView>
 

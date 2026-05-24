@@ -173,11 +173,17 @@ export default function PassengerRouteDetailsScreen() {
   };
 
   const handleAccompanyTrip = () => {
-    if (!route?.current_trip_id) {
+    if (!routeId || !route?.current_trip_id) {
       return;
     }
 
-    // TODO: navegar para o fluxo de acompanhamento da viagem quando existir
+    router.push({
+      pathname: '/(passenger)/passenger-active-route-details-screen' as never,
+      params: {
+        routeId,
+        ...(dependentId ? { dependentId } : {}),
+      },
+    });
   };
 
   const handleAbsencePress = () => {

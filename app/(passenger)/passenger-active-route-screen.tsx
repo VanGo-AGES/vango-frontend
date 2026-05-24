@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { useEffect, useMemo } from 'react';
+import { Alert, StyleSheet, View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -7,9 +7,11 @@ import { EmptyState } from '@/components/general/empty-state';
 import { ActiveRouteMap } from '@/components/route/active-route-map';
 import { PassengerTripBottomSheet } from '@/components/route/passenger/passenger-trip-bottom-sheet';
 import { RouteTopBar } from '@/components/route/route-top-bar';
+import { useCurrentTrip } from '@/hooks/use-current-trip';
 import { usePassangerRouteDetail } from '@/hooks/use-passanger-route-detail';
 import { colors } from '@/styles/colors';
 import type { AddressResponse, PassangerRouteDetailResponse } from '@/types/route.types';
+import type { CurrentTripResponse } from '@/types/trip.types';
 
 type RoutePoint = {
   latitude: number;
@@ -96,14 +98,26 @@ export default function PassengerActiveRouteScreen() {
   const routeId = normalizeParam(params.routeId);
   const dependentId = normalizeParam(params.dependentId);
 
-  const { route, isLoading, isError } = usePassangerRouteDetail({ routeId, dependentId });
+  const {
+    route,
+    isLoading: isRouteLoading,
+    isError: isRouteError,
+  } = usePassangerRouteDetail({
+    routeId,
+    dependentId,
+  });
+
+  const {
+    data: currentTrip,
+    isLoading: isCurrentTripLoading,
+    isError: isCurrentTripError,
+  } = useCurrentTrip(routeId, dependentId);
 
   const handleBackPress = () => {
     router.back();
   };
 
-  // Loading: enquanto routeId está válido e a query está rodando.
-  if (isLoading) {
+  if (isRouteLoading || isCurrentTripLoading) {
     return (
       <FeedbackScreen
         topInset={insets.top}
@@ -114,8 +128,7 @@ export default function PassengerActiveRouteScreen() {
     );
   }
 
-  // Erro: falha no fetch ou ausência de route (ex.: routeId não passado / inválido).
-  if (isError || !route) {
+  if (isRouteError || isCurrentTripError || !route || !currentTrip) {
     return (
       <FeedbackScreen
         topInset={insets.top}
@@ -126,7 +139,14 @@ export default function PassengerActiveRouteScreen() {
     );
   }
 
-  return <ActiveRouteContent route={route} insets={insets} onBackPress={handleBackPress} />;
+  return (
+    <ActiveRouteContent
+      route={route}
+      currentTrip={currentTrip}
+      insets={insets}
+      onBackPress={handleBackPress}
+    />
+  );
 }
 
 type FeedbackScreenProps = {
@@ -154,11 +174,17 @@ function FeedbackScreen({ topInset, onBackPress, icon, text }: FeedbackScreenPro
 
 type ActiveRouteContentProps = {
   route: PassangerRouteDetailResponse;
+  currentTrip: CurrentTripResponse;
   insets: { top: number };
   onBackPress: () => void;
 };
 
-export function ActiveRouteContent({ route, insets, onBackPress }: ActiveRouteContentProps) {
+export function ActiveRouteContent({
+  route,
+  currentTrip,
+  insets,
+  onBackPress,
+}: ActiveRouteContentProps) {
   const mapPoints = useMemo(() => {
     const originPoint = toPoint(route.origin_address) ??
       toPoint(route.destination_address) ??
@@ -191,22 +217,9 @@ export function ActiveRouteContent({ route, insets, onBackPress }: ActiveRouteCo
     };
   }, [route]);
 
-  // TODO(US11-integração): trocar fallbacks hardcoded por CurrentTripResponse
-  // (driver_name, driver_photo_url, vehicle_plate vindos do GET /routes/{id}/trips/current).
-  const routeWithOptionalFields = route as PassangerRouteDetailResponse & {
-    driver_plate?: string;
-    driver_avatar_url?: string;
-    avatar_url?: string;
-    driver_photo_url?: string;
-  };
-
-  const driverName = route.driver_name || 'João Silva';
-  const driverPlate = routeWithOptionalFields.driver_plate || 'ABC-1234';
-  const driverAvatarUrl =
-    routeWithOptionalFields.driver_avatar_url ||
-    routeWithOptionalFields.avatar_url ||
-    routeWithOptionalFields.driver_photo_url ||
-    undefined;
+  const driverName = currentTrip.driver_name;
+  const driverPlate = currentTrip.vehicle_plate ?? '';
+  const driverAvatarUrl = currentTrip.driver_photo_url ?? undefined;
 
   const realAddress = route.my_pickup_address || route.destination_address || route.origin_address;
   const deliveryAddress = realAddress
