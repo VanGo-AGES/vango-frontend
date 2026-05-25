@@ -105,6 +105,10 @@ export default function RootLayout() {
                 name="(driver)/(route)/edit-route-screen"
                 options={{ headerShown: false }}
               />
+              <Stack.Screen
+                name="(driver)/(route)/TripMetricsScreen"
+                options={{ headerShown: false }}
+              />
 
               {/* passenger */}
               <Stack.Screen

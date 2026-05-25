@@ -228,7 +228,17 @@ export default function DriverActiveRouteScreen() {
       description: 'Todas as paradas foram concluídas com sucesso.',
       confirmLabel: 'Ok',
       confirmVariant: 'default' as const,
-      onConfirm: closeDialog,
+      onConfirm: () => {
+        setActiveDialog(null);
+        router.replace({
+          pathname: '/(driver)/(route)/TripMetricsScreen' as never,
+          params: {
+            routeId: ROUTE_ID,
+            passengersCount: String(routeStops.length),
+            tripDate: new Date().toISOString(),
+          },
+        });
+      },
     },
   };
 
