@@ -38,6 +38,10 @@ export function connectAsFollower({
   stopLat,
   stopLng,
 }: ConnectAsFollowerParams): PassengerTripTracker {
+  if (!SOCKET_URL) {
+    throw new Error('EXPO_PUBLIC_SOCKET_URL não configurada.');
+  }
+
   const socket = io(SOCKET_URL, {
     transports: ['websocket'],
     query: {

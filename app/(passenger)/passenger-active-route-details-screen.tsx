@@ -13,8 +13,6 @@ import { usePassangerRouteDetail } from '@/hooks/use-passanger-route-detail';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 import type { AddressResponse, RouteStopResponse } from '@/types/route.types';
-import { useSessionStore } from '@/store/session.store';
-
 const FALLBACK_DURATION_MINUTES = 30;
 const FALLBACK_DISTANCE_KM = 10;
 
@@ -86,7 +84,6 @@ export default function PassengerActiveRouteDetailsScreen() {
 
   const routeId = normalizeParam(params.routeId);
   const dependentId = normalizeParam(params.dependentId);
-  const sessionUser = useSessionStore((state) => state.user);
 
   const { height: screenHeight } = useWindowDimensions();
   const heroHeight = Math.max(320, Math.min(420, Math.round(screenHeight * 0.42)));
@@ -95,7 +92,6 @@ export default function PassengerActiveRouteDetailsScreen() {
     route,
     isLoading: isRouteLoading,
     isError: isRouteError,
-    error: routeError,
   } = usePassangerRouteDetail({
     routeId,
     dependentId,
@@ -131,7 +127,16 @@ export default function PassengerActiveRouteDetailsScreen() {
     });
   };
 
-  const currentStopId = route?.current_trip_id ?? currentTrip?.trip_id ?? null;
+  const currentStopId =
+    route?.stops.find((stop) => {
+      const stopAddress = stop.address;
+
+      return (
+        route.my_pickup_address &&
+        stopAddress.street === route.my_pickup_address.street &&
+        stopAddress.number === route.my_pickup_address.number
+      );
+    })?.route_passanger_id ?? null;
 
   const stopsForView = route
     ? buildUiStops(route.origin_address, route.destination_address, route.stops, currentStopId)
@@ -180,6 +185,11 @@ export default function PassengerActiveRouteDetailsScreen() {
     );
   }
 
+  const routeData = route;
+  if (!routeData) {
+    return null;
+  }
+
   return (
     <View style={styles.screen}>
       <View style={styles.topBarContainer}>
@@ -194,9 +204,9 @@ export default function PassengerActiveRouteDetailsScreen() {
 
       <View style={styles.heroSection}>
         <RouteHeroHeader
-          routeName={route.name}
-          recurrence={formatRecurrenceLabel(normalizeRecurrence(route.recurrence))}
-          expectedTime={formatExpectedTime(route.expected_time)}
+          routeName={routeData.name}
+          recurrence={formatRecurrenceLabel(normalizeRecurrence(routeData.recurrence))}
+          expectedTime={formatExpectedTime(routeData.expected_time)}
           durationMinutes={FALLBACK_DURATION_MINUTES}
           distanceKm={FALLBACK_DISTANCE_KM}
           style={[styles.heroHeader, { minHeight: heroHeight }]}

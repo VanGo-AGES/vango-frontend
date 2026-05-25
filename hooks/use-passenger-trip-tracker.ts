@@ -32,6 +32,12 @@ export function usePassengerTripTracker({
       return;
     }
 
+    setDriverLocation(null);
+    setEta(null);
+    setTrackerOnline(false);
+    setTripFinished(false);
+    setError(null);
+
     const tracker = connectAsFollower({
       userId: sessionUser.id,
       tripId,

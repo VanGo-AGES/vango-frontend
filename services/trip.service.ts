@@ -7,7 +7,7 @@ function getPassengerHeaders(): Record<string, string> {
 
   return {
     'X-User-Id': user?.id ?? '',
-    'X-User-Role': 'guardian',
+    'X-User-Role': user?.role ?? 'guardian',
   };
 }
 

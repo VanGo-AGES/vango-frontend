@@ -8,6 +8,7 @@ import { ActiveRouteMap } from '@/components/route/active-route-map';
 import { PassengerTripBottomSheet } from '@/components/route/passenger/passenger-trip-bottom-sheet';
 import { RouteTopBar } from '@/components/route/route-top-bar';
 import { useCurrentTrip } from '@/hooks/use-current-trip';
+import { usePassengerTripTracker } from '@/hooks/use-passenger-trip-tracker';
 import { usePassangerRouteDetail } from '@/hooks/use-passanger-route-detail';
 import { colors } from '@/styles/colors';
 import type { AddressResponse, PassangerRouteDetailResponse } from '@/types/route.types';
@@ -185,6 +186,49 @@ export function ActiveRouteContent({
   insets,
   onBackPress,
 }: ActiveRouteContentProps) {
+  const trackerStopPoint = toPoint(route.my_pickup_address) ??
+    toPoint(route.origin_address) ??
+    toPoint(route.destination_address) ?? {
+      latitude: -30.0378,
+      longitude: -51.2232,
+    };
+
+  const tracker = usePassengerTripTracker({
+    tripId: currentTrip.trip_id,
+    stopLat: trackerStopPoint.latitude,
+    stopLng: trackerStopPoint.longitude,
+  });
+
+  useEffect(() => {
+    if (!tracker.tripFinished) {
+      return;
+    }
+
+    Alert.alert('Viagem finalizada', 'A viagem foi finalizada pelo motorista.', [
+      {
+        text: 'OK',
+        onPress: onBackPress,
+      },
+    ]);
+  }, [tracker.tripFinished, onBackPress]);
+
+  useEffect(() => {
+    if (!tracker.error) {
+      return;
+    }
+
+    Alert.alert(
+      'Erro no acompanhamento',
+      'Não foi possível acompanhar a localização em tempo real.',
+      [
+        {
+          text: 'OK',
+          onPress: onBackPress,
+        },
+      ],
+    );
+  }, [tracker.error, onBackPress]);
+
   const mapPoints = useMemo(() => {
     const originPoint = toPoint(route.origin_address) ??
       toPoint(route.destination_address) ??
@@ -204,7 +248,12 @@ export function ActiveRouteContent({
     // do motorista vinda do Socket.IO (location_update).
     const driverProgress = route.current_trip_id ? 0.42 : 0.28;
 
-    const driverPoint = interpolatePoint(originPoint, passengerStopPoint, driverProgress);
+    const driverPoint = tracker.driverLocation
+      ? {
+          latitude: tracker.driverLocation.latitude,
+          longitude: tracker.driverLocation.longitude,
+        }
+      : interpolatePoint(originPoint, passengerStopPoint, driverProgress);
     const distanceKm = Math.max(calculateDistanceKm(driverPoint, passengerStopPoint), 0.3);
     const timeRemaining = Math.max(2, Math.round(distanceKm * 4));
 
@@ -215,7 +264,7 @@ export function ActiveRouteContent({
       timeRemaining,
       estimatedArrival: formatArrivalTime(timeRemaining),
     };
-  }, [route]);
+  }, [route, tracker.driverLocation]);
 
   const driverName = currentTrip.driver_name;
   const driverPlate = currentTrip.vehicle_plate ?? '';
@@ -225,6 +274,12 @@ export function ActiveRouteContent({
   const deliveryAddress = realAddress
     ? [realAddress.street, realAddress.number].filter(Boolean).join(', ')
     : 'Av. Bento Gonçalves, 500';
+
+  const distanceText = tracker.trackerOnline
+    ? tracker.eta?.distance_km != null
+      ? formatDistance(tracker.eta.distance_km)
+      : formatDistance(mapPoints.distanceKm)
+    : 'Motorista offline';
 
   return (
     <>
@@ -250,10 +305,14 @@ export function ActiveRouteContent({
             avatarUrl: driverAvatarUrl,
             plate: driverPlate,
           }}
-          timeRemaining={mapPoints.timeRemaining}
-          estimatedArrival={mapPoints.estimatedArrival}
-          distance={formatDistance(mapPoints.distanceKm)}
-          countdownSeconds={mapPoints.timeRemaining * 60}
+          timeRemaining={tracker.eta?.eta_minutes ?? mapPoints.timeRemaining}
+          estimatedArrival={
+            tracker.eta?.eta_minutes != null
+              ? formatArrivalTime(tracker.eta.eta_minutes)
+              : mapPoints.estimatedArrival
+          }
+          distance={distanceText}
+          countdownSeconds={(tracker.eta?.eta_minutes ?? mapPoints.timeRemaining) * 60}
           address={deliveryAddress}
         />
       </View>
