@@ -14,7 +14,7 @@ export function ReportDateFilterChip({ label, onPress }: ReportDateFilterChipPro
   return (
     <Pressable style={styles.chip} onPress={onPress}>
       <View style={styles.content}>
-        <MaterialCommunityIcons name="calendar" size={16} color={colors.white} />
+        <MaterialCommunityIcons name="calendar" size={20} color={colors.white} />
         <Text style={styles.label} numberOfLines={1}>
           {label}
         </Text>
@@ -25,21 +25,21 @@ export function ReportDateFilterChip({ label, onPress }: ReportDateFilterChipPro
 
 const styles = StyleSheet.create({
   chip: {
-    height: 34,
-    borderRadius: 8,
+    height: 40,
+    borderRadius: 12,
     alignSelf: 'flex-start',
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: colors.dark,
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
   },
   content: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
   },
   label: {
-    ...typography.small,
+    ...typography.labelLarge,
     color: colors.white,
   },
 });
