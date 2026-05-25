@@ -5,7 +5,6 @@ import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
 export type ReportDateFilterChipProps = {
-  periodType: 'day' | 'week' | 'month';
   label: string;
   onPress: () => void;
 };
