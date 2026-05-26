@@ -10,6 +10,7 @@ import { PaperProvider } from 'react-native-paper';
 import { PushNotificationHandler } from '@/components/general/push-notification-handler';
 import { queryClient } from '@/lib/query-client';
 import { fonts } from '@/styles/typography';
+import { colors } from '@/styles/colors';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -68,7 +69,11 @@ export default function RootLayout() {
               <Stack.Screen name="(driver)/driver-home" options={{ headerShown: false }} />
               <Stack.Screen
                 name="(driver)/profile-driver-screen"
-                options={{ headerShown: false }}
+                options={{
+                  headerShown: false,
+                  navigationBarColor: colors.white,
+                  navigationBarTranslucent: false,
+                }}
               />
               <Stack.Screen
                 name="(driver)/vehicle-details-screen"
@@ -113,7 +118,11 @@ export default function RootLayout() {
               />
               <Stack.Screen
                 name="(passenger)/profile-passenger-screen"
-                options={{ headerShown: false }}
+                options={{
+                  headerShown: false,
+                  navigationBarColor: colors.white,
+                  navigationBarTranslucent: false,
+                }}
               />
               <Stack.Screen
                 name="(passenger)/dependent-details-screen"

@@ -1,4 +1,4 @@
-import { View, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { CircleIconButton } from '@/components/general/circle-icon-button';
 import { ProfileSummaryCard } from '@/components/profile/profile-summary-card';
 import { ProfileMenuSection } from '@/components/profile/profile-menu-section';
@@ -17,7 +17,11 @@ export default function ProfileDriverScreen() {
   const { handleLogout, handleDeleteAccount } = useAccountActions();
 
   return (
-    <AppScreenContainer backgroundColor={colors.accent} style={styles.container}>
+    <AppScreenContainer
+      backgroundColor={colors.accent}
+      style={styles.container}
+      edges={['top', 'left', 'right']}
+    >
       <View style={styles.topSection}>
         <CircleIconButton
           icon="arrow-back"
@@ -34,7 +38,11 @@ export default function ProfileDriverScreen() {
         </View>
       </View>
 
-      <View style={[styles.bottomSheet, { marginBottom: -(insets.bottom + 24) }]}>
+      <ScrollView
+        style={styles.bottomSheet}
+        contentContainerStyle={[styles.bottomSheetContent, { paddingBottom: insets.bottom + 32 }]}
+        showsVerticalScrollIndicator={false}
+      >
         <ProfileSummaryCard />
 
         <View style={styles.divider} />
@@ -66,7 +74,7 @@ export default function ProfileDriverScreen() {
             style={styles.logoutButton}
           />
         </View>
-      </View>
+      </ScrollView>
     </AppScreenContainer>
   );
 }
@@ -103,7 +111,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.light,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    // marginBottom é definido via inline style com -(insets.bottom + 24)
+  },
+  bottomSheetContent: {
+    flexGrow: 1,
     paddingHorizontal: 55,
     paddingTop: 32,
   },
@@ -117,7 +127,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 8,
-    marginTop: 90,
+    marginTop: 'auto',
+    paddingTop: 32,
   },
   deleteButton: {
     minWidth: 144,
