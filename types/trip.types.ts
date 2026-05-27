@@ -9,8 +9,8 @@ export interface CurrentTripResponse {
 
 export interface TrackerLocationPayload {
   trip_id: string;
-  latitude: number;
-  longitude: number;
+  lat: number;
+  lng: number;
   heading?: number | null;
   speed?: number | null;
   updated_at?: string;

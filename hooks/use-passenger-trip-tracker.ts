@@ -46,7 +46,7 @@ export function usePassengerTripTracker({
     });
 
     tracker.onSessionJoined((payload) => {
-      setTrackerOnline(true);
+      setTrackerOnline(payload.tracker_online ?? false);
 
       if (payload.last_location) {
         setDriverLocation(payload.last_location);

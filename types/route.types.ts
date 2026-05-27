@@ -118,6 +118,8 @@ export interface PassangerRouteDetailResponse {
   current_trip_id: string | null;
   dependent_id: string | null;
   dependent_name: string | null;
+  total_distance_km?: number | null;
+  estimated_duration_min?: number | null;
 }
 
 export interface PassangerRouteSchedule {

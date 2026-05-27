@@ -50,15 +50,6 @@ function toPoint(address?: Partial<AddressResponse> | null): RoutePoint | null {
   };
 }
 
-function interpolatePoint(start: RoutePoint, end: RoutePoint, progress: number): RoutePoint {
-  const clampedProgress = Math.max(0, Math.min(1, progress));
-
-  return {
-    latitude: start.latitude + (end.latitude - start.latitude) * clampedProgress,
-    longitude: start.longitude + (end.longitude - start.longitude) * clampedProgress,
-  };
-}
-
 function calculateDistanceKm(start: RoutePoint, end: RoutePoint): number {
   const earthRadiusKm = 6371;
   const latitudeDelta = ((end.latitude - start.latitude) * Math.PI) / 180;
@@ -144,6 +135,7 @@ export default function PassengerActiveRouteScreen() {
     <ActiveRouteContent
       route={route}
       currentTrip={currentTrip}
+      router={router}
       insets={insets}
       onBackPress={handleBackPress}
     />
@@ -176,6 +168,7 @@ function FeedbackScreen({ topInset, onBackPress, icon, text }: FeedbackScreenPro
 type ActiveRouteContentProps = {
   route: PassangerRouteDetailResponse;
   currentTrip: CurrentTripResponse;
+  router: ReturnType<typeof useRouter>;
   insets: { top: number };
   onBackPress: () => void;
 };
@@ -183,6 +176,7 @@ type ActiveRouteContentProps = {
 export function ActiveRouteContent({
   route,
   currentTrip,
+  router,
   insets,
   onBackPress,
 }: ActiveRouteContentProps) {
@@ -207,10 +201,10 @@ export function ActiveRouteContent({
     Alert.alert('Viagem finalizada', 'A viagem foi finalizada pelo motorista.', [
       {
         text: 'OK',
-        onPress: onBackPress,
+        onPress: () => router.replace('/passenger-home-screen' as never),
       },
     ]);
-  }, [tracker.tripFinished, onBackPress]);
+  }, [tracker.tripFinished, router]);
 
   useEffect(() => {
     if (!tracker.error) {
@@ -230,13 +224,6 @@ export function ActiveRouteContent({
   }, [tracker.error, onBackPress]);
 
   const mapPoints = useMemo(() => {
-    const originPoint = toPoint(route.origin_address) ??
-      toPoint(route.destination_address) ??
-      toPoint(route.my_pickup_address) ?? {
-        latitude: -30.0346,
-        longitude: -51.2177,
-      };
-
     const passengerStopPoint = toPoint(route.my_pickup_address) ??
       toPoint(route.origin_address) ??
       toPoint(route.destination_address) ?? {
@@ -244,25 +231,25 @@ export function ActiveRouteContent({
         longitude: -51.2232,
       };
 
-    // TODO(US11-integração): substituir geometria mockada por posição real
-    // do motorista vinda do Socket.IO (location_update).
-    const driverProgress = route.current_trip_id ? 0.42 : 0.28;
-
     const driverPoint = tracker.driverLocation
       ? {
-          latitude: tracker.driverLocation.latitude,
-          longitude: tracker.driverLocation.longitude,
+          latitude: tracker.driverLocation.lat,
+          longitude: tracker.driverLocation.lng,
         }
-      : interpolatePoint(originPoint, passengerStopPoint, driverProgress);
-    const distanceKm = Math.max(calculateDistanceKm(driverPoint, passengerStopPoint), 0.3);
-    const timeRemaining = Math.max(2, Math.round(distanceKm * 4));
+      : null;
+
+    const distanceKm = driverPoint
+      ? Math.max(calculateDistanceKm(driverPoint, passengerStopPoint), 0.3)
+      : 0;
+
+    const timeRemaining = driverPoint ? Math.max(2, Math.round(distanceKm * 4)) : 0;
 
     return {
       driverPoint,
       passengerStopPoint,
       distanceKm,
       timeRemaining,
-      estimatedArrival: formatArrivalTime(timeRemaining),
+      estimatedArrival: driverPoint ? formatArrivalTime(timeRemaining) : 'Calculando...',
     };
   }, [route, tracker.driverLocation]);
 
@@ -287,7 +274,7 @@ export function ActiveRouteContent({
 
       <View style={styles.screen}>
         <ActiveRouteMap
-          currentLocation={mapPoints.driverPoint}
+          currentLocation={mapPoints.driverPoint ?? mapPoints.passengerStopPoint}
           nextStopLocation={mapPoints.passengerStopPoint}
           containerStyle={styles.map}
           recenterButtonStyle={styles.recenterButton}

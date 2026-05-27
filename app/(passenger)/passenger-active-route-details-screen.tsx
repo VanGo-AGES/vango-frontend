@@ -13,8 +13,6 @@ import { usePassangerRouteDetail } from '@/hooks/use-passanger-route-detail';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 import type { AddressResponse, RouteStopResponse } from '@/types/route.types';
-const FALLBACK_DURATION_MINUTES = 30;
-const FALLBACK_DISTANCE_KM = 10;
 
 function formatRecurrenceLabel(recurrence: string): string {
   return recurrence
@@ -207,8 +205,8 @@ export default function PassengerActiveRouteDetailsScreen() {
           routeName={routeData.name}
           recurrence={formatRecurrenceLabel(normalizeRecurrence(routeData.recurrence))}
           expectedTime={formatExpectedTime(routeData.expected_time)}
-          durationMinutes={FALLBACK_DURATION_MINUTES}
-          distanceKm={FALLBACK_DISTANCE_KM}
+          durationMinutes={routeData.estimated_duration_min ?? 0}
+          distanceKm={routeData.total_distance_km ?? 0}
           style={[styles.heroHeader, { minHeight: heroHeight }]}
         />
       </View>

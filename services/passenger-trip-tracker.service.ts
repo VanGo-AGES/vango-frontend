@@ -10,6 +10,7 @@ const SOCKET_URL = process.env.EXPO_PUBLIC_SOCKET_URL;
 
 type SessionJoinedPayload = {
   trip_id: string;
+  tracker_online?: boolean;
   last_location?: TrackerLocationPayload | null;
   eta?: DriverEtaPayload | null;
 };
