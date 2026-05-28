@@ -8,6 +8,8 @@ import type {
   TrackerLocationPayload,
 } from '@/types/trip.types';
 
+const lastKnownLocationCache = new Map<string, TrackerLocationPayload>();
+
 type UsePassengerTripTrackerParams = {
   tripId?: string | null;
   stopLat?: number | null;
@@ -21,7 +23,9 @@ export function usePassengerTripTracker({
 }: UsePassengerTripTrackerParams) {
   const sessionUser = useSessionStore((state) => state.user);
 
-  const [driverLocation, setDriverLocation] = useState<TrackerLocationPayload | null>(null);
+  const [driverLocation, setDriverLocation] = useState<TrackerLocationPayload | null>(() =>
+    tripId ? (lastKnownLocationCache.get(tripId) ?? null) : null,
+  );
   const [eta, setEta] = useState<DriverEtaPayload | null>(null);
   const [trackerOnline, setTrackerOnline] = useState(false);
   const [tripFinished, setTripFinished] = useState(false);
@@ -32,7 +36,7 @@ export function usePassengerTripTracker({
       return;
     }
 
-    setDriverLocation(null);
+    setDriverLocation(tripId ? (lastKnownLocationCache.get(tripId) ?? null) : null);
     setEta(null);
     setTrackerOnline(false);
     setTripFinished(false);
@@ -49,6 +53,7 @@ export function usePassengerTripTracker({
       setTrackerOnline(payload.tracker_online ?? false);
 
       if (payload.last_location) {
+        lastKnownLocationCache.set(tripId, payload.last_location);
         setDriverLocation(payload.last_location);
       }
 
@@ -59,6 +64,7 @@ export function usePassengerTripTracker({
 
     tracker.onLocationUpdate((payload: LocationUpdateBroadcast) => {
       setTrackerOnline(true);
+      lastKnownLocationCache.set(tripId, payload);
       setDriverLocation(payload);
 
       if (payload.eta_minutes != null && payload.distance_km != null) {

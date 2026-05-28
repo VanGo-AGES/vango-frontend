@@ -19,7 +19,7 @@ export type PassengerTripBottomSheetProps = {
     avatarUrl?: string;
     plate: string;
   };
-  timeRemaining: number;
+  timeRemaining: number | null;
   estimatedArrival: string;
   distance: string;
   countdownSeconds?: number;
@@ -107,10 +107,14 @@ export function PassengerTripBottomSheet({
             <>
               <View style={styles.header}>
                 <Text style={styles.timeLabel}>seu motorista vai chegar em:</Text>
-                <View style={styles.timeHighlightContainer}>
-                  <Text style={styles.timeBig}>{String(timeRemaining).padStart(2, '0')} </Text>
-                  <Text style={styles.timeUnit}>min</Text>
-                </View>
+                {timeRemaining != null ? (
+                  <View style={styles.timeHighlightContainer}>
+                    <Text style={styles.timeBig}>{String(timeRemaining).padStart(2, '0')} </Text>
+                    <Text style={styles.timeUnit}>min</Text>
+                  </View>
+                ) : (
+                  <Text style={styles.calculating}>Calculando...</Text>
+                )}
                 <View style={styles.statsContainer}>
                   <Text style={styles.statText}>{estimatedArrival}</Text>
                   <View style={styles.statDivider} />
@@ -176,10 +180,14 @@ export function PassengerTripBottomSheet({
             <>
               <View style={styles.header}>
                 <Text style={styles.timeLabel}>tempo estimado para chegada:</Text>
-                <View style={styles.timeHighlightContainer}>
-                  <Text style={styles.timeBig}>{String(timeRemaining).padStart(2, '0')} </Text>
-                  <Text style={styles.timeUnit}>min</Text>
-                </View>
+                {timeRemaining != null ? (
+                  <View style={styles.timeHighlightContainer}>
+                    <Text style={styles.timeBig}>{String(timeRemaining).padStart(2, '0')} </Text>
+                    <Text style={styles.timeUnit}>min</Text>
+                  </View>
+                ) : (
+                  <Text style={styles.calculating}>Calculando...</Text>
+                )}
                 <View style={styles.statsContainer}>
                   <Text style={styles.statText}>{estimatedArrival}</Text>
                   <View style={styles.statDivider} />
@@ -258,6 +266,11 @@ const styles = StyleSheet.create({
   timeUnit: {
     ...typography.header2,
     color: colors.dark,
+  },
+  calculating: {
+    ...typography.header3,
+    color: colors.dark,
+    marginVertical: 8,
   },
   statsContainer: {
     flexDirection: 'row',

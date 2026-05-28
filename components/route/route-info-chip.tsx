@@ -60,7 +60,8 @@ const variantConfig: Record<string, VariantConfig> = {
   distance: {
     backgroundColor: colors.lightMuted,
     icon: { name: 'car-outline', color: colors.dark },
-    formatLabel: (props) => (props.variant === 'distance' ? `${props.distanceKm}km` : ''),
+    formatLabel: (props) =>
+      props.variant === 'distance' ? `${props.distanceKm.toFixed(1)}km` : '',
   },
   dateLabel: {
     backgroundColor: colors.primary,

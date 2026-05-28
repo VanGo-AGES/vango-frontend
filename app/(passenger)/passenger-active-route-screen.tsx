@@ -262,11 +262,13 @@ export function ActiveRouteContent({
     ? [realAddress.street, realAddress.number].filter(Boolean).join(', ')
     : 'Av. Bento Gonçalves, 500';
 
-  const distanceText = tracker.trackerOnline
-    ? tracker.eta?.distance_km != null
+  const distanceText = !tracker.trackerOnline
+    ? 'Motorista offline'
+    : tracker.eta?.distance_km != null
       ? formatDistance(tracker.eta.distance_km)
-      : formatDistance(mapPoints.distanceKm)
-    : 'Motorista offline';
+      : mapPoints.driverPoint != null
+        ? formatDistance(mapPoints.distanceKm)
+        : 'Calculando...';
 
   return (
     <>
@@ -274,10 +276,11 @@ export function ActiveRouteContent({
 
       <View style={styles.screen}>
         <ActiveRouteMap
-          currentLocation={mapPoints.driverPoint ?? mapPoints.passengerStopPoint}
+          currentLocation={mapPoints.driverPoint}
           nextStopLocation={mapPoints.passengerStopPoint}
           containerStyle={styles.map}
           recenterButtonStyle={styles.recenterButton}
+          liveRefreshIntervalMs={0}
         />
 
         <View style={[styles.topBarContainer, { top: insets.top + 8 }]}>
@@ -292,14 +295,20 @@ export function ActiveRouteContent({
             avatarUrl: driverAvatarUrl,
             plate: driverPlate,
           }}
-          timeRemaining={tracker.eta?.eta_minutes ?? mapPoints.timeRemaining}
+          timeRemaining={
+            tracker.eta?.eta_minutes ??
+            (mapPoints.driverPoint != null ? mapPoints.timeRemaining : null)
+          }
           estimatedArrival={
             tracker.eta?.eta_minutes != null
               ? formatArrivalTime(tracker.eta.eta_minutes)
               : mapPoints.estimatedArrival
           }
           distance={distanceText}
-          countdownSeconds={(tracker.eta?.eta_minutes ?? mapPoints.timeRemaining) * 60}
+          countdownSeconds={
+            (tracker.eta?.eta_minutes ??
+              (mapPoints.driverPoint != null ? mapPoints.timeRemaining : 0)) * 60
+          }
           address={deliveryAddress}
         />
       </View>

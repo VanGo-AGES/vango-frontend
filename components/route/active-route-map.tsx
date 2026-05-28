@@ -14,7 +14,7 @@ export type ActiveRouteMapProps = {
   currentLocation: {
     latitude: number;
     longitude: number;
-  };
+  } | null;
   nextStopLocation: {
     latitude: number;
     longitude: number;
@@ -37,6 +37,15 @@ function buildInitialRegion(
   currentLocation: ActiveRouteMapProps['currentLocation'],
   nextStopLocation: ActiveRouteMapProps['nextStopLocation'],
 ): Region {
+  if (!currentLocation) {
+    return {
+      latitude: nextStopLocation.latitude,
+      longitude: nextStopLocation.longitude,
+      latitudeDelta: MIN_DELTA,
+      longitudeDelta: MIN_DELTA,
+    };
+  }
+
   const latitudeDelta = Math.max(
     Math.abs(currentLocation.latitude - nextStopLocation.latitude) * 1.8,
     MIN_DELTA,
@@ -55,7 +64,7 @@ function buildInitialRegion(
 }
 
 function buildMockRoutePoints(
-  currentLocation: ActiveRouteMapProps['currentLocation'],
+  currentLocation: NonNullable<ActiveRouteMapProps['currentLocation']>,
   nextStopLocation: ActiveRouteMapProps['nextStopLocation'],
 ) {
   const latitudeDelta = nextStopLocation.latitude - currentLocation.latitude;
@@ -76,7 +85,7 @@ function buildMockRoutePoints(
 }
 
 async function fetchRealRoutePoints(
-  currentLocation: ActiveRouteMapProps['currentLocation'],
+  currentLocation: NonNullable<ActiveRouteMapProps['currentLocation']>,
   nextStopLocation: ActiveRouteMapProps['nextStopLocation'],
 ) {
   try {
@@ -125,6 +134,11 @@ export function ActiveRouteMap({
     const requestId = requestIdRef.current;
 
     const syncRoute = async () => {
+      if (!currentLocation) {
+        setRouteCoordinates([]);
+        return;
+      }
+
       const points = await fetchRealRoutePoints(currentLocation, nextStopLocation);
 
       if (isActive && requestId === requestIdRef.current) {
@@ -151,7 +165,7 @@ export function ActiveRouteMap({
   }, [currentLocation, nextStopLocation, liveRefreshIntervalMs]);
 
   useEffect(() => {
-    if (!followCurrentLocation) {
+    if (!followCurrentLocation || !currentLocation) {
       return;
     }
 
@@ -167,10 +181,11 @@ export function ActiveRouteMap({
   }, [currentLocation, followCurrentLocation, initialRegion]);
 
   const handleRecenterPress = () => {
+    const center = currentLocation ?? nextStopLocation;
     mapRef.current?.animateToRegion(
       {
-        latitude: currentLocation.latitude,
-        longitude: currentLocation.longitude,
+        latitude: center.latitude,
+        longitude: center.longitude,
         latitudeDelta: initialRegion.latitudeDelta,
         longitudeDelta: initialRegion.longitudeDelta,
       },
@@ -196,15 +211,17 @@ export function ActiveRouteMap({
         loadingEnabled
         moveOnMarkerPress={false}
       >
-        <Marker coordinate={currentLocation} title="Sua localização" anchor={MARKER_ANCHOR}>
-          <CurrentLocationPin width={40} height={40} />
-        </Marker>
+        {currentLocation && (
+          <Marker coordinate={currentLocation} title="Motorista" anchor={MARKER_ANCHOR}>
+            <CurrentLocationPin width={40} height={40} />
+          </Marker>
+        )}
 
-        <Marker coordinate={nextStopLocation} title="Próxima parada" anchor={MARKER_ANCHOR}>
+        <Marker coordinate={nextStopLocation} title="Minha parada" anchor={MARKER_ANCHOR}>
           <NextStopPin width={32.04} height={50} />
         </Marker>
 
-        {routeCoordinates.length > 0 && (
+        {currentLocation && routeCoordinates.length > 0 && (
           <>
             <Polyline
               coordinates={routeCoordinates}

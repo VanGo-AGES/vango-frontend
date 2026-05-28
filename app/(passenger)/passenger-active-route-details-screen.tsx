@@ -207,6 +207,23 @@ export default function PassengerActiveRouteDetailsScreen() {
           expectedTime={formatExpectedTime(routeData.expected_time)}
           durationMinutes={routeData.estimated_duration_min ?? 0}
           distanceKm={routeData.total_distance_km ?? 0}
+          origin={
+            routeData.origin_address.latitude != null && routeData.origin_address.longitude != null
+              ? {
+                  latitude: routeData.origin_address.latitude,
+                  longitude: routeData.origin_address.longitude,
+                }
+              : undefined
+          }
+          destination={
+            routeData.destination_address.latitude != null &&
+            routeData.destination_address.longitude != null
+              ? {
+                  latitude: routeData.destination_address.latitude,
+                  longitude: routeData.destination_address.longitude,
+                }
+              : undefined
+          }
           style={[styles.heroHeader, { minHeight: heroHeight }]}
         />
       </View>
