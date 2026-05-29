@@ -32,12 +32,6 @@ import { typography } from '@/styles/typography';
 
 type CtaKind = 'avisar-ausencia' | 'acompanhar-viagem' | 'none';
 
-const MOCK_DURATION_MINUTES = 45;
-const MOCK_DISTANCE_KM = 12.5;
-// TODO: Remover estes mocks quando o backend enviar as coordenadas
-const MOCK_ORIGIN = { latitude: -30.0277, longitude: -51.1632 }; // Shopping Iguatemi
-const MOCK_DESTINATION = { latitude: -30.0495, longitude: -51.2287 }; // Shopping Praia de Belas
-
 function normalizeParam(value?: string | string[]): string | undefined {
   if (Array.isArray(value)) {
     return value[0];
@@ -173,11 +167,17 @@ export default function PassengerRouteDetailsScreen() {
   };
 
   const handleAccompanyTrip = () => {
-    if (!route?.current_trip_id) {
+    if (!routeId || !route?.current_trip_id) {
       return;
     }
 
-    // TODO: navegar para o fluxo de acompanhamento da viagem quando existir
+    router.push({
+      pathname: '/(passenger)/passenger-active-route-details-screen' as never,
+      params: {
+        routeId,
+        ...(dependentId ? { dependentId } : {}),
+      },
+    });
   };
 
   const handleAbsencePress = () => {
@@ -336,23 +336,24 @@ export default function PassengerRouteDetailsScreen() {
             routeName={route.name}
             recurrence={formatRecurrenceLabel(route.recurrence)}
             expectedTime={formatExpectedTime(route.expected_time)}
-            durationMinutes={MOCK_DURATION_MINUTES}
-            distanceKm={MOCK_DISTANCE_KM}
+            durationMinutes={route.estimated_duration_min ?? 0}
+            distanceKm={route.total_distance_km ?? 0}
             origin={
-              route.origin_address?.latitude && route.origin_address?.longitude
+              route.origin_address?.latitude != null && route.origin_address?.longitude != null
                 ? {
                     latitude: route.origin_address.latitude,
                     longitude: route.origin_address.longitude,
                   }
-                : MOCK_ORIGIN
+                : undefined
             }
             destination={
-              route.destination_address?.latitude && route.destination_address?.longitude
+              route.destination_address?.latitude != null &&
+              route.destination_address?.longitude != null
                 ? {
                     latitude: route.destination_address.latitude,
                     longitude: route.destination_address.longitude,
                   }
-                : MOCK_DESTINATION
+                : undefined
             }
             style={[styles.heroHeader, { minHeight: heroHeight }]}
           />
