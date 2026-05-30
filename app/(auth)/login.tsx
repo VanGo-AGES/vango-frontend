@@ -74,6 +74,7 @@ export default function LoginScreen() {
       });
 
       const nextRoute = response.role === 'driver' ? '/driver-home' : '/passenger-home-screen';
+      router.dismissAll();
       router.replace(nextRoute as never);
     } catch (error) {
       if (error instanceof ApiError && error.status === 404) {

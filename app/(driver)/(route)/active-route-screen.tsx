@@ -185,7 +185,7 @@ export default function DriverActiveRouteScreen() {
           {
             onSuccess: () => {
               router.replace({
-                pathname: '/(driver)/(route)/route-metrics-screen' as never,
+                pathname: '/(driver)/(route)/trip-metrics-screen' as never,
                 params: { tripId: tripId! },
               });
             },

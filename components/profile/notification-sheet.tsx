@@ -81,7 +81,7 @@ export function NotificationSheet({ visible, onClose, userType }: NotificationSh
         setAllowSounds(Boolean(preferences.allowSounds));
         setAllowUserWarnings(Boolean(preferences.allowUserWarnings));
         setAllowTrafficAlerts(Boolean(preferences.allowTrafficAlerts));
-      } catch { }
+      } catch {}
     }
 
     if (visible) {
@@ -113,7 +113,7 @@ export function NotificationSheet({ visible, onClose, userType }: NotificationSh
           allowTrafficAlerts: nextAllowTrafficAlerts,
         }),
       );
-    } catch { }
+    } catch {}
   }
 
   function handleAllowSoundsChange(value: boolean) {
@@ -131,7 +131,7 @@ export function NotificationSheet({ visible, onClose, userType }: NotificationSh
     saveNotificationPreferences(allowSounds, allowUserWarnings, value);
   }
 
-  const closeRef = useRef(() => { });
+  const closeRef = useRef(() => {});
   closeRef.current = () => {
     Animated.timing(sheetTranslateY, {
       toValue: 400,
