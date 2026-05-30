@@ -68,15 +68,9 @@ export default function RootLayout() {
                     name="(shared)/register-passenger-details"
                     options={{ headerShown: false }}
                   />
-                  <Stack.Screen
-                    name="(shared)/edit-profile-screen"
-                    options={{ headerShown: false }}
-                  />
+                  <Stack.Screen name="(shared)/edit-profile-screen" options={{ headerShown: false }} />
 
-                  <Stack.Screen
-                    name="(shared)/user-settings-screen"
-                    options={{ headerShown: false }}
-                  />
+                  <Stack.Screen name="(shared)/user-settings-screen" options={{ headerShown: false }} />
 
                   {/* driver */}
                   <Stack.Screen name="(driver)/driver-home" options={{ headerShown: false }} />
@@ -123,6 +117,10 @@ export default function RootLayout() {
                     name="(driver)/(route)/edit-route-screen"
                     options={{ headerShown: false }}
                   />
+                  <Stack.Screen
+                    name="(driver)/(route)/trip-metrics-screen"
+                    options={{ headerShown: false }}
+                  />
 
                   {/* passenger */}
                   <Stack.Screen
@@ -166,7 +164,6 @@ export default function RootLayout() {
                 </Stack>
               </>
             )}
-
             <StatusBar style="auto" />
           </PaperProvider>
         </QueryClientProvider>
