@@ -1,4 +1,4 @@
-import { apiDelete, apiGet, apiPost } from './api';
+import { apiDelete, apiGet, apiPost, getDriverHeaders } from './api';
 import { useSessionStore } from '@/store/session.store';
 import type {
   JoinRouteRequest,
@@ -16,15 +16,6 @@ export function getPassangerHeaders(): Record<string, string> {
   return {
     'X-User-Id': user?.id ?? '',
     'X-User-Role': 'passenger',
-  };
-}
-
-function getDriverHeaders(): Record<string, string> {
-  const user = useSessionStore.getState().user;
-
-  return {
-    'X-User-Id': user?.id ?? '',
-    'X-User-Role': 'driver',
   };
 }
 

@@ -24,6 +24,12 @@ export type RoutePassengerCardProps = {
   avatarUrl?: string;
   phase: PassengerPhase;
   status?: PassengerStatus;
+  /**
+   * Sobrescreve o texto do status derivado de `status`/`phase`.
+   * Usado, por exemplo, para reaproveitar o status `pending` exibindo
+   * "Ausente" para passageiros marcados como ausentes durante a viagem.
+   */
+  statusLabel?: string;
 };
 
 type StatusConfig = {
@@ -59,9 +65,14 @@ export function RoutePassengerCard({
   avatarUrl,
   phase,
   status = 'none',
+  statusLabel,
 }: RoutePassengerCardProps) {
   const [imageError, setImageError] = useState(false);
-  const statusConfig = STATUS_BY_PHASE[phase][status] ?? null;
+  const derivedStatusConfig = STATUS_BY_PHASE[phase][status] ?? null;
+  const statusConfig =
+    statusLabel != null
+      ? { label: statusLabel, color: derivedStatusConfig?.color ?? colors.subtleText }
+      : derivedStatusConfig;
   const showPlaceholder = !avatarUrl || imageError;
 
   return (
