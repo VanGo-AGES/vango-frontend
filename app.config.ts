@@ -77,6 +77,16 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         sounds: [],
       },
     ],
+    '@react-native-firebase/app',
+    '@react-native-firebase/messaging',
+    [
+      'expo-build-properties',
+      {
+        ios: {
+          useFrameworks: 'static',
+        },
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,

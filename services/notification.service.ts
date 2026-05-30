@@ -46,6 +46,16 @@ export async function getPushNotificationToken(): Promise<PushNotificationTokenR
     return { token: null, reason: 'permission-denied' };
   }
 
+  // iOS: o token nativo do expo-notifications é APNs, que o backend (FCM) não aceita.
+  // Usamos o Firebase Messaging para registrar no APNs e obter um registration token FCM.
+  if (Platform.OS === 'ios') {
+    const messaging = (await import('@react-native-firebase/messaging')).default;
+    await messaging().registerDeviceForRemoteMessages();
+    const fcmToken = await messaging().getToken();
+    return { token: fcmToken, reason: 'success' };
+  }
+
+  // Android: getDevicePushTokenAsync já retorna o token FCM.
   const devicePushToken = await Notifications.getDevicePushTokenAsync();
   return { token: devicePushToken.data, reason: 'success' };
 }
