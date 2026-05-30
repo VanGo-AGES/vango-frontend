@@ -36,6 +36,8 @@ export interface TripNextStopResponse {
   passanger_phone: string;
   trip_passanger_id: string;
   trip_passanger_status: TripPassangerStatus;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 export interface StartTripRequest {

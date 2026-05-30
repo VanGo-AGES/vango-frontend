@@ -212,8 +212,8 @@ export default function DriverActiveRouteDetailsScreen() {
 
   const handleNavigationCTA = () => {
     router.push({
-      pathname: '/driver-active-route' as never,
-      params: { tripId },
+      pathname: '/(driver)/(route)/active-route-screen' as never,
+      params: { routeId, tripId },
     });
   };
 

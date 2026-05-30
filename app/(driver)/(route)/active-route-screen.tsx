@@ -88,16 +88,23 @@ export default function DriverActiveRouteScreen() {
 
   const handleOpenWaze = async () => {
     setNavigationMenuOpen(false);
-    // O next-stop do backend não devolve coordenadas — navegamos por endereço.
+    const lat = nextStop?.latitude;
+    const lng = nextStop?.longitude;
     const address = nextStop?.address_label;
-    if (!address) {
-      Alert.alert('Navegação', 'Endereço da próxima parada indisponível.');
-      return;
+
+    let opened = false;
+    if (typeof lat === 'number' && typeof lng === 'number') {
+      opened = await openWazeNavigation({ latitude: lat, longitude: lng });
+    } else if (address) {
+      opened = await openWazeNavigation({ address });
     }
 
-    const opened = await openWazeNavigation({ address });
     if (!opened) {
-      const urls = getWazeUrls({ address });
+      const urls = getWazeUrls({
+        latitude: lat ?? undefined,
+        longitude: lng ?? undefined,
+        address,
+      });
       const webUrl = urls.find((url) => url.startsWith('https://'));
       Alert.alert('Navegação', 'Não foi possível abrir o Waze. Deseja abrir a versão web?', [
         { text: 'Abrir Waze Web', onPress: () => webUrl && Linking.openURL(webUrl) },
@@ -232,10 +239,12 @@ export default function DriverActiveRouteScreen() {
               latitude: lastLocation.latitude,
               longitude: lastLocation.longitude,
             }}
-            nextStopLocation={{
-              latitude: lastLocation.latitude,
-              longitude: lastLocation.longitude,
-            }}
+            nextStopLocation={
+              nextStop && nextStop.latitude != null && nextStop.longitude != null
+                ? { latitude: nextStop.latitude, longitude: nextStop.longitude }
+                : undefined
+            }
+            nextStopLabel="Próxima parada"
             onRecenterPress={() => {}}
             containerStyle={styles.map}
             recenterButtonStyle={[styles.recenterButtonPosition, floatingButtonsStyle]}
@@ -265,9 +274,11 @@ export default function DriverActiveRouteScreen() {
               name: nextStop.passanger_name,
               phoneNumber: nextStop.passanger_phone,
             }}
-            timeRemaining={eta?.eta_minutes ?? 0}
-            estimatedArrival={eta ? calculateExpectedArrival() : '--:--'}
-            distance={eta ? `${eta.distance_km.toFixed(1)}km` : '--'}
+            timeRemaining={typeof eta?.eta_minutes === 'number' ? eta.eta_minutes : 0}
+            estimatedArrival={calculateExpectedArrival()}
+            distance={
+              typeof eta?.distance_km === 'number' ? `${eta.distance_km.toFixed(1)}km` : '--'
+            }
             onSkipStop={() => setActiveDialog('skipStop')}
             translateY={sheetTranslateY}
             stopArrival={stopArrivalProps as any}

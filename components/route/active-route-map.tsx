@@ -15,10 +15,11 @@ export type ActiveRouteMapProps = {
     latitude: number;
     longitude: number;
   } | null;
-  nextStopLocation: {
+  nextStopLocation?: {
     latitude: number;
     longitude: number;
-  };
+  } | null;
+  nextStopLabel?: string;
   onRecenterPress?: () => void;
   containerStyle?: StyleProp<ViewStyle>;
   recenterButtonStyle?: StyleProp<ViewStyle> | AnimatedStyle<ViewStyle>;
@@ -37,10 +38,13 @@ function buildInitialRegion(
   currentLocation: ActiveRouteMapProps['currentLocation'],
   nextStopLocation: ActiveRouteMapProps['nextStopLocation'],
 ): Region {
-  if (!currentLocation) {
+  // Centraliza no ponto disponível quando só um deles existe (ex.: motorista
+  // sem coordenada da próxima parada, ou passageiro antes do 1º location_update).
+  const center = currentLocation ?? nextStopLocation;
+  if (!currentLocation || !nextStopLocation) {
     return {
-      latitude: nextStopLocation.latitude,
-      longitude: nextStopLocation.longitude,
+      latitude: center?.latitude ?? 0,
+      longitude: center?.longitude ?? 0,
       latitudeDelta: MIN_DELTA,
       longitudeDelta: MIN_DELTA,
     };
@@ -65,7 +69,7 @@ function buildInitialRegion(
 
 function buildMockRoutePoints(
   currentLocation: NonNullable<ActiveRouteMapProps['currentLocation']>,
-  nextStopLocation: ActiveRouteMapProps['nextStopLocation'],
+  nextStopLocation: NonNullable<ActiveRouteMapProps['nextStopLocation']>,
 ) {
   const latitudeDelta = nextStopLocation.latitude - currentLocation.latitude;
   const longitudeDelta = nextStopLocation.longitude - currentLocation.longitude;
@@ -86,7 +90,7 @@ function buildMockRoutePoints(
 
 async function fetchRealRoutePoints(
   currentLocation: NonNullable<ActiveRouteMapProps['currentLocation']>,
-  nextStopLocation: ActiveRouteMapProps['nextStopLocation'],
+  nextStopLocation: NonNullable<ActiveRouteMapProps['nextStopLocation']>,
 ) {
   try {
     const response = await fetch(
@@ -111,6 +115,7 @@ async function fetchRealRoutePoints(
 export function ActiveRouteMap({
   currentLocation,
   nextStopLocation,
+  nextStopLabel = 'Minha parada',
   onRecenterPress,
   containerStyle,
   recenterButtonStyle,
@@ -134,7 +139,7 @@ export function ActiveRouteMap({
     const requestId = requestIdRef.current;
 
     const syncRoute = async () => {
-      if (!currentLocation) {
+      if (!currentLocation || !nextStopLocation) {
         setRouteCoordinates([]);
         return;
       }
@@ -182,6 +187,10 @@ export function ActiveRouteMap({
 
   const handleRecenterPress = () => {
     const center = currentLocation ?? nextStopLocation;
+    if (!center) {
+      onRecenterPress?.();
+      return;
+    }
     mapRef.current?.animateToRegion(
       {
         latitude: center.latitude,
@@ -217,9 +226,11 @@ export function ActiveRouteMap({
           </Marker>
         )}
 
-        <Marker coordinate={nextStopLocation} title="Minha parada" anchor={MARKER_ANCHOR}>
-          <NextStopPin width={32.04} height={50} />
-        </Marker>
+        {nextStopLocation && (
+          <Marker coordinate={nextStopLocation} title={nextStopLabel} anchor={MARKER_ANCHOR}>
+            <NextStopPin width={32.04} height={50} />
+          </Marker>
+        )}
 
         {currentLocation && routeCoordinates.length > 0 && (
           <>
