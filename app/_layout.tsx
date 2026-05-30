@@ -111,6 +111,14 @@ export default function RootLayout() {
                 options={{ headerShown: false }}
               />
               <Stack.Screen
+                name="(driver)/(route)/active-route-details-screen"
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="(driver)/(route)/active-route-screen"
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
                 name="(driver)/(route)/trip-metrics-screen"
                 options={{ headerShown: false }}
               />

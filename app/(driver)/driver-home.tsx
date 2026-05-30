@@ -29,17 +29,17 @@ function formatTime(value: string) {
   return value.length >= 5 ? value.slice(0, 5) : value;
 }
 
-function formatDistance(route: { distance?: string | null; distance_km?: number | null }) {
-  if (route.distance) return route.distance;
-  if (typeof route.distance_km === 'number') return `${route.distance_km} km`;
+function formatDistance(route: { total_distance_km?: number | null }) {
+  if (typeof route.total_distance_km === 'number') {
+    return `${route.total_distance_km.toFixed(1)} km`;
+  }
   return '10 km';
 }
 
-function formatDuration(route: { duration?: string | null; duration_minutes?: number | null }) {
-  if (route.duration) return route.duration;
-  if (typeof route.duration_minutes === 'number') {
-    const hours = Math.floor(route.duration_minutes / 60);
-    const minutes = route.duration_minutes % 60;
+function formatDuration(route: { estimated_duration_min?: number | null }) {
+  if (typeof route.estimated_duration_min === 'number') {
+    const hours = Math.floor(route.estimated_duration_min / 60);
+    const minutes = route.estimated_duration_min % 60;
     return hours > 0 ? `${hours}h ${minutes}min` : `${minutes}min`;
   }
   return '30min';
