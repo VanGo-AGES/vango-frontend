@@ -87,6 +87,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         },
       },
     ],
+    './plugins/with-non-modular-headers',
   ],
   experiments: {
     typedRoutes: true,
