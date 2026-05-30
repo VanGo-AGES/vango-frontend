@@ -66,8 +66,8 @@ export function usePushNotifications() {
       }
 
       foregroundNotificationListener.current = Notifications.addNotificationReceivedListener(
-        (notification) => {
-          handleNotificationNavigation(notification);
+        (_notification) => {
+          // banner is shown automatically via setNotificationHandler; navigation only on tap
         },
       );
 

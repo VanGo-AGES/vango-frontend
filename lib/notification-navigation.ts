@@ -5,6 +5,8 @@ import type { UserRole } from '@/types/user.types';
 export type NotificationDestination = {
   path: string;
   params?: Record<string, string>;
+  parentPath?: string;
+  isRoot?: boolean;
 };
 
 type NotificationData = Record<string, unknown>;
@@ -59,6 +61,7 @@ function isNotificationType(value: string | undefined): value is NotificationTyp
 export function getHomeDestination(userRole?: UserRole | null): NotificationDestination {
   return {
     path: userRole === 'driver' ? '/(driver)/driver-home' : '/(passenger)/passenger-home-screen',
+    isRoot: true,
   };
 }
 
@@ -122,6 +125,7 @@ export function getNotificationDestination(
       return {
         path: '/(driver)/(route)/route-passengers-screen',
         params: routeParams,
+        parentPath: '/(driver)/(route)/route-details-screen',
       };
 
     case NotificationType.DRIVER_PASSENGER_LEFT:
@@ -137,6 +141,7 @@ export function getNotificationDestination(
     case NotificationType.ROUTE_CANCELLED:
       return {
         path: '/(passenger)/passenger-home-screen',
+        isRoot: true,
       };
 
     case NotificationType.TRIP_STARTED:
@@ -158,6 +163,24 @@ export function navigateFromNotification({
   userRole,
 }: NotificationNavigationParams) {
   const destination = getNotificationDestination(input, userRole);
+
+  if (destination.isRoot) {
+    if (router.canDismiss()) {
+      router.dismissAll();
+    }
+    router.replace({
+      pathname: destination.path as never,
+      params: destination.params,
+    });
+    return;
+  }
+
+  if (destination.parentPath) {
+    router.push({
+      pathname: destination.parentPath as never,
+      params: destination.params,
+    });
+  }
 
   router.push({
     pathname: destination.path as never,
