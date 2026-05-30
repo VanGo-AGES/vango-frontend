@@ -231,7 +231,7 @@ export default function DriverActiveRouteScreen() {
       onConfirm: () => {
         setActiveDialog(null);
         router.replace({
-          pathname: '/(driver)/(route)/TripMetricsScreen' as never,
+          pathname: '/(driver)/(route)/trip-metrics-screen' as never,
           params: {
             routeId: ROUTE_ID,
             passengersCount: String(routeStops.length),

@@ -7,6 +7,7 @@ import { PrimaryButton } from '@/components/general/primary-button';
 import { RouteHeroHeader } from '@/components/route/route-hero-header';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
+import { MaterialIcons } from '@expo/vector-icons';
 
 const FALLBACK_ROUTE_NAME = 'Rota finalizada';
 const FALLBACK_RECURRENCE = 'Seg • Ter • Qua • Qui • Sex';
@@ -15,6 +16,7 @@ const FALLBACK_DURATION_MINUTES = 45;
 const FALLBACK_DISTANCE_KM = 12;
 const FALLBACK_PASSENGERS = 3;
 
+//TO DO
 const MOCK_ORIGIN = { latitude: -30.0277, longitude: -51.1632 };
 const MOCK_DESTINATION = { latitude: -30.0495, longitude: -51.2287 };
 
@@ -32,18 +34,17 @@ function formatExpectedTime(value: string): string {
 }
 
 function formatTripDate(date: Date): string {
-  return date.toLocaleDateString('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
     year: 'numeric',
   });
 }
 
-function formatTripTime(date: Date): string {
-  return date.toLocaleTimeString('pt-BR', {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+function formatTripTime(start: Date, durationMinutes: number): string {
+  const end = new Date(start.getTime() + durationMinutes * 60 * 1000);
+  const fmt = (d: Date) => d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  return `${fmt(start)} - ${fmt(end)}`;
 }
 
 type TripMetricsParams = {
@@ -79,7 +80,7 @@ export default function TripMetricsScreen() {
 
   const tripDate = params.tripDate ? new Date(params.tripDate) : new Date();
   const dateLabel = formatTripDate(tripDate);
-  const timeLabel = formatTripTime(tripDate);
+  const timeLabel = formatTripTime(tripDate, durationMinutes);
 
   const handleExit = () => {
     router.replace('/driver-home');
@@ -97,6 +98,7 @@ export default function TripMetricsScreen() {
             expectedTime={expectedTime}
             durationMinutes={durationMinutes}
             distanceKm={distanceKm}
+            //TO DO
             origin={MOCK_ORIGIN}
             destination={MOCK_DESTINATION}
             style={[styles.heroHeader, { minHeight: heroHeight }]}
@@ -132,6 +134,7 @@ export default function TripMetricsScreen() {
             label="Sair"
             onPress={handleExit}
             variant="secondary"
+            icon={<MaterialIcons name={'arrow-forward'} color={colors.light} size={24} />}
             style={styles.ctaButton}
           />
         </View>
