@@ -138,6 +138,11 @@ export default function RootLayout() {
               />
 
               <Stack.Screen
+                name="(passenger)/passenger-active-route-screen"
+                options={{ headerShown: false }}
+              />
+
+              <Stack.Screen
                 name="(passenger)/passenger-active-route-details-screen"
                 options={{ headerShown: false }}
               />

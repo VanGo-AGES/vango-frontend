@@ -31,7 +31,7 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
 
 export type PushNotificationTokenResult =
   | { token: string; reason: 'success' }
-  | { token: null; reason: 'not-a-device' | 'permission-denied' };
+  | { token: null; reason: 'not-a-device' | 'permission-denied' | 'token-unavailable' };
 
 export async function getPushNotificationToken(): Promise<PushNotificationTokenResult> {
   if (!Device.isDevice) {
@@ -46,8 +46,14 @@ export async function getPushNotificationToken(): Promise<PushNotificationTokenR
     return { token: null, reason: 'permission-denied' };
   }
 
-  const devicePushToken = await Notifications.getDevicePushTokenAsync();
-  return { token: devicePushToken.data, reason: 'success' };
+  try {
+    const devicePushToken = await Notifications.getDevicePushTokenAsync();
+    return { token: devicePushToken.data, reason: 'success' };
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.debug('getDevicePushTokenAsync failed', error);
+    return { token: null, reason: 'token-unavailable' };
+  }
 }
 
 const PUSH_LAST_SENT_KEY = '@vango:push:last-sent-token';
@@ -59,11 +65,11 @@ export async function registerPushToken(token: string): Promise<void> {
   try {
     if (!token) return;
 
-    const last = await AsyncStorage.getItem(PUSH_LAST_SENT_KEY);
-    if (last === token) return; // already registered
-
-    // send to backend; backend is expected to accept { token }
     const user = useSessionStore.getState().user;
+    const registrationKey = user?.id ? `${user.id}:${token}` : token;
+    const last = await AsyncStorage.getItem(PUSH_LAST_SENT_KEY);
+    if (last === registrationKey) return; // already registered for this user
+
     const headers = {
       'X-User-Id': user?.id ?? '',
       'X-User-Role': user?.role ?? '',
@@ -71,7 +77,7 @@ export async function registerPushToken(token: string): Promise<void> {
 
     await apiPost<{ token: string }, void>('/users/me/push-token', { token }, headers);
 
-    await AsyncStorage.setItem(PUSH_LAST_SENT_KEY, token);
+    await AsyncStorage.setItem(PUSH_LAST_SENT_KEY, registrationKey);
   } catch (error) {
     // fail silently — do not block app usage
     // keep a lightweight debug log
