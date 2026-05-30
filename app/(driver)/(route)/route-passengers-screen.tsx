@@ -313,9 +313,10 @@ export default function RoutePassengersScreen() {
 
   return (
     <AppScreenContainer
-      backgroundColor={colors.light}
+      backgroundColor={colors.white}
       edges={['top', 'bottom']}
       style={styles.container}
+      disableKeyboardDismiss
     >
       <RouteTopBar onBackPress={() => router.back()} />
 

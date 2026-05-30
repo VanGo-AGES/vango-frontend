@@ -148,10 +148,15 @@ export default function RootLayout() {
                     options={{ headerShown: false }}
                   />
 
-                  <Stack.Screen
-                    name="(passenger)/passenger-active-route-details-screen"
-                    options={{ headerShown: false }}
-                  />
+              <Stack.Screen
+                name="(passenger)/passenger-active-route-screen"
+                options={{ headerShown: false }}
+              />
+
+              <Stack.Screen
+                name="(passenger)/passenger-active-route-details-screen"
+                options={{ headerShown: false }}
+              />
 
                   <Stack.Screen
                     name="(passenger)/participant-selection-screen"

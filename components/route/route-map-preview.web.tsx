@@ -1,6 +1,7 @@
-import { View, StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Image } from 'expo-image';
-import { colors, withAlpha } from '@/styles/colors';
+
+import { colors } from '@/styles/colors';
 
 const DEFAULT_MAP_IMAGE = require('@/assets/images/map-mock.png');
 
@@ -19,7 +20,6 @@ export function RouteMapPreview({ variant = 'thumbnail' }: RouteMapPreviewProps)
   return (
     <View style={[styles.base, styles[variant]]}>
       <Image source={DEFAULT_MAP_IMAGE} style={StyleSheet.absoluteFillObject} contentFit="cover" />
-      <View style={styles.tint} />
     </View>
   );
 }
@@ -29,10 +29,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: colors.light,
     position: 'relative',
-  },
-  tint: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: withAlpha(colors.dark, 0.05),
   },
   hero: {
     ...StyleSheet.absoluteFillObject,

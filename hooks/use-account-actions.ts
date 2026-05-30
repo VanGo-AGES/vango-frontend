@@ -7,12 +7,14 @@ export function useAccountActions() {
 
   const handleLogout = async () => {
     clearSession();
+    router.dismissAll();
     router.replace('/onboarding');
   };
 
   const handleDeleteAccount = async () => {
     // TODO: implementar lógica de exclusão de conta no backend na Sprint 4
     clearSession();
+    router.dismissAll();
     router.replace('/onboarding');
   };
 
