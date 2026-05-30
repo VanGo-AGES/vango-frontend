@@ -14,7 +14,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'vango.app.com',
-    googleServicesFile: process.env.GOOGLE_SERVICES_PLIST || './GoogleService-Info.plist',
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
     },
@@ -75,16 +74,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         icon: './assets/images/icon.png',
         color: '#E6F4FE',
         sounds: [],
-      },
-    ],
-    '@react-native-firebase/app',
-    '@react-native-firebase/messaging',
-    [
-      'expo-build-properties',
-      {
-        ios: {
-          useFrameworks: 'static',
-        },
       },
     ],
   ],
