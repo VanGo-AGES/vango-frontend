@@ -30,8 +30,8 @@ export function useRouteHeroHeader({ routeId }: UseRouteHeroHeaderParams) {
         routeName: query.data.name,
         recurrence: query.data.recurrence.split(',').map((d) => d.trim()),
         expectedTime: query.data.expected_time,
-        durationMinutes: query.data.duration_minutes ?? 30,
-        distanceKm: query.data.distance_km ?? 10,
+        durationMinutes: query.data.estimated_duration_min ?? 30,
+        distanceKm: query.data.total_distance_km ?? 10,
 
         origin_address:
           query.data.origin_address?.latitude && query.data.origin_address?.longitude

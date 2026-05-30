@@ -286,8 +286,8 @@ export default function DriverActiveRouteDetailsScreen() {
           routeName={route.name}
           recurrence={formatRecurrenceLabel(route.recurrence)}
           expectedTime={formatExpectedTime(route.expected_time)}
-          durationMinutes={route.duration_minutes ?? FALLBACK_DURATION_MINUTES}
-          distanceKm={route.distance_km ?? FALLBACK_DISTANCE_KM}
+          durationMinutes={route.estimated_duration_min ?? FALLBACK_DURATION_MINUTES}
+          distanceKm={route.total_distance_km ?? FALLBACK_DISTANCE_KM}
           origin={
             route.origin_address?.latitude != null && route.origin_address?.longitude != null
               ? {

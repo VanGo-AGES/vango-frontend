@@ -9,6 +9,7 @@ import { ActionPillButton } from '@/components/route/action-pill-button';
 import { NextRouteCard } from '@/components/route/next-route-card';
 import { RouteList } from '@/components/route/route-list';
 import { getNextRoute } from '@/services/route.service';
+import { getDriverCurrentTrip } from '@/services/trip.service';
 import { useDriverRoutes } from '@/hooks/use-driver-routes';
 import { useSessionStore } from '@/store/session.store';
 import { colors } from '@/styles/colors';
@@ -32,17 +33,17 @@ function formatTime(value: string) {
   return value.length >= 5 ? value.slice(0, 5) : value;
 }
 
-function formatDistance(route: { distance?: string | null; distance_km?: number | null }) {
-  if (route.distance) return route.distance;
-  if (typeof route.distance_km === 'number') return `${route.distance_km} km`;
+function formatDistance(route: { total_distance_km?: number | null }) {
+  if (typeof route.total_distance_km === 'number') {
+    return `${route.total_distance_km.toFixed(1)} km`;
+  }
   return '10 km';
 }
 
-function formatDuration(route: { duration?: string | null; duration_minutes?: number | null }) {
-  if (route.duration) return route.duration;
-  if (typeof route.duration_minutes === 'number') {
-    const hours = Math.floor(route.duration_minutes / 60);
-    const minutes = route.duration_minutes % 60;
+function formatDuration(route: { estimated_duration_min?: number | null }) {
+  if (typeof route.estimated_duration_min === 'number') {
+    const hours = Math.floor(route.estimated_duration_min / 60);
+    const minutes = route.estimated_duration_min % 60;
     return hours > 0 ? `${hours}h ${minutes}min` : `${minutes}min`;
   }
   return '30min';
@@ -57,11 +58,28 @@ export default function DriverHomeScreen() {
   const nextRoute = getNextRoute(routesData);
   const myRoutes = routesData;
 
-  const handleOpenRouteDetails = (routeId: string) => {
+  const openRouteDetails = (routeId: string) => {
     router.push({
       pathname: '/(driver)/(route)/route-details-screen' as never,
       params: { routeId },
     });
+  };
+
+  const handleOpenRoute = async (route: { id: string; status?: string }) => {
+    if (route.status === 'em_andamento') {
+      try {
+        const currentTrip = await getDriverCurrentTrip(route.id);
+        if (currentTrip?.trip_id) {
+          router.push({
+            pathname: '/(driver)/(route)/active-route-details-screen' as never,
+            params: { routeId: route.id, tripId: currentTrip.trip_id },
+          });
+          return;
+        }
+      } catch {}
+    }
+
+    openRouteDetails(route.id);
   };
 
   const routeItems = myRoutes.map((route) => ({
@@ -81,7 +99,7 @@ export default function DriverHomeScreen() {
             longitude: route.destination_address.longitude,
           }
         : MOCK_DESTINATION,
-    onPress: () => handleOpenRouteDetails(route.id),
+    onPress: () => handleOpenRoute(route),
   }));
 
   const handleProfilePress = () => {
@@ -145,7 +163,7 @@ export default function DriverHomeScreen() {
                     }
                   : MOCK_DESTINATION
               }
-              onPress={() => handleOpenRouteDetails(nextRoute.id)}
+              onPress={() => handleOpenRoute(nextRoute)}
             />
           ) : (
             <View style={styles.emptyStateWrapper}>

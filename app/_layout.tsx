@@ -110,6 +110,14 @@ export default function RootLayout() {
                 name="(driver)/(route)/edit-route-screen"
                 options={{ headerShown: false }}
               />
+              <Stack.Screen
+                name="(driver)/(route)/active-route-details-screen"
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="(driver)/(route)/active-route-screen"
+                options={{ headerShown: false }}
+              />
 
               {/* passenger */}
               <Stack.Screen
