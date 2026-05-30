@@ -1,3 +1,4 @@
+import { useSessionStore } from '@/store/session.store';
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export class ApiError extends Error {
@@ -76,6 +77,14 @@ export async function apiDelete<TResponse>(
   });
 
   return handleResponse<TResponse>(response);
+}
+
+export function getDriverHeaders(): Record<string, string> {
+  const user = useSessionStore.getState().user;
+  return {
+    'X-User-Id': user?.id ?? '',
+    'X-User-Role': 'driver',
+  };
 }
 
 export async function apiUpload<TResponse>(path: string, formData: FormData): Promise<TResponse> {

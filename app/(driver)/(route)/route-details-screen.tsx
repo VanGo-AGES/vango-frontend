@@ -18,6 +18,7 @@ import type { AddressResponse, RoutePassangerResponse, StopResponse } from '@/ty
 import { MaterialIcons } from '@expo/vector-icons';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
+import { startTrip } from '@/services/trip.service';
 import {
   ScrollView,
   StyleSheet,
@@ -25,7 +26,11 @@ import {
   TouchableOpacity,
   View,
   useWindowDimensions,
+  Alert,
 } from 'react-native';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { ApiError } from '@/services/api';
+import { listVehicles } from '@/services/vehicle.service';
 
 type DialogType = 'start_route' | 'delete_route' | 'delete_stop' | null;
 
@@ -123,8 +128,11 @@ export default function RouteDetailsScreen() {
   } = useRoutePassangers(routeId);
   const { data: absences = [] } = useRouteAbsences({ routeId, recurrence });
 
-  // Refaz o fetch sempre que a tela ganha foco — garante que novas
-  // solicitações de passageiros apareçam sem precisar sair e voltar.
+  const { data: vehicles = [], isLoading: isVehiclesLoading } = useQuery({
+    queryKey: ['driver-vehicles'],
+    queryFn: listVehicles,
+  });
+
   useFocusEffect(
     useCallback(() => {
       refetchRoute();
@@ -196,7 +204,11 @@ export default function RouteDetailsScreen() {
   const deleteRouteMutation = useDeleteRoute();
   const removePassangerMutation = useRemovePassanger();
 
-  const showStartRouteCta = isToday && !isInProgress;
+  const startTripMutation = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: any }) => startTrip(id, payload),
+  });
+
+  const showStartRouteCta = (isToday && !isInProgress) || isInProgress;
   const showActionMenu = !isInProgress;
 
   const handleOnBackPress = () => {
@@ -230,9 +242,69 @@ export default function RouteDetailsScreen() {
   };
 
   const handleConfirmStartRoute = () => {
-    setActiveDialog(null);
-    // TODO: navegar para a tela de viagem em andamento (US futura)
-    // router.push('DRIVER_TRIP_SCREEN');
+    if (!routeId) return;
+
+    if (route?.status === 'em_andamento') {
+      setActiveDialog(null);
+      router.push({
+        pathname: '/(driver)/(route)/active-route-screen' as never,
+        params: { tripId: routeId },
+      });
+      return;
+    }
+
+    if (vehicles.length === 0) {
+      Alert.alert(
+        'Aviso',
+        'Nenhum veículo encontrado para a sua conta. Cadastre um veículo antes de iniciar a rota.',
+      );
+      setActiveDialog(null);
+      return;
+    }
+
+    const activeVehicleId = vehicles[0].id;
+
+    const payload = {
+      vehicle_id: activeVehicleId,
+      trip_date: new Date().toISOString(),
+    };
+
+    startTripMutation.mutate(
+      { id: routeId, payload },
+      {
+        onSuccess: (newTrip) => {
+          setActiveDialog(null);
+          router.push({
+            pathname: '/(driver)/(route)/active-route-screen' as never,
+            params: { tripId: newTrip.id },
+          });
+        },
+        onError: (error) => {
+          setActiveDialog(null);
+
+          if (error instanceof ApiError) {
+            let errorMessage = 'Erro desconhecido ao iniciar rota.';
+
+            if (typeof error.detail === 'string') {
+              errorMessage = error.detail;
+            } else if (Array.isArray(error.detail)) {
+              errorMessage =
+                'Faltam dados: ' +
+                error.detail.map((e: any) => e.loc?.join('.') ?? 'campo').join(', ');
+            } else if (error.message) {
+              errorMessage = error.message;
+            }
+
+            Alert.alert('Aviso', errorMessage);
+          } else {
+            Alert.alert(
+              'Erro',
+              'Não foi possível iniciar a rota. Verifique sua conexão e tente novamente.',
+            );
+          }
+        },
+      },
+    );
   };
 
   const handleConfirmDeleteRoute = () => {
@@ -268,8 +340,21 @@ export default function RouteDetailsScreen() {
   };
 
   const startRouteDialogActions: DialogAction[] = [
-    { label: 'Cancelar', onPress: () => setActiveDialog(null), variant: 'cancel', icon: 'close' },
-    { label: 'Iniciar', onPress: handleConfirmStartRoute, variant: 'default', icon: 'check' },
+    {
+      label: 'Cancelar',
+      onPress: () => setActiveDialog(null),
+      variant: 'cancel',
+      icon: 'close',
+      disabled: startTripMutation.isPending,
+    },
+    {
+      label: 'Iniciar',
+      onPress: handleConfirmStartRoute,
+      variant: 'default',
+      icon: 'check',
+      loading: startTripMutation.isPending,
+      disabled: startTripMutation.isPending || isVehiclesLoading,
+    },
   ];
 
   const deleteRouteDialogActions: DialogAction[] = [
@@ -436,11 +521,30 @@ export default function RouteDetailsScreen() {
       {showStartRouteCta && (
         <View style={styles.ctaFloating}>
           <PrimaryButton
-            label="Iniciar rota"
-            onPress={() => setActiveDialog('start_route')}
+            label={isInProgress ? 'Ver viagem em andamento' : 'Iniciar rota'}
+            onPress={() => {
+              if (isInProgress) {
+                const activeTripId = route?.active_trip_id;
+                if (!activeTripId) {
+                  Alert.alert(
+                    'Aviso',
+                    'Sincronizando dados da viagem ativa com o servidor. Tente novamente em instantes.',
+                  );
+                  return;
+                }
+                router.push({
+                  pathname: '/(driver)/(route)/active-route-screen' as never,
+                  params: { tripId: activeTripId },
+                });
+              } else {
+                setActiveDialog('start_route');
+              }
+            }}
             style={styles.ctaButton}
             labelColor={colors.white}
-            icon={<MaterialIcons name="check" size={20} color={colors.white} />}
+            icon={
+              <MaterialIcons name={isInProgress ? 'map' : 'check'} size={20} color={colors.white} />
+            }
           />
         </View>
       )}

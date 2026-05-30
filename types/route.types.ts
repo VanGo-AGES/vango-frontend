@@ -98,6 +98,7 @@ export interface RouteResponse {
   distance_km?: number | null;
   duration?: string | null;
   duration_minutes?: number | null;
+  active_trip_id?: string | null;
 }
 
 export interface PassangerRouteDetailResponse {

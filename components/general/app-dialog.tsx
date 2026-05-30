@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Modal, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { colors, withAlpha } from '@/styles/colors';
 import { typography } from '@/styles/typography';
@@ -11,6 +11,8 @@ export interface DialogAction {
   onPress: () => void;
   variant?: ActionVariant;
   icon?: string;
+  disabled?: boolean;
+  loading?: boolean;
 }
 
 export interface AppDialogProps {
@@ -21,7 +23,8 @@ export interface AppDialogProps {
   onRequestClose?: () => void;
 }
 
-const getActionColor = (variant: ActionVariant = 'default'): string => {
+const getActionColor = (variant: ActionVariant = 'default', disabled?: boolean): string => {
+  if (disabled) return colors.subtleText;
   switch (variant) {
     case 'destructive':
       return colors.destructive;
@@ -58,7 +61,9 @@ const AppDialog: React.FC<AppDialogProps> = ({
 
           <View style={[styles.footer, actions.length === 1 && styles.footerCentered]}>
             {actions.map((action, index) => {
-              const color = getActionColor(action.variant);
+              const isDisabled = action.disabled || action.loading;
+              const color = getActionColor(action.variant, isDisabled);
+
               return (
                 <TouchableOpacity
                   key={index}
@@ -67,8 +72,13 @@ const AppDialog: React.FC<AppDialogProps> = ({
                   activeOpacity={0.7}
                   accessibilityRole="button"
                   accessibilityLabel={action.label}
+                  disabled={isDisabled}
                 >
-                  {action.icon && <Icon name={action.icon as any} size={18} color={color} />}
+                  {action.loading ? (
+                    <ActivityIndicator size="small" color={color} />
+                  ) : (
+                    action.icon && <Icon name={action.icon as any} size={18} color={color} />
+                  )}
                   <Text style={[styles.buttonText, { color }]}>{action.label}</Text>
                 </TouchableOpacity>
               );

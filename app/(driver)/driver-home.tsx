@@ -13,11 +13,8 @@ import { useDriverRoutes } from '@/hooks/use-driver-routes';
 import { useSessionStore } from '@/store/session.store';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
-
-const headerLocation = 'Porto Alegre, RS';
-// TODO: Remover estes mocks quando o backend enviar as coordenadas
-const MOCK_ORIGIN = { latitude: -30.0277, longitude: -51.1632 }; // Shopping Iguatemi
-const MOCK_DESTINATION = { latitude: -30.0495, longitude: -51.2287 }; // Shopping Praia de Belas
+import { useEffect, useState } from 'react';
+import * as Location from 'expo-location';
 
 function formatRecurrence(recurrence: string) {
   return recurrence
@@ -54,14 +51,71 @@ export default function DriverHomeScreen() {
   const localPhotoUri = useSessionStore((s) => s.localPhotoUri);
   const { data: routesData = [], isLoading, isError } = useDriverRoutes();
 
+  const [headerLocation, setHeaderLocation] = useState('Buscando local...');
+  useEffect(() => {
+    (async () => {
+      try {
+        // Pede permissão (caso ainda não tenha dado)
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          setHeaderLocation('Localização negada');
+          return;
+        }
+
+        // Pega a coordenada atual
+        const location = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+
+        // Transforma a Lat/Lng em endereço (Reverse Geocoding)
+        const geocode = await Location.reverseGeocodeAsync({
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+        });
+
+        if (geocode.length > 0) {
+          const place = geocode[0];
+          // No Brasil, a cidade pode vir em 'subregion' ou 'city', e o estado vem em 'region'
+          const city = place.subregion || place.city || 'Cidade Desconhecida';
+          const state = place.region || '';
+
+          setHeaderLocation(`${city}${state ? `, ${state}` : ''}`);
+        } else {
+          setHeaderLocation('Local não encontrado');
+        }
+      } catch (error) {
+        setHeaderLocation('Localização indisponível');
+      }
+    })();
+  }, []);
+
   const nextRoute = getNextRoute(routesData);
   const myRoutes = routesData;
 
   const handleOpenRouteDetails = (routeId: string) => {
-    router.push({
-      pathname: '/(driver)/(route)/route-details-screen' as never,
-      params: { routeId },
-    });
+    const clickedRoute = routesData.find((r) => r.id === routeId);
+
+    if (clickedRoute?.status === 'em_andamento') {
+      const activeTripId = clickedRoute?.active_trip_id;
+
+      if (!activeTripId) {
+        router.push({
+          pathname: '/(driver)/(route)/route-details-screen' as never,
+          params: { routeId },
+        });
+        return;
+      }
+
+      router.push({
+        pathname: '/(driver)/(route)/active-route-details-screen' as never,
+        params: { routeId, tripId: activeTripId },
+      });
+    } else {
+      router.push({
+        pathname: '/(driver)/(route)/route-details-screen' as never,
+        params: { routeId },
+      });
+    }
   };
 
   const routeItems = myRoutes.map((route) => ({
@@ -73,14 +127,14 @@ export default function DriverHomeScreen() {
     origin:
       route.origin_address?.latitude && route.origin_address?.longitude
         ? { latitude: route.origin_address.latitude, longitude: route.origin_address.longitude }
-        : MOCK_ORIGIN,
+        : undefined,
     destination:
       route.destination_address?.latitude && route.destination_address?.longitude
         ? {
             latitude: route.destination_address.latitude,
             longitude: route.destination_address.longitude,
           }
-        : MOCK_DESTINATION,
+        : undefined,
     onPress: () => handleOpenRouteDetails(route.id),
   }));
 
@@ -88,7 +142,6 @@ export default function DriverHomeScreen() {
     router.push('/profile-driver-screen');
   };
 
-  // TODO: substituir por rota de configurações quando a tela existir.
   const handleSettingsPress = () => {
     router.push('/profile-driver-screen');
   };
@@ -105,7 +158,7 @@ export default function DriverHomeScreen() {
     >
       <View style={styles.headerSpacing}>
         <HomeHeaderCard
-          name={sessionUser?.name ?? 'João Silva'}
+          name={sessionUser?.name ?? 'Motorista'}
           location={headerLocation}
           avatarUri={localPhotoUri ?? sessionUser?.photo_url ?? undefined}
           onProfilePress={handleProfilePress}
@@ -135,7 +188,7 @@ export default function DriverHomeScreen() {
                       latitude: nextRoute.origin_address.latitude,
                       longitude: nextRoute.origin_address.longitude,
                     }
-                  : MOCK_ORIGIN
+                  : undefined
               }
               destination={
                 nextRoute.destination_address?.latitude && nextRoute.destination_address?.longitude
@@ -143,7 +196,7 @@ export default function DriverHomeScreen() {
                       latitude: nextRoute.destination_address.latitude,
                       longitude: nextRoute.destination_address.longitude,
                     }
-                  : MOCK_DESTINATION
+                  : undefined
               }
               onPress={() => handleOpenRouteDetails(nextRoute.id)}
             />
@@ -201,47 +254,15 @@ export default function DriverHomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: 0,
-  },
-  headerSpacing: {
-    paddingHorizontal: 24,
-    marginBottom: 32,
-  },
-  section: {
-    gap: 12,
-  },
-  sectionWithTopSpacing: {
-    flex: 1,
-    gap: 12,
-    marginTop: 36,
-  },
-  panel: {
-    backgroundColor: colors.light,
-    paddingHorizontal: 24,
-    paddingVertical: 24,
-  },
-  emptyStateWrapper: {
-    paddingHorizontal: 24,
-    paddingVertical: 24,
-  },
-  sectionTitle: {
-    ...typography.body,
-    color: colors.dark,
-    paddingHorizontal: 24,
-  },
-  buttonContainer: {
-    paddingHorizontal: 24,
-  },
-  createRouteButton: {
-    width: '100%',
-    minHeight: 40,
-  },
-  routesList: {
-    flex: 1,
-    paddingHorizontal: 24,
-  },
-  routesListContent: {
-    gap: 16,
-  },
+  container: { paddingHorizontal: 0 },
+  headerSpacing: { paddingHorizontal: 24, marginBottom: 32 },
+  section: { gap: 12 },
+  sectionWithTopSpacing: { flex: 1, gap: 12, marginTop: 36 },
+  panel: { backgroundColor: colors.light, paddingHorizontal: 24, paddingVertical: 24 },
+  emptyStateWrapper: { paddingHorizontal: 24, paddingVertical: 24 },
+  sectionTitle: { ...typography.body, color: colors.dark, paddingHorizontal: 24 },
+  buttonContainer: { paddingHorizontal: 24 },
+  createRouteButton: { width: '100%', minHeight: 40 },
+  routesList: { flex: 1, paddingHorizontal: 24 },
+  routesListContent: { gap: 16 },
 });
