@@ -13,10 +13,22 @@
     },
     "production": {
       "autoIncrement": true
+    },
+    "tunnel": {
+      "extends": "production",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://0977-140-209-213-84.ngrok-free.app",
+        "EXPO_PUBLIC_SOCKET_URL": "https://0977-140-209-213-84.ngrok-free.app"
+      }
     }
   },
   "submit": {
     "production": {
+      "ios": {
+        "ascAppId": "6766738125"
+      }
+    },
+    "tunnel": {
       "ios": {
         "ascAppId": "6766738125"
       }
