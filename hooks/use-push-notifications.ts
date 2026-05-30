@@ -1,18 +1,41 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import * as Notifications from 'expo-notifications';
-import { useRouter } from 'expo-router';
-import { getNotificationDestination } from '@/lib/notification-navigation';
+import { useRootNavigationState, useRouter } from 'expo-router';
+import { navigateFromNotification } from '@/lib/notification-navigation';
 import { getPushNotificationToken, registerPushToken } from '@/services/notification.service';
-import type { NotificationPayload } from '@/types/notification.types';
 import { useSessionStore } from '@/store/session.store';
 
 export function usePushNotifications() {
   const router = useRouter();
+  const rootNavigationState = useRootNavigationState();
   const userRole = useSessionStore((state) => state.user?.role);
+  const hasHydrated = useSessionStore((state) => state.hasHydrated);
   const [pushNotificationToken, setPushNotificationToken] = useState<string | null>(null);
   const [permissionDenied, setPermissionDenied] = useState(false);
   const foregroundNotificationListener = useRef<Notifications.EventSubscription | null>(null);
   const notificationResponseListener = useRef<Notifications.EventSubscription | null>(null);
+  const pendingNotificationRef = useRef<
+    Notifications.Notification | Notifications.NotificationResponse | null
+  >(null);
+  const didCheckInitialNotification = useRef(false);
+
+  const canNavigate = Boolean(rootNavigationState?.key && hasHydrated);
+
+  const handleNotificationNavigation = useCallback(
+    (input: Notifications.Notification | Notifications.NotificationResponse) => {
+      if (!canNavigate) {
+        pendingNotificationRef.current = input;
+        return;
+      }
+
+      navigateFromNotification({
+        input,
+        router,
+        userRole: useSessionStore.getState().user?.role ?? userRole,
+      });
+    },
+    [canNavigate, router, userRole],
+  );
 
   useEffect(() => {
     Notifications.setNotificationHandler({
@@ -43,26 +66,14 @@ export function usePushNotifications() {
       }
 
       foregroundNotificationListener.current = Notifications.addNotificationReceivedListener(
-        () => {},
+        (_notification) => {
+          // banner is shown automatically via setNotificationHandler; navigation only on tap
+        },
       );
 
       notificationResponseListener.current = Notifications.addNotificationResponseReceivedListener(
         (response) => {
-          const payload = response.notification.request.content.data as NotificationPayload;
-          const destination = getNotificationDestination(payload);
-
-          if (destination) {
-            router.push({
-              pathname: destination.path as never,
-              params: destination.params,
-            });
-          } else {
-            const fallback =
-              userRole == 'driver'
-                ? '/(driver)/driver-home-screen'
-                : '/(passenger)/passenger-home-screen';
-            router.push({ pathname: fallback as never });
-          }
+          handleNotificationNavigation(response);
         },
       );
     }
@@ -73,7 +84,32 @@ export function usePushNotifications() {
       foregroundNotificationListener.current?.remove();
       notificationResponseListener.current?.remove();
     };
-  }, []);
+  }, [handleNotificationNavigation]);
+
+  useEffect(() => {
+    if (didCheckInitialNotification.current) {
+      return;
+    }
+
+    didCheckInitialNotification.current = true;
+
+    Notifications.getLastNotificationResponseAsync().then((response) => {
+      if (response) {
+        handleNotificationNavigation(response);
+        Notifications.clearLastNotificationResponse();
+      }
+    });
+  }, [handleNotificationNavigation]);
+
+  useEffect(() => {
+    if (!canNavigate || !pendingNotificationRef.current) {
+      return;
+    }
+
+    const notification = pendingNotificationRef.current;
+    pendingNotificationRef.current = null;
+    handleNotificationNavigation(notification);
+  }, [canNavigate, handleNotificationNavigation]);
 
   // when user becomes available after login/hydration, register token if we have it
   useEffect(() => {
