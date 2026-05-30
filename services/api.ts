@@ -2,11 +2,6 @@ import { useSessionStore } from '@/store/session.store';
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
-/**
- * Headers padrão para requisições autenticadas como motorista.
- * Centralizado aqui para evitar duplicação entre os services do domínio
- * do motorista (route, vehicle, route-passanger, trip).
- */
 export function getDriverHeaders(): Record<string, string> {
   const user = useSessionStore.getState().user;
 

@@ -30,27 +30,19 @@ export async function getCurrentTrip(
   );
 }
 
-// --- Execução da viagem pelo motorista (US09) ---
-
-/** Detalhes da viagem em andamento (rota dinâmica). */
 export async function getTrip(tripId: string): Promise<TripResponse> {
   return apiGet<TripResponse>(`/trips/${tripId}`, getDriverHeaders());
 }
 
-/** Próxima parada pendente da viagem (null quando não há). */
 export async function getTripNextStop(tripId: string): Promise<TripNextStopResponse | null> {
   return apiGet<TripNextStopResponse | null>(`/trips/${tripId}/next-stop`, getDriverHeaders());
 }
 
-/**
- * Viagem em andamento da rota, consultada como motorista.
- * Usado na recuperação do 409 TripAlreadyInProgressError ao iniciar rota.
- */
+// Consultada pelo motorista na recuperação do 409 TripAlreadyInProgressError.
 export async function getDriverCurrentTrip(routeId: string): Promise<CurrentTripResponse | null> {
   return apiGet<CurrentTripResponse | null>(`/routes/${routeId}/trips/current`, getDriverHeaders());
 }
 
-/** Inicia a execução da rota (cria a Trip). */
 export async function startTrip(routeId: string, data: StartTripRequest): Promise<TripResponse> {
   return apiPost<StartTripRequest, TripResponse>(
     `/routes/${routeId}/trips`,
@@ -59,7 +51,6 @@ export async function startTrip(routeId: string, data: StartTripRequest): Promis
   );
 }
 
-/** Confirma o embarque de um passageiro. */
 export async function boardPassanger(
   tripId: string,
   tripPassangerId: string,
@@ -71,7 +62,6 @@ export async function boardPassanger(
   );
 }
 
-/** Marca um passageiro como ausente (não embarcou). */
 export async function markPassangerAbsent(
   tripId: string,
   tripPassangerId: string,
@@ -83,7 +73,6 @@ export async function markPassangerAbsent(
   );
 }
 
-/** Registra o desembarque manual de um passageiro. */
 export async function alightPassanger(
   tripId: string,
   tripPassangerId: string,
@@ -95,7 +84,6 @@ export async function alightPassanger(
   );
 }
 
-/** Pula uma parada (marca os passageiros dela como ausentes). */
 export async function skipStop(tripId: string, stopId: string): Promise<TripPassangerResponse[]> {
   return apiPost<undefined, TripPassangerResponse[]>(
     `/trips/${tripId}/stops/${stopId}/skip`,
@@ -104,7 +92,6 @@ export async function skipStop(tripId: string, stopId: string): Promise<TripPass
   );
 }
 
-/** Finaliza a viagem. */
 export async function finishTrip(
   tripId: string,
   data: FinishTripRequest = { total_km: null },

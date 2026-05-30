@@ -252,7 +252,6 @@ export default function RouteDetailsScreen() {
       return;
     }
 
-    // Veículo inválido / sem permissão.
     if (error.status === 403) {
       Alert.alert(
         'Veículo inválido',
@@ -262,9 +261,8 @@ export default function RouteDetailsScreen() {
     }
 
     if (error.status === 409) {
-      // Pode ser uma viagem já em andamento ou ausência de passageiros.
-      // Tentamos recuperar a viagem atual: se existir, navegamos pra ela;
-      // caso contrário, orientamos sobre a falta de passageiros.
+      // 409 pode ser viagem em andamento ou falta de passageiros. Se houver
+      // viagem atual, navega pra ela; senão, cai no aviso abaixo.
       try {
         const currentTrip = routeId ? await getDriverCurrentTrip(routeId) : null;
         if (currentTrip?.trip_id) {
@@ -272,7 +270,7 @@ export default function RouteDetailsScreen() {
           return;
         }
       } catch {
-        // Sem viagem em andamento recuperável — segue para o aviso abaixo.
+        // sem viagem recuperável
       }
 
       Alert.alert(

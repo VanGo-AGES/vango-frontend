@@ -115,7 +115,6 @@ function mapTripPassangerToCard(
     return { ...base, status: isNext ? 'next' : 'pending' };
   }
 
-  // direction === 'ida'
   if (passanger.status === 'presente') {
     return { ...base, status: 'boarded' };
   }

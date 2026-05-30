@@ -1,8 +1,4 @@
-/**
- * Tipos da execução de viagem pelo motorista (US09).
- * Espelham src/domains/trips/dtos.py do backend.
- */
-
+// Espelham src/domains/trips/dtos.py do backend.
 export type TripStatus = 'iniciada' | 'finalizada' | 'cancelada';
 
 export type TripPassangerStatus = 'pendente' | 'presente' | 'ausente';
