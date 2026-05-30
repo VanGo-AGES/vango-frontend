@@ -76,6 +76,12 @@ export const typography = {
     fontFamily: 'WorkSans_700Bold',
     fontSize: 14,
   },
+  headlineLarge: {
+    fontFamily: 'WorkSans_400Regular',
+    fontSize: 32, // M3 headline/large padrão
+    lineHeight: 40, // M3 padrão
+    letterSpacing: 0,
+  },
   caption: {
     fontFamily: 'WorkSans_400Regular',
     fontSize: 14,

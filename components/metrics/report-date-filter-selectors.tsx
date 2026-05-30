@@ -533,7 +533,7 @@ const styles = StyleSheet.create({
   },
   actionTextSecondary: {
     ...typography.labelLarge,
-    color: colors.secondary,
+    color: colors.subtleText,
     fontWeight: '500',
   },
   actionTextPrimary: {
@@ -558,7 +558,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   dayTitle: {
-    ...typography.header3,
+    ...typography.headlineLarge,
     color: colors.dark,
     fontSize: 32,
     lineHeight: 36,
@@ -607,7 +607,7 @@ const styles = StyleSheet.create({
   },
   calCell: {
     width: `${100 / 7}%`,
-    aspectRatio: 1,
+    height: 40,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -619,6 +619,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   calDayCircleSelected: {
+    borderRadius: 18,
     backgroundColor: colors.secondary,
   },
   calDayCircleToday: {
@@ -655,7 +656,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   weekTitle: {
-    ...typography.header3,
+    ...typography.headlineLarge,
     color: colors.dark,
     fontSize: 32,
     lineHeight: 36,

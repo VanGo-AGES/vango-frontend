@@ -103,13 +103,13 @@ export function ReportDateFilterChip({
 
 const styles = StyleSheet.create({
   chip: {
-    height: 40,
     borderRadius: 12,
     alignSelf: 'flex-start',
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: colors.dark,
     paddingHorizontal: 16,
+    paddingVertical: 10,
   },
   content: {
     flexDirection: 'row',
