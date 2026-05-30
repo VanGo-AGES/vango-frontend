@@ -4,6 +4,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'vango-frontend',
   slug: 'vango-frontend',
+  owner: 'vango-ages',
   version: '1.0.0',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
@@ -18,6 +19,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
   },
   android: {
+    package: 'vango.app',
+    googleServicesFile: process.env.GOOGLE_SERVICES_JSON || './google-services.json',
     adaptiveIcon: {
       backgroundColor: '#E6F4FE',
       foregroundImage: './assets/images/android-icon-foreground.png',
@@ -81,7 +84,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   extra: {
     router: {},
     eas: {
-      projectId: 'cb4fa97b-8e0c-4acc-bb70-e8aefecf262e',
+      projectId: 'bb0ff192-1fd1-4987-92e6-5b08060d656d',
     },
   },
 });

@@ -1,5 +1,6 @@
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { apiPost } from './api';
@@ -47,11 +48,20 @@ export async function getPushNotificationToken(): Promise<PushNotificationTokenR
   }
 
   try {
+    // iOS: usa Expo Push token (entregue pelo Expo Push Service). O backend detecta
+    // tokens Expo e envia pela API do Expo; o Android segue com o token FCM nativo.
+    if (Platform.OS === 'ios') {
+      const projectId = Constants.expoConfig?.extra?.eas?.projectId;
+      const expoPushToken = await Notifications.getExpoPushTokenAsync({ projectId });
+      return { token: expoPushToken.data, reason: 'success' };
+    }
+
+    // Android: getDevicePushTokenAsync já retorna o token FCM.
     const devicePushToken = await Notifications.getDevicePushTokenAsync();
     return { token: devicePushToken.data, reason: 'success' };
   } catch (error) {
     // eslint-disable-next-line no-console
-    console.debug('getDevicePushTokenAsync failed', error);
+    console.debug('getPushNotificationToken failed', error);
     return { token: null, reason: 'token-unavailable' };
   }
 }
