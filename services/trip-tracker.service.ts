@@ -1,7 +1,7 @@
 import { io, Socket } from 'socket.io-client';
 import type { DriverEtaPayload, TrackerLocationPayload } from '@/types/trip.types';
 
-const SOCKET_URL = process.env.EXPO_PUBLIC_API_URL || '';
+const SOCKET_URL = process.env.EXPO_PUBLIC_SOCKET_URL || process.env.EXPO_PUBLIC_API_URL || '';
 
 class TripTrackerService {
   private socket: Socket | null = null;

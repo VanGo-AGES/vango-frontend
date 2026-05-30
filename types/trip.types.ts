@@ -1,37 +1,30 @@
-// ==========================================
-// STATUS E ENUMS
-// ==========================================
-export type TripPassangerStatusBackend =
-  | 'pending'
-  | 'present'
-  | 'absent'
-  | 'pendente'
-  | 'presente'
-  | 'ausente';
-export type TripStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled';
+// Espelham src/domains/trips/dtos.py do backend.
+export type TripStatus = 'iniciada' | 'finalizada' | 'cancelada';
 
-// ==========================================
-// DTOs DA API (Backend)
-// ==========================================
+export type TripPassangerStatus = 'pendente' | 'presente' | 'ausente';
+
 export interface TripPassangerResponse {
   id: string;
-  name: string;
-  phone_number: string;
-  avatar_url?: string;
-  status: TripPassangerStatusBackend;
-  alighted_at?: string | null;
-  address: {
-    latitude: number;
-    longitude: number;
-    text: string;
-  };
+  route_passanger_id: string;
+  passanger_name: string;
+  status: TripPassangerStatus;
+  pickup_address_label: string;
+  boarded_at: string | null;
+  alighted_at: string | null;
+  user_phone: string;
+  photo_url: string | null;
 }
 
 export interface TripResponse {
   id: string;
   route_id: string;
+  route_name: string;
+  vehicle_id: string;
+  trip_date: string;
   status: TripStatus;
-  total_km?: number | null;
+  total_km: number | null;
+  started_at: string | null;
+  finished_at: string | null;
   trip_passangers: TripPassangerResponse[];
 }
 
@@ -39,12 +32,19 @@ export interface TripNextStopResponse {
   stop_id: string;
   order_index: number;
   address_label: string;
-  latitude: number;
-  longitude: number;
   passanger_name: string;
   passanger_phone: string;
   trip_passanger_id: string;
-  trip_passanger_status: TripPassangerStatusBackend;
+  trip_passanger_status: TripPassangerStatus;
+}
+
+export interface StartTripRequest {
+  vehicle_id: string;
+  trip_date?: string | null;
+}
+
+export interface FinishTripRequest {
+  total_km: number | null;
 }
 
 export interface CurrentTripResponse {
@@ -56,33 +56,16 @@ export interface CurrentTripResponse {
   vehicle_plate: string | null;
 }
 
-// ==========================================
-// PAYLOADS DE REQUEST (Mutações)
-// ==========================================
-export interface StartTripRequest {
-  vehicle_id: string;
-  trip_date?: string;
-}
-
-export interface FinishTripRequest {
-  total_km?: number | null;
-}
-
-// ==========================================
-// TRACKING & SOCKETS
-// ==========================================
 export interface TrackerLocationPayload {
   trip_id: string;
   lat: number;
   lng: number;
   heading?: number | null;
   speed?: number | null;
-  timestamp?: number;
   updated_at?: string;
 }
 
 export interface DriverEtaPayload {
-  stop_id?: string;
   trip_id: string;
   eta_minutes: number;
   distance_km: number;

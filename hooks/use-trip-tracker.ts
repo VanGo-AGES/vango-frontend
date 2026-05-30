@@ -44,7 +44,7 @@ export function useTripTracker(tripId: string) {
             lng: location.coords.longitude,
             heading: location.coords.heading,
             speed: location.coords.speed,
-            timestamp: location.timestamp,
+            updated_at: new Date(location.timestamp).toISOString(),
           });
         },
       );

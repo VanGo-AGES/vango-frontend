@@ -13,15 +13,13 @@ import { openWazeNavigation, getWazeUrls } from '@/lib/waze-navigation';
 import { colors } from '@/styles/colors';
 
 import { useTripTracker } from '@/hooks/use-trip-tracker';
-import {
-  useTrip,
-  useTripNextStop,
-  useBoardPassanger,
-  useMarkPassangerAbsent,
-  useAlightPassanger,
-  useSkipStop,
-  useFinishTrip,
-} from '@/hooks/use-trip-api';
+import { useTrip } from '@/hooks/use-trip';
+import { useTripNextStop } from '@/hooks/use-trip-next-stop';
+import { useBoardPassanger } from '@/hooks/use-board-passanger';
+import { useMarkPassangerAbsent } from '@/hooks/use-mark-passanger-absent';
+import { useAlightPassanger } from '@/hooks/use-alight-passanger';
+import { useSkipStop } from '@/hooks/use-skip-stop';
+import { useFinishTrip } from '@/hooks/use-finish-trip';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { PrimaryButton } from '@/components/general/primary-button';
 
@@ -71,7 +69,13 @@ export default function DriverActiveRouteScreen() {
     transform: [{ translateY: sheetTranslateY.value }],
   }));
 
-  const handleBackPress = () => router.push('/active-route-details-screen');
+  const handleBackPress = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/driver-home' as never);
+    }
+  };
 
   const closeDialog = () => setActiveDialog(null);
 
@@ -84,19 +88,16 @@ export default function DriverActiveRouteScreen() {
 
   const handleOpenWaze = async () => {
     setNavigationMenuOpen(false);
-    const lat = nextStop?.latitude;
-    const lng = nextStop?.longitude;
+    // O next-stop do backend não devolve coordenadas — navegamos por endereço.
     const address = nextStop?.address_label;
-
-    let opened = false;
-    if (typeof lat === 'number' && typeof lng === 'number') {
-      opened = await openWazeNavigation({ latitude: lat, longitude: lng });
-    } else if (address) {
-      opened = await openWazeNavigation({ address });
+    if (!address) {
+      Alert.alert('Navegação', 'Endereço da próxima parada indisponível.');
+      return;
     }
 
+    const opened = await openWazeNavigation({ address });
     if (!opened) {
-      const urls = getWazeUrls({ latitude: lat, longitude: lng, address });
+      const urls = getWazeUrls({ address });
       const webUrl = urls.find((url) => url.startsWith('https://'));
       Alert.alert('Navegação', 'Não foi possível abrir o Waze. Deseja abrir a versão web?', [
         { text: 'Abrir Waze Web', onPress: () => webUrl && Linking.openURL(webUrl) },
@@ -113,7 +114,7 @@ export default function DriverActiveRouteScreen() {
       confirmVariant: 'default' as const,
       onConfirm: () => {
         if (nextStop?.trip_passanger_id) {
-          boardMutation.mutate({ tripId: tripId!, tpId: nextStop.trip_passanger_id });
+          boardMutation.mutate({ tripId: tripId!, tripPassangerId: nextStop.trip_passanger_id });
         }
         closeDialog();
       },
@@ -125,7 +126,7 @@ export default function DriverActiveRouteScreen() {
       confirmVariant: 'default' as const,
       onConfirm: () => {
         if (nextStop?.trip_passanger_id) {
-          alightMutation.mutate({ tripId: tripId!, tpId: nextStop.trip_passanger_id });
+          alightMutation.mutate({ tripId: tripId!, tripPassangerId: nextStop.trip_passanger_id });
         }
         closeDialog();
       },
@@ -137,7 +138,7 @@ export default function DriverActiveRouteScreen() {
       confirmVariant: 'destructive' as const,
       onConfirm: () => {
         if (nextStop?.trip_passanger_id) {
-          absentMutation.mutate({ tripId: tripId!, tpId: nextStop.trip_passanger_id });
+          absentMutation.mutate({ tripId: tripId!, tripPassangerId: nextStop.trip_passanger_id });
         }
         closeDialog();
       },
@@ -173,7 +174,7 @@ export default function DriverActiveRouteScreen() {
       confirmVariant: 'destructive' as const,
       onConfirm: () => {
         finishMutation.mutate(
-          { tripId: tripId! },
+          { tripId: tripId!, routeId: trip?.route_id ?? '' },
           {
             onSuccess: () => {
               router.replace({
@@ -231,51 +232,15 @@ export default function DriverActiveRouteScreen() {
               latitude: lastLocation.latitude,
               longitude: lastLocation.longitude,
             }}
-            nextStopLocation={
-              nextStop
-                ? { latitude: nextStop.latitude, longitude: nextStop.longitude }
-                : { latitude: lastLocation.latitude, longitude: lastLocation.longitude }
-            }
+            nextStopLocation={{
+              latitude: lastLocation.latitude,
+              longitude: lastLocation.longitude,
+            }}
             onRecenterPress={() => {}}
             containerStyle={styles.map}
             recenterButtonStyle={[styles.recenterButtonPosition, floatingButtonsStyle]}
           />
         )}
-
-        {/* DEBUGGER DE GPS (Apague quando for pra produção) */}
-        <View
-          style={{
-            position: 'absolute',
-            top: 120,
-            left: 16,
-            backgroundColor: 'rgba(0,0,0,0.8)',
-            padding: 16,
-            borderRadius: 12,
-            zIndex: 100,
-            width: 250,
-          }}
-        >
-          <Text style={{ color: colors.white, fontWeight: 'bold', marginBottom: 8 }}>
-            📍 RAIO-X DO GPS
-          </Text>
-          <Text style={{ color: colors.white }}>
-            Distância (Backend):{' '}
-            {eta?.distance_km !== undefined ? `${eta.distance_km} km` : 'Vazio / Nulo'}
-          </Text>
-          <Text style={{ color: colors.white }}>
-            Tempo (Backend):{' '}
-            {eta?.eta_minutes !== undefined ? `${eta.eta_minutes} min` : 'Vazio / Nulo'}
-          </Text>
-          <Text
-            style={{
-              color: colors.white,
-              marginTop: 8,
-              fontWeight: 'bold',
-            }}
-          >
-            isArrived: {isArrived ? 'SIM (Mostrando Timer)' : 'NÃO'}
-          </Text>
-        </View>
 
         <View style={styles.topBarContainer}>
           <RouteTopBar onBackPress={handleBackPress} showMenu={false} />
