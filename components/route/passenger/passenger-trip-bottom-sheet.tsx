@@ -137,7 +137,7 @@ export function PassengerTripBottomSheet({
               <TripDetailsCard
                 variant="address"
                 label="ENDEREÇO DE ENTREGA"
-                address={address ?? 'Av. Bento Gonçalves, 500'}
+                address={address ?? 'Endereço não disponível'}
               />
 
               <View style={styles.sectionSpacer} />

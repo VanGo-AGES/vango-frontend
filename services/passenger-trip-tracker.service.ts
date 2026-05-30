@@ -18,12 +18,14 @@ type SessionJoinedPayload = {
 type ConnectAsFollowerParams = {
   userId: string;
   tripId: string;
-  stopLat: number;
-  stopLng: number;
+  stopLat: number | null;
+  stopLng: number | null;
 };
 
 export type PassengerTripTracker = {
   socket: Socket;
+  onConnect: (callback: () => void) => void;
+  onConnectError: (callback: (error: Error) => void) => void;
   onSessionJoined: (callback: (payload: SessionJoinedPayload) => void) => void;
   onLocationUpdate: (callback: (payload: LocationUpdateBroadcast) => void) => void;
   onDriverEta: (callback: (payload: DriverEtaPayload) => void) => void;
@@ -63,6 +65,8 @@ export function connectAsFollower({
 
   return {
     socket,
+    onConnect: (callback) => socket.on('connect', callback),
+    onConnectError: (callback) => socket.on('connect_error', callback),
     onSessionJoined: (callback) => socket.on('session_joined', callback),
     onLocationUpdate: (callback) => socket.on('location_update', callback),
     onDriverEta: (callback) => socket.on('driver_eta', callback),

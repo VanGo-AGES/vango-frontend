@@ -50,23 +50,6 @@ function toPoint(address?: Partial<AddressResponse> | null): RoutePoint | null {
   };
 }
 
-function calculateDistanceKm(start: RoutePoint, end: RoutePoint): number {
-  const earthRadiusKm = 6371;
-  const latitudeDelta = ((end.latitude - start.latitude) * Math.PI) / 180;
-  const longitudeDelta = ((end.longitude - start.longitude) * Math.PI) / 180;
-  const startLatitude = (start.latitude * Math.PI) / 180;
-  const endLatitude = (end.latitude * Math.PI) / 180;
-
-  const a =
-    Math.sin(latitudeDelta / 2) * Math.sin(latitudeDelta / 2) +
-    Math.sin(longitudeDelta / 2) *
-      Math.sin(longitudeDelta / 2) *
-      Math.cos(startLatitude) *
-      Math.cos(endLatitude);
-
-  return 2 * earthRadiusKm * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
 function formatArrivalTime(minutesFromNow: number): string {
   const arrival = new Date(Date.now() + Math.max(1, minutesFromNow) * 60_000);
   return `${String(arrival.getHours()).padStart(2, '0')}h${String(arrival.getMinutes()).padStart(
@@ -180,7 +163,8 @@ export function ActiveRouteContent({
   insets,
   onBackPress,
 }: ActiveRouteContentProps) {
-  const trackerStopPoint = toPoint(route.my_pickup_address) ??
+  const pickupPoint = toPoint(route.my_pickup_address);
+  const displayStopPoint = pickupPoint ??
     toPoint(route.origin_address) ??
     toPoint(route.destination_address) ?? {
       latitude: -30.0378,
@@ -189,8 +173,8 @@ export function ActiveRouteContent({
 
   const tracker = usePassengerTripTracker({
     tripId: currentTrip.trip_id,
-    stopLat: trackerStopPoint.latitude,
-    stopLng: trackerStopPoint.longitude,
+    stopLat: pickupPoint?.latitude ?? null,
+    stopLng: pickupPoint?.longitude ?? null,
   });
 
   useEffect(() => {
@@ -223,35 +207,13 @@ export function ActiveRouteContent({
     );
   }, [tracker.error, onBackPress]);
 
-  const mapPoints = useMemo(() => {
-    const passengerStopPoint = toPoint(route.my_pickup_address) ??
-      toPoint(route.origin_address) ??
-      toPoint(route.destination_address) ?? {
-        latitude: -30.0378,
-        longitude: -51.2232,
-      };
-
-    const driverPoint = tracker.driverLocation
-      ? {
-          latitude: tracker.driverLocation.lat,
-          longitude: tracker.driverLocation.lng,
-        }
-      : null;
-
-    const distanceKm = driverPoint
-      ? Math.max(calculateDistanceKm(driverPoint, passengerStopPoint), 0.3)
-      : 0;
-
-    const timeRemaining = driverPoint ? Math.max(2, Math.round(distanceKm * 4)) : 0;
-
-    return {
-      driverPoint,
-      passengerStopPoint,
-      distanceKm,
-      timeRemaining,
-      estimatedArrival: driverPoint ? formatArrivalTime(timeRemaining) : 'Calculando...',
-    };
-  }, [route, tracker.driverLocation]);
+  const driverPoint = useMemo(
+    () =>
+      tracker.driverLocation
+        ? { latitude: tracker.driverLocation.lat, longitude: tracker.driverLocation.lng }
+        : null,
+    [tracker.driverLocation],
+  );
 
   const driverName = currentTrip.driver_name;
   const driverPlate = currentTrip.vehicle_plate ?? '';
@@ -260,15 +222,16 @@ export function ActiveRouteContent({
   const realAddress = route.my_pickup_address || route.destination_address || route.origin_address;
   const deliveryAddress = realAddress
     ? [realAddress.street, realAddress.number].filter(Boolean).join(', ')
-    : 'Av. Bento Gonçalves, 500';
+    : 'Endereço não disponível';
 
-  const distanceText = !tracker.trackerOnline
-    ? 'Motorista offline'
-    : tracker.eta?.distance_km != null
-      ? formatDistance(tracker.eta.distance_km)
-      : mapPoints.driverPoint != null
-        ? formatDistance(mapPoints.distanceKm)
-        : 'Calculando...';
+  const etaMinutes = tracker.eta?.eta_minutes ?? null;
+  const distanceText = tracker.connecting
+    ? '—'
+    : !tracker.trackerOnline
+      ? 'Motorista offline'
+      : tracker.eta?.distance_km != null
+        ? formatDistance(tracker.eta.distance_km)
+        : '—';
 
   return (
     <>
@@ -276,8 +239,8 @@ export function ActiveRouteContent({
 
       <View style={styles.screen}>
         <ActiveRouteMap
-          currentLocation={mapPoints.driverPoint}
-          nextStopLocation={mapPoints.passengerStopPoint}
+          currentLocation={driverPoint}
+          nextStopLocation={displayStopPoint}
           containerStyle={styles.map}
           recenterButtonStyle={styles.recenterButton}
           liveRefreshIntervalMs={0}
@@ -295,20 +258,10 @@ export function ActiveRouteContent({
             avatarUrl: driverAvatarUrl,
             plate: driverPlate,
           }}
-          timeRemaining={
-            tracker.eta?.eta_minutes ??
-            (mapPoints.driverPoint != null ? mapPoints.timeRemaining : null)
-          }
-          estimatedArrival={
-            tracker.eta?.eta_minutes != null
-              ? formatArrivalTime(tracker.eta.eta_minutes)
-              : mapPoints.estimatedArrival
-          }
+          timeRemaining={etaMinutes}
+          estimatedArrival={etaMinutes != null ? formatArrivalTime(etaMinutes) : '—'}
           distance={distanceText}
-          countdownSeconds={
-            (tracker.eta?.eta_minutes ??
-              (mapPoints.driverPoint != null ? mapPoints.timeRemaining : 0)) * 60
-          }
+          countdownSeconds={(etaMinutes ?? 0) * 60}
           address={deliveryAddress}
         />
       </View>
