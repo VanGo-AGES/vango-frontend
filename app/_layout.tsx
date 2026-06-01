@@ -121,6 +121,10 @@ export default function RootLayout() {
                     name="(driver)/(route)/trip-metrics-screen"
                     options={{ headerShown: false }}
                   />
+                  <Stack.Screen
+                    name="(driver)/(route)/trip-reports-screen"
+                    options={{ headerShown: false }}
+                  />
 
                   {/* passenger */}
                   <Stack.Screen
@@ -147,17 +151,14 @@ export default function RootLayout() {
                     name="(passenger)/passenger-route-details-screen"
                     options={{ headerShown: false }}
                   />
-
-              <Stack.Screen
-                name="(passenger)/passenger-active-route-screen"
-                options={{ headerShown: false }}
-              />
-
-              <Stack.Screen
-                name="(passenger)/passenger-active-route-details-screen"
-                options={{ headerShown: false }}
-              />
-
+                  <Stack.Screen
+                    name="(passenger)/passenger-active-route-screen"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="(passenger)/passenger-active-route-details-screen"
+                    options={{ headerShown: false }}
+                  />
                   <Stack.Screen
                     name="(passenger)/participant-selection-screen"
                     options={{ headerShown: false }}
