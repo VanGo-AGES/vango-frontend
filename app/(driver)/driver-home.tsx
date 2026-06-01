@@ -143,7 +143,7 @@ export default function DriverHomeScreen() {
   };
 
   const handleSettingsPress = () => {
-    router.push('/profile-driver-screen');
+    router.push('/user-settings-screen');
   };
 
   const handleCreateRoutePress = () => {

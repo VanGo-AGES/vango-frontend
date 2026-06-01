@@ -92,7 +92,7 @@ export default function PassengerHomeScreen() {
   };
 
   const handleSettingsPress = () => {
-    router.push('/profile-passenger-screen');
+    router.push('/user-settings-screen');
   };
 
   const handleEnterCodePress = () => {

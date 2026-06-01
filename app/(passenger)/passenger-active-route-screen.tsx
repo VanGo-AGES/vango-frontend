@@ -233,6 +233,9 @@ export function ActiveRouteContent({
         ? formatDistance(tracker.eta.distance_km)
         : '—';
 
+  const isDriverArrived =
+    typeof tracker.eta?.distance_km === 'number' && tracker.eta.distance_km <= 0.05;
+
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
@@ -251,7 +254,7 @@ export function ActiveRouteContent({
         </View>
 
         <PassengerTripBottomSheet
-          state="driver_on_the_way"
+          state={isDriverArrived ? 'driver_arrived' : 'driver_on_the_way'}
           driver={{
             id: 'driver-active-route',
             name: driverName,

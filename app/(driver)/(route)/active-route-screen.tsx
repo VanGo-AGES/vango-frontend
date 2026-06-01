@@ -198,9 +198,7 @@ export default function DriverActiveRouteScreen() {
 
   const currentDialog = activeDialog ? dialogConfig[activeDialog] : null;
 
-  const isArrived =
-    (typeof eta?.distance_km === 'number' && eta.distance_km <= 0.5) ||
-    (typeof eta?.eta_minutes === 'number' && eta.eta_minutes <= 1);
+  const isArrived = typeof eta?.distance_km === 'number' && eta.distance_km <= 0.05;
 
   const stopArrivalProps = useMemo(() => {
     if (!isArrived || !nextStop) return undefined;
