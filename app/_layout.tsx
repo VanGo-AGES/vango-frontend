@@ -68,9 +68,15 @@ export default function RootLayout() {
                     name="(shared)/register-passenger-details"
                     options={{ headerShown: false }}
                   />
-                  <Stack.Screen name="(shared)/edit-profile-screen" options={{ headerShown: false }} />
+                  <Stack.Screen
+                    name="(shared)/edit-profile-screen"
+                    options={{ headerShown: false }}
+                  />
 
-                  <Stack.Screen name="(shared)/user-settings-screen" options={{ headerShown: false }} />
+                  <Stack.Screen
+                    name="(shared)/user-settings-screen"
+                    options={{ headerShown: false }}
+                  />
 
                   {/* driver */}
                   <Stack.Screen name="(driver)/driver-home" options={{ headerShown: false }} />
@@ -118,6 +124,14 @@ export default function RootLayout() {
                     options={{ headerShown: false }}
                   />
                   <Stack.Screen
+                    name="(driver)/(route)/active-route-details-screen"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="(driver)/(route)/active-route-screen"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
                     name="(driver)/(route)/trip-metrics-screen"
                     options={{ headerShown: false }}
                   />
@@ -151,14 +165,17 @@ export default function RootLayout() {
                     name="(passenger)/passenger-route-details-screen"
                     options={{ headerShown: false }}
                   />
+
                   <Stack.Screen
                     name="(passenger)/passenger-active-route-screen"
                     options={{ headerShown: false }}
                   />
+
                   <Stack.Screen
                     name="(passenger)/passenger-active-route-details-screen"
                     options={{ headerShown: false }}
                   />
+
                   <Stack.Screen
                     name="(passenger)/participant-selection-screen"
                     options={{ headerShown: false }}

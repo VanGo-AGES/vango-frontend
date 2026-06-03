@@ -42,6 +42,9 @@ const ROUTE_REQUIRED_NOTIFICATION_TYPES = new Set<NotificationType>([
   NotificationType.TRIP_STARTED,
   NotificationType.TRIP_ARRIVING,
   NotificationType.TRIP_ARRIVED,
+  NotificationType.PASSENGER_BOARDED,
+  NotificationType.PASSENGER_ABSENT,
+  NotificationType.TRIP_FINISHED,
 ]);
 
 function isRecord(value: unknown): value is NotificationData {
@@ -150,6 +153,20 @@ export function getNotificationDestination(
       return {
         path: '/(passenger)/passenger-active-route-screen',
         params: routeParams,
+      };
+
+    case NotificationType.PASSENGER_BOARDED:
+    case NotificationType.PASSENGER_ABSENT:
+      return {
+        path: '/(driver)/(route)/route-details-screen',
+        params: routeParams,
+      };
+
+    case NotificationType.TRIP_FINISHED:
+      return {
+        path:
+          userRole === 'driver' ? '/(driver)/driver-home' : '/(passenger)/passenger-home-screen',
+        isRoot: true,
       };
 
     default:

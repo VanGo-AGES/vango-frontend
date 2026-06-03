@@ -1,5 +1,4 @@
-import { apiDelete, apiGet, apiPost, apiPut } from './api';
-import { useSessionStore } from '@/store/session.store';
+import { apiDelete, apiGet, apiPost, apiPut, getDriverHeaders } from './api';
 import type {
   CreateRouteRequest,
   CreateRouteResponse,
@@ -9,15 +8,6 @@ import type {
   RouteResponse,
   RouteUpdate,
 } from '@/types/route.types';
-
-function getDriverHeaders(): Record<string, string> {
-  const user = useSessionStore.getState().user;
-
-  return {
-    'X-User-Id': user?.id ?? '',
-    'X-User-Role': 'driver',
-  };
-}
 
 export async function createRoute(data: CreateRouteRequest): Promise<CreateRouteResponse> {
   return apiPost<CreateRouteRequest, CreateRouteResponse>('/routes/', data, getDriverHeaders());

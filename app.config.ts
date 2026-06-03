@@ -14,13 +14,25 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'vango.app.com',
+    googleServicesFile: process.env.GOOGLE_SERVICES_PLIST || './GoogleService-Info.plist',
+    config: {
+      googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY || '',
+    },
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
+      NSAppTransportSecurity: {
+        NSExceptionDomains: {
+          '3.139.105.48': {
+            NSExceptionAllowsInsecureHTTPLoads: true,
+            NSIncludesSubdomains: false,
+          },
+        },
+      },
     },
   },
   android: {
     package: 'vango.app',
-    googleServicesFile: process.env.GOOGLE_SERVICES_JSON || './google-services.json',
+    googleServicesFile: './google-services.json',
     adaptiveIcon: {
       backgroundColor: '#E6F4FE',
       foregroundImage: './assets/images/android-icon-foreground.png',

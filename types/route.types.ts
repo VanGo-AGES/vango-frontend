@@ -94,10 +94,11 @@ export interface RouteResponse {
   origin_address: AddressResponse;
   destination_address: AddressResponse;
   stops: StopResponse[];
-  distance?: string | null;
-  distance_km?: number | null;
-  duration?: string | null;
-  duration_minutes?: number | null;
+  // US10-TK19 — totais planejados calculados no backend (Mapbox Directions)
+  total_distance_km?: number | null;
+  estimated_duration_min?: number | null;
+  // viagem em andamento da rota, quando houver (usado pra abrir a tela ativa)
+  active_trip_id?: string | null;
 }
 
 export interface PassangerRouteDetailResponse {

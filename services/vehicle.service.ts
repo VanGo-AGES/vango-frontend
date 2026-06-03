@@ -1,5 +1,4 @@
-import { apiGet, apiPost, apiPut } from '@/services/api';
-import { useSessionStore } from '@/store/session.store';
+import { apiGet, apiPost, apiPut, getDriverHeaders } from '@/services/api';
 import type {
   CreateVehicleRequest,
   CreateVehicleResponse,
@@ -7,14 +6,6 @@ import type {
   UpdateVehicleResponse,
   VehicleResponse,
 } from '@/types/vehicle.types';
-
-function getDriverHeaders(): Record<string, string> {
-  const user = useSessionStore.getState().user;
-  return {
-    'X-User-Id': user?.id ?? '',
-    'X-User-Role': 'driver',
-  };
-}
 
 export async function listVehicles(): Promise<VehicleResponse[]> {
   return apiGet<VehicleResponse[]>('/vehicles/', getDriverHeaders());

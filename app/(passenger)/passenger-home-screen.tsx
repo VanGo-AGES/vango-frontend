@@ -46,6 +46,17 @@ export default function PassengerHomeScreen() {
 
   const nextRoute = getNextPassangerRoute(routesData);
   const visibleRoutes = routesData.filter((r) => r.membership_status !== 'rejected');
+
+  // Rota em andamento abre direto a tela de viagem ativa (detalhes ativos).
+  // A tela de detalhes "normal" é só para rotas que NÃO estão em andamento.
+  const goToRoute = (routeId: string, status?: string) => {
+    const pathname =
+      status === 'em_andamento'
+        ? '/passenger-active-route-details-screen'
+        : '/passenger-route-details-screen';
+    router.push({ pathname: pathname as never, params: { routeId } });
+  };
+
   const routeItems = visibleRoutes.map((route) => ({
     id: route.route_id,
     name: route.route_name,
@@ -72,11 +83,7 @@ export default function PassengerHomeScreen() {
 
     onPress:
       route.membership_status === 'accepted'
-        ? () =>
-            router.push({
-              pathname: '/passenger-route-details-screen',
-              params: { routeId: route.route_id },
-            })
+        ? () => goToRoute(route.route_id, route.status)
         : undefined,
   }));
 
@@ -85,7 +92,7 @@ export default function PassengerHomeScreen() {
   };
 
   const handleSettingsPress = () => {
-    router.push('/profile-passenger-screen');
+    router.push('/user-settings-screen');
   };
 
   const handleEnterCodePress = () => {
@@ -94,10 +101,7 @@ export default function PassengerHomeScreen() {
 
   const handleNextRoutePress = () => {
     if (!nextRoute) return;
-    router.push({
-      pathname: '/passenger-route-details-screen',
-      params: { routeId: nextRoute.route_id },
-    });
+    goToRoute(nextRoute.route_id, nextRoute.status);
   };
 
   return (

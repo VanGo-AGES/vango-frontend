@@ -10,7 +10,11 @@ import { useRemovePassanger } from '@/hooks/use-remove-passanger';
 import { useRouteAbsences } from '@/hooks/use-route-absences';
 import { useRouteDetail } from '@/hooks/use-route-detail';
 import { useRoutePassangers } from '@/hooks/use-route-passangers';
+import { useStartTrip } from '@/hooks/use-start-trip';
+import { useVehicle } from '@/hooks/use-vehicle';
+import { ApiError } from '@/services/api';
 import { isRouteToday, splitStopsByAbsence } from '@/services/route.service';
+import { getDriverCurrentTrip } from '@/services/trip.service';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 import type { PassengerStatus } from '@/components/route/passenger/route-passenger-card';
@@ -19,6 +23,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import {
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -195,6 +200,8 @@ export default function RouteDetailsScreen() {
 
   const deleteRouteMutation = useDeleteRoute();
   const removePassangerMutation = useRemovePassanger();
+  const startTripMutation = useStartTrip();
+  const { data: vehicle } = useVehicle();
 
   const showStartRouteCta = isToday && !isInProgress;
   const showActionMenu = !isInProgress;
@@ -229,10 +236,77 @@ export default function RouteDetailsScreen() {
     );
   };
 
+  const navigateToActiveTrip = (tripId: string) => {
+    if (!routeId) {
+      return;
+    }
+    router.replace({
+      pathname: '/(driver)/(route)/active-route-details-screen' as never,
+      params: { routeId, tripId },
+    });
+  };
+
+  const handleStartTripError = async (error: unknown) => {
+    if (!(error instanceof ApiError)) {
+      Alert.alert('Erro', 'Não foi possível iniciar a rota. Tente novamente.');
+      return;
+    }
+
+    if (error.status === 403) {
+      Alert.alert(
+        'Veículo inválido',
+        'O veículo selecionado não pode ser usado nesta rota. Verifique seu cadastro de veículo.',
+      );
+      return;
+    }
+
+    if (error.status === 409) {
+      // 409 pode ser viagem em andamento ou falta de passageiros. Se houver
+      // viagem atual, navega pra ela; senão, cai no aviso abaixo.
+      try {
+        const currentTrip = routeId ? await getDriverCurrentTrip(routeId) : null;
+        if (currentTrip?.trip_id) {
+          navigateToActiveTrip(currentTrip.trip_id);
+          return;
+        }
+      } catch {
+        // sem viagem recuperável
+      }
+
+      Alert.alert(
+        'Não foi possível iniciar',
+        'Esta rota ainda não possui passageiros confirmados para a viagem.',
+      );
+      return;
+    }
+
+    Alert.alert('Erro', 'Não foi possível iniciar a rota. Tente novamente.');
+  };
+
   const handleConfirmStartRoute = () => {
     setActiveDialog(null);
-    // TODO: navegar para a tela de viagem em andamento (US futura)
-    // router.push('DRIVER_TRIP_SCREEN');
+
+    if (!routeId) {
+      return;
+    }
+
+    if (!vehicle?.id) {
+      Alert.alert(
+        'Cadastre um veículo',
+        'Você precisa ter um veículo cadastrado para iniciar uma rota.',
+      );
+      return;
+    }
+
+    startTripMutation.mutate(
+      { routeId, data: { vehicle_id: vehicle.id } },
+      {
+        onSuccess: (trip) => navigateToActiveTrip(trip.id),
+        onError: (error) => {
+          void handleStartTripError(error);
+        },
+      },
+    );
   };
 
   const handleConfirmDeleteRoute = () => {
@@ -354,8 +428,8 @@ export default function RouteDetailsScreen() {
           routeName={route.name}
           recurrence={formatRecurrenceLabel(route.recurrence)}
           expectedTime={formatExpectedTime(route.expected_time)}
-          durationMinutes={route.duration_minutes ?? FALLBACK_DURATION_MINUTES}
-          distanceKm={route.distance_km ?? FALLBACK_DISTANCE_KM}
+          durationMinutes={route.estimated_duration_min ?? FALLBACK_DURATION_MINUTES}
+          distanceKm={route.total_distance_km ?? FALLBACK_DISTANCE_KM}
           origin={
             route.origin_address?.latitude && route.origin_address?.longitude
               ? {

@@ -28,28 +28,45 @@ export function usePassengerTripTracker({
   );
   const [eta, setEta] = useState<DriverEtaPayload | null>(null);
   const [trackerOnline, setTrackerOnline] = useState(false);
+  const [connecting, setConnecting] = useState(true);
   const [tripFinished, setTripFinished] = useState(false);
   const [error, setError] = useState<unknown>(null);
 
   useEffect(() => {
-    if (!sessionUser?.id || !tripId || stopLat == null || stopLng == null) {
+    if (!sessionUser?.id || !tripId) {
       return;
     }
 
-    setDriverLocation(tripId ? (lastKnownLocationCache.get(tripId) ?? null) : null);
+    setDriverLocation(lastKnownLocationCache.get(tripId) ?? null);
     setEta(null);
     setTrackerOnline(false);
+    setConnecting(true);
     setTripFinished(false);
     setError(null);
+
+    const failOnce = (socketError: unknown) => setError((prev: unknown) => prev ?? socketError);
+
+    const hasConnected = { current: false };
 
     const tracker = connectAsFollower({
       userId: sessionUser.id,
       tripId,
-      stopLat,
-      stopLng,
+      stopLat: stopLat ?? null,
+      stopLng: stopLng ?? null,
+    });
+
+    tracker.onConnect(() => {
+      hasConnected.current = true;
+    });
+
+    tracker.onConnectError((connectError) => {
+      if (!hasConnected.current) {
+        failOnce(connectError);
+      }
     });
 
     tracker.onSessionJoined((payload) => {
+      setConnecting(false);
       setTrackerOnline(payload.tracker_online ?? false);
 
       if (payload.last_location) {
@@ -63,6 +80,7 @@ export function usePassengerTripTracker({
     });
 
     tracker.onLocationUpdate((payload: LocationUpdateBroadcast) => {
+      setConnecting(false);
       setTrackerOnline(true);
       lastKnownLocationCache.set(tripId, payload);
       setDriverLocation(payload);
@@ -81,6 +99,7 @@ export function usePassengerTripTracker({
     });
 
     tracker.onTripFinished(() => {
+      lastKnownLocationCache.delete(tripId);
       setTripFinished(true);
     });
 
@@ -88,9 +107,7 @@ export function usePassengerTripTracker({
       setTrackerOnline(false);
     });
 
-    tracker.onError((socketError) => {
-      setError(socketError);
-    });
+    tracker.onError(failOnce);
 
     return () => {
       tracker.disconnect();
@@ -101,6 +118,7 @@ export function usePassengerTripTracker({
     driverLocation,
     eta,
     trackerOnline,
+    connecting,
     tripFinished,
     error,
   };

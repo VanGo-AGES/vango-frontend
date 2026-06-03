@@ -1,4 +1,15 @@
+import { useSessionStore } from '@/store/session.store';
+
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
+
+export function getDriverHeaders(): Record<string, string> {
+  const user = useSessionStore.getState().user;
+
+  return {
+    'X-User-Id': user?.id ?? '',
+    'X-User-Role': 'driver',
+  };
+}
 
 export class ApiError extends Error {
   constructor(
