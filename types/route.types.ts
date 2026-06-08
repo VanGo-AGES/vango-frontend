@@ -33,7 +33,34 @@ export interface AddressResponse {
 }
 
 export type RouteType = 'outbound' | 'inbound';
-export type RouteStatus = 'inativa' | 'ativa';
+export type DriverRouteStatus = 'inativa' | 'em_andamento';
+export type StopType = 'embarque' | 'desembarque';
+export type RoutePassangerStatus = 'pending' | 'accepted' | 'rejected';
+export type PassengerRouteStatus = 'inativa' | 'em_andamento';
+export type PassengerMembershipStatus = 'pending' | 'accepted' | 'rejected';
+
+export interface RouteStopAddressResponse {
+  label: string;
+  street: string;
+  number: string;
+}
+
+export interface RouteStopResponse {
+  id: string;
+  route_passanger_id: string;
+  order_index: number;
+  address: RouteStopAddressResponse;
+}
+
+export interface RouteAbsenceResponse {
+  route_passanger_id: string;
+  user_id: string;
+  user_name: string;
+  dependent_id: string | null;
+  dependent_name: string | null;
+  absence_date: string;
+  reason: string | null;
+}
 
 export interface CreateRouteRequest {
   name: string;
@@ -44,15 +71,124 @@ export interface CreateRouteRequest {
   recurrence: string;
 }
 
-export interface CreateRouteResponse {
+export type RouteUpdate = Partial<CreateRouteRequest>;
+
+export interface StopResponse {
+  id: string;
+  route_passanger_id: string;
+  order_index: number;
+  type: StopType;
+  address_id: string;
+  address: AddressResponse;
+}
+
+export interface RouteResponse {
   id: string;
   name: string;
   route_type: RouteType;
-  status: RouteStatus;
+  status: DriverRouteStatus;
   recurrence: string;
   expected_time: string;
   invite_code: string;
   max_passengers: number;
   origin_address: AddressResponse;
   destination_address: AddressResponse;
+  stops: StopResponse[];
+  // US10-TK19 — totais planejados calculados no backend (Mapbox Directions)
+  total_distance_km?: number | null;
+  estimated_duration_min?: number | null;
+  // viagem em andamento da rota, quando houver (usado pra abrir a tela ativa)
+  active_trip_id?: string | null;
+}
+
+export interface PassangerRouteDetailResponse {
+  route_id: string;
+  name: string;
+  route_type: RouteType;
+  status: PassengerRouteStatus;
+  recurrence: string[];
+  expected_time: string;
+  origin_address: AddressResponse;
+  destination_address: AddressResponse;
+  stops: RouteStopResponse[];
+  driver_name: string;
+  driver_phone: string;
+  membership_status: PassengerMembershipStatus;
+  my_pickup_address: AddressResponse | null;
+  my_schedules: PassangerRouteSchedule[];
+  current_trip_id: string | null;
+  dependent_id: string | null;
+  dependent_name: string | null;
+  total_distance_km?: number | null;
+  estimated_duration_min?: number | null;
+}
+
+export interface PassangerRouteSchedule {
+  id: string;
+  day_of_week: string;
+  address_id: string;
+}
+
+export interface PassangerRouteListItem {
+  route_id: string;
+  route_name: string;
+  driver_name: string;
+  driver_phone: string;
+  origin_label: string;
+  destination_label: string;
+  origin_latitude: number | null;
+  origin_longitude: number | null;
+  destination_latitude: number | null;
+  destination_longitude: number | null;
+  expected_time: string;
+  recurrence: string[];
+  status: PassengerRouteStatus;
+  membership_status: PassengerMembershipStatus;
+  schedules: PassangerRouteSchedule[];
+  joined_at: string;
+  dependent_name: string | null;
+}
+
+export interface RoutePassangerResponse {
+  id: string;
+  route_id: string;
+  status: RoutePassangerStatus;
+  user_id: string;
+  user_name: string;
+  user_phone: string;
+  photo_url: string | null;
+  pickup_address_id: string;
+  requested_at: string;
+  joined_at: string | null;
+  dependent_id: string | null;
+  dependent_name: string | null;
+  guardian_name: string | null;
+}
+
+export type CreateRouteResponse = RouteResponse;
+
+export interface RouteInviteSummaryResponse {
+  id: string;
+  name: string;
+  route_type: RouteType;
+  recurrence: string;
+  expected_time: string;
+  max_passengers: number;
+  accepted_count: number;
+  origin_address: AddressResponse;
+  destination_address: AddressResponse;
+}
+
+export interface JoinRouteRequest {
+  dependent_id: string | null;
+  address: AddressRequest;
+  schedules: { day_of_week: string }[];
+}
+
+export interface JoinRouteResponse {
+  id: string;
+  route_id: string;
+  user_id: string;
+  dependent_id: string | null;
+  membership_status: PassengerMembershipStatus;
 }

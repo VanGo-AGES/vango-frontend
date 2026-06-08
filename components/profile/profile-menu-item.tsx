@@ -3,7 +3,7 @@ import type { ComponentProps, ReactElement } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { TouchableRipple } from 'react-native-paper';
 
-import { colors } from '@/styles/colors';
+import { colors, withAlpha } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
 type MaterialIconName = ComponentProps<typeof MaterialIcons>['name'];
@@ -24,7 +24,7 @@ export function ProfileMenuItem({
   return (
     <TouchableRipple
       onPress={onPress}
-      rippleColor="rgba(14, 14, 44, 0.08)"
+      rippleColor={withAlpha(colors.dark, 0.08)}
       borderless={false}
       style={[styles.button, !isLast && styles.withBorder]}
     >

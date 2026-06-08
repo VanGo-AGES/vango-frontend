@@ -1,29 +1,17 @@
 import { StyleProp, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
-import { Href, useRouter } from 'expo-router';
+
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-export interface CreateRouteButtonProps {
-  onPress?: () => void;
-  href?: Href;
-  label?: string;
+export type SkipActionButtonProps = {
+  onPress: () => void;
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
-}
+};
 
-export function CreateRouteButton({
-  onPress,
-  href,
-  label = 'CRIAR ROTA',
-  disabled = false,
-  style,
-}: CreateRouteButtonProps) {
-  const router = useRouter();
-
+export function SkipActionButton({ onPress, disabled = false, style }: SkipActionButtonProps) {
   const handlePress = () => {
-    if (href) {
-      router.push(href);
-    }
     onPress?.();
   };
 
@@ -37,8 +25,12 @@ export function CreateRouteButton({
       style={[styles.button, disabled && styles.buttonDisabled, style]}
     >
       <View style={styles.content}>
-        <Text style={[styles.plus, disabled && styles.labelDisabled]}>+</Text>
-        <Text style={[styles.label, disabled && styles.labelDisabled]}>{label}</Text>
+        <MaterialCommunityIcons
+          name="trash-can-outline"
+          size={20}
+          color={disabled ? colors.subtleText : colors.dark}
+        />
+        <Text style={[styles.label, disabled && styles.labelDisabled]}>Pular</Text>
       </View>
     </TouchableOpacity>
   );
@@ -46,12 +38,14 @@ export function CreateRouteButton({
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: colors.light,
-    borderWidth: 1,
-    borderColor: colors.subtleText,
-    borderRadius: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 24,
+    display: 'flex',
+    flexDirection: 'column',
+    outlineWidth: 1,
+    outlineStyle: 'solid',
+    outlineColor: colors.dark,
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -62,17 +56,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    alignSelf: 'stretch',
     gap: 8,
   },
-  plus: {
-    ...typography.buttonText,
-    color: colors.dark,
-    fontSize: 18,
-  },
   label: {
-    ...typography.buttonText,
+    ...typography.labelLarge,
     color: colors.dark,
-    letterSpacing: 0.3,
+    letterSpacing: 0.1,
   },
   labelDisabled: {
     color: colors.subtleText,

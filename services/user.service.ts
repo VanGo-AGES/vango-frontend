@@ -2,6 +2,8 @@ import { apiGet, apiPost, apiPut, apiUpload } from './api';
 import type {
   CreateUserRequest,
   CreateUserResponse,
+  LoginRequest,
+  LoginResponse,
   UpdateUserRequest,
   UpdateUserResponse,
   UserResponse,
@@ -9,6 +11,10 @@ import type {
 
 export async function createUser(data: CreateUserRequest): Promise<CreateUserResponse> {
   return apiPost<CreateUserRequest, CreateUserResponse>('/users/', data);
+}
+
+export async function loginUser(data: LoginRequest): Promise<LoginResponse> {
+  return apiPost<LoginRequest, LoginResponse>('/users/login', data);
 }
 
 export async function getUser(id: string): Promise<UserResponse> {

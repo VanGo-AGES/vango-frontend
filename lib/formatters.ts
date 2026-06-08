@@ -42,7 +42,11 @@ export function normalizePlate(value: string): string {
 
 export function isValidBrazilianPlate(value: string): boolean {
   const plate = normalizePlate(value);
-  return /^[A-Z]{3}[0-9]{4}$/.test(plate) || /^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test(plate);
+  // padrão antigo: ABC1234 (3 letras + 4 números)
+  const isOldFormat = /^[A-Z]{3}[0-9]{4}$/.test(plate);
+  // padrão Mercosul: ABC1D23 (3 letras + 1 número + letra A-J + 2 números)
+  const isMercosulFormat = /^[A-Z]{3}[0-9][A-J][0-9]{2}$/.test(plate);
+  return isOldFormat || isMercosulFormat;
 }
 
 export function isValidCpf(value: string): boolean {

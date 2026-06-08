@@ -33,3 +33,10 @@ export interface UpdateUserRequest {
 export type UpdateUserResponse = UserResponse;
 
 export type CreateUserResponse = UserResponse;
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export type LoginResponse = UserResponse;

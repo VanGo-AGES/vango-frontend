@@ -4,11 +4,15 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PaperProvider } from 'react-native-paper';
-
+import { PushNotificationHandler } from '@/components/general/push-notification-handler';
 import { queryClient } from '@/lib/query-client';
 import { fonts } from '@/styles/typography';
+import { colors } from '@/styles/colors';
+import { useNetworkStatus } from '@/hooks/use-network-status';
+import OfflineScreen from '@/app/(auth)/offline-screen';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -18,6 +22,7 @@ export const unstable_settings = {
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts(fonts);
+  const isConnected = useNetworkStatus();
 
   useEffect(() => {
     if (fontsLoaded) SplashScreen.hideAsync();
@@ -26,75 +31,166 @@ export default function RootLayout() {
   if (!fontsLoaded) return null;
 
   return (
-    <SafeAreaProvider>
-      <QueryClientProvider client={queryClient}>
-        <PaperProvider>
-          <Stack initialRouteName="index">
-            <Stack.Screen name="index" options={{ headerShown: false }} />
-            <Stack.Screen name="exemplo" options={{ headerShown: false }} />
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <QueryClientProvider client={queryClient}>
+          <PaperProvider>
+            {isConnected === false ? (
+              <OfflineScreen />
+            ) : (
+              <>
+                <PushNotificationHandler />
 
-            {/* auth */}
-            <Stack.Screen name="(auth)/splash" options={{ headerShown: false }} />
-            <Stack.Screen name="(auth)/onboarding" options={{ headerShown: false }} />
-            <Stack.Screen name="(auth)/login" options={{ headerShown: false }} />
-            <Stack.Screen name="(auth)/register-success" options={{ headerShown: false }} />
+                <Stack initialRouteName="index">
+                  <Stack.Screen name="index" options={{ headerShown: false }} />
+                  <Stack.Screen name="exemplo" options={{ headerShown: false }} />
 
-            {/* shared */}
-            <Stack.Screen
-              name="(shared)/register-profile-selection-screen"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="(shared)/register-basic-info-screen"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="(shared)/register-driver-details-screen"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="(shared)/register-passenger-details"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen name="(shared)/edit-profile-screen" options={{ headerShown: false }} />
+                  {/* auth */}
+                  <Stack.Screen name="(auth)/splash" options={{ headerShown: false }} />
+                  <Stack.Screen name="(auth)/onboarding" options={{ headerShown: false }} />
+                  <Stack.Screen name="(auth)/login" options={{ headerShown: false }} />
+                  <Stack.Screen name="(auth)/register-success" options={{ headerShown: false }} />
 
-            {/* driver */}
-            <Stack.Screen name="(driver)/driver-home" options={{ headerShown: false }} />
-            <Stack.Screen name="(driver)/profile-driver-screen" options={{ headerShown: false }} />
-            <Stack.Screen name="(driver)/vehicle-details-screen" options={{ headerShown: false }} />
+                  {/* shared */}
+                  <Stack.Screen
+                    name="(shared)/register-profile-selection-screen"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="(shared)/register-basic-info-screen"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="(shared)/register-driver-details-screen"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="(shared)/register-passenger-details"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="(shared)/edit-profile-screen"
+                    options={{ headerShown: false }}
+                  />
 
-            {/* driver > route */}
-            <Stack.Screen
-              name="(driver)/(route)/create-route-info-screen"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="(driver)/(route)/create-route-origin-screen"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="(driver)/(route)/create-route-destination-screen"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="(driver)/(route)/route-invite-code-screen"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen name="(driver)/(route)/schedule" options={{ headerShown: false }} />
+                  <Stack.Screen
+                    name="(shared)/user-settings-screen"
+                    options={{ headerShown: false }}
+                  />
 
-            {/* passenger */}
-            <Stack.Screen
-              name="(passenger)/profile-passenger-screen"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="(passenger)/dependent-details-screen"
-              options={{ headerShown: false }}
-            />
-          </Stack>
-          <StatusBar style="auto" />
-        </PaperProvider>
-      </QueryClientProvider>
-    </SafeAreaProvider>
+                  {/* driver */}
+                  <Stack.Screen name="(driver)/driver-home" options={{ headerShown: false }} />
+                  <Stack.Screen
+                    name="(driver)/profile-driver-screen"
+                    options={{
+                      headerShown: false,
+                      navigationBarColor: colors.white,
+                      navigationBarTranslucent: false,
+                    }}
+                  />
+                  <Stack.Screen
+                    name="(driver)/vehicle-details-screen"
+                    options={{ headerShown: false }}
+                  />
+
+                  {/* driver > route */}
+                  <Stack.Screen
+                    name="(driver)/(route)/create-route-info-screen"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="(driver)/(route)/create-route-origin-screen"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="(driver)/(route)/create-route-destination-screen"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="(driver)/(route)/route-invite-code-screen"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen name="(driver)/(route)/schedule" options={{ headerShown: false }} />
+                  <Stack.Screen
+                    name="(driver)/(route)/route-passengers-screen"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="(driver)/(route)/route-details-screen"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="(driver)/(route)/edit-route-screen"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="(driver)/(route)/active-route-details-screen"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="(driver)/(route)/active-route-screen"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="(driver)/(route)/trip-metrics-screen"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="(driver)/(route)/trip-reports-screen"
+                    options={{ headerShown: false }}
+                  />
+
+                  {/* passenger */}
+                  <Stack.Screen
+                    name="(passenger)/passenger-home-screen"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="(passenger)/profile-passenger-screen"
+                    options={{
+                      headerShown: false,
+                      navigationBarColor: colors.white,
+                      navigationBarTranslucent: false,
+                    }}
+                  />
+                  <Stack.Screen
+                    name="(passenger)/dependent-details-screen"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="(passenger)/enter-route-code-screen"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="(passenger)/passenger-route-details-screen"
+                    options={{ headerShown: false }}
+                  />
+
+                  <Stack.Screen
+                    name="(passenger)/passenger-active-route-screen"
+                    options={{ headerShown: false }}
+                  />
+
+                  <Stack.Screen
+                    name="(passenger)/passenger-active-route-details-screen"
+                    options={{ headerShown: false }}
+                  />
+
+                  <Stack.Screen
+                    name="(passenger)/participant-selection-screen"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="(passenger)/passenger-address-screen"
+                    options={{ headerShown: false }}
+                  />
+                </Stack>
+              </>
+            )}
+            <StatusBar style="auto" />
+          </PaperProvider>
+        </QueryClientProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }

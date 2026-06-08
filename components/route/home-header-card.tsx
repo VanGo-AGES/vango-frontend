@@ -32,19 +32,29 @@ export function HomeHeaderCard({
 
   return (
     <View style={styles.container}>
-      {showPlaceholder ? (
-        <AvatarPlaceholder />
-      ) : (
-        <Image
-          source={{ uri: avatarUri }}
-          style={styles.avatar}
-          onError={() => setImageError(true)}
-        />
-      )}
+      <Pressable
+        onPress={onProfilePress}
+        accessibilityRole="button"
+        accessibilityLabel={`Abrir perfil de ${name}`}
+        hitSlop={8}
+        style={({ pressed }) => [styles.avatarButton, { opacity: pressed ? 0.6 : 1 }]}
+      >
+        {showPlaceholder ? (
+          <AvatarPlaceholder />
+        ) : (
+          <Image
+            source={{ uri: avatarUri }}
+            style={styles.avatar}
+            onError={() => setImageError(true)}
+          />
+        )}
+      </Pressable>
 
       <View style={styles.info}>
         <Pressable
           onPress={onProfilePress}
+          accessibilityRole="button"
+          accessibilityLabel={`Abrir perfil de ${name}`}
           style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}
         >
           <Text style={styles.name}>{name}</Text>
@@ -78,6 +88,14 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
+  },
+  avatarButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   info: {
     justifyContent: 'space-between',

@@ -1,0 +1,305 @@
+import { useEffect, useMemo } from 'react';
+import { Alert, StyleSheet, View } from 'react-native';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { EmptyState } from '@/components/general/empty-state';
+import { ActiveRouteMap } from '@/components/route/active-route-map';
+import { PassengerTripBottomSheet } from '@/components/route/passenger/passenger-trip-bottom-sheet';
+import { RouteTopBar } from '@/components/route/route-top-bar';
+import { useCurrentTrip } from '@/hooks/use-current-trip';
+import { usePassengerTripTracker } from '@/hooks/use-passenger-trip-tracker';
+import { usePassangerRouteDetail } from '@/hooks/use-passanger-route-detail';
+import { colors } from '@/styles/colors';
+import type { AddressResponse, PassangerRouteDetailResponse } from '@/types/route.types';
+import type { CurrentTripResponse } from '@/types/trip.types';
+
+type RoutePoint = {
+  latitude: number;
+  longitude: number;
+};
+
+function normalizeParam(value?: string | string[]): string | undefined {
+  if (Array.isArray(value)) {
+    return value[0];
+  }
+
+  return value;
+}
+
+function hasCoordinates(
+  address?: Partial<AddressResponse> | null,
+): address is AddressResponse & { latitude: number; longitude: number } {
+  return (
+    !!address &&
+    typeof address.latitude === 'number' &&
+    address.latitude !== null &&
+    typeof address.longitude === 'number' &&
+    address.longitude !== null
+  );
+}
+
+function toPoint(address?: Partial<AddressResponse> | null): RoutePoint | null {
+  if (!hasCoordinates(address)) {
+    return null;
+  }
+
+  return {
+    latitude: address.latitude,
+    longitude: address.longitude,
+  };
+}
+
+function formatArrivalTime(minutesFromNow: number): string {
+  const arrival = new Date(Date.now() + Math.max(1, minutesFromNow) * 60_000);
+  return `${String(arrival.getHours()).padStart(2, '0')}h${String(arrival.getMinutes()).padStart(
+    2,
+    '0',
+  )}`;
+}
+
+function formatDistance(distanceKm: number): string {
+  return `${distanceKm < 10 ? distanceKm.toFixed(1) : Math.round(distanceKm)} km`.replace('.', ',');
+}
+
+export default function PassengerActiveRouteScreen() {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const params = useLocalSearchParams<{
+    routeId?: string | string[];
+    dependentId?: string | string[];
+  }>();
+
+  const routeId = normalizeParam(params.routeId);
+  const dependentId = normalizeParam(params.dependentId);
+
+  const {
+    route,
+    isLoading: isRouteLoading,
+    isError: isRouteError,
+  } = usePassangerRouteDetail({
+    routeId,
+    dependentId,
+  });
+
+  const {
+    data: currentTrip,
+    isLoading: isCurrentTripLoading,
+    isError: isCurrentTripError,
+  } = useCurrentTrip(routeId, dependentId);
+
+  const handleBackPress = () => {
+    router.back();
+  };
+
+  if (isRouteLoading || isCurrentTripLoading) {
+    return (
+      <FeedbackScreen
+        topInset={insets.top}
+        onBackPress={handleBackPress}
+        icon="schedule"
+        text="Carregando o acompanhamento da viagem..."
+      />
+    );
+  }
+
+  if (isRouteError || isCurrentTripError || !route || !currentTrip) {
+    return (
+      <FeedbackScreen
+        topInset={insets.top}
+        onBackPress={handleBackPress}
+        icon="error-outline"
+        text="Não foi possível carregar a viagem. Toque para tentar novamente."
+      />
+    );
+  }
+
+  return (
+    <ActiveRouteContent
+      route={route}
+      currentTrip={currentTrip}
+      router={router}
+      insets={insets}
+      onBackPress={handleBackPress}
+    />
+  );
+}
+
+type FeedbackScreenProps = {
+  topInset: number;
+  onBackPress: () => void;
+  icon: 'schedule' | 'error-outline';
+  text: string;
+};
+
+function FeedbackScreen({ topInset, onBackPress, icon, text }: FeedbackScreenProps) {
+  return (
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <View style={styles.screen}>
+        <View style={[styles.topBarContainer, { top: topInset + 8 }]}>
+          <RouteTopBar onBackPress={onBackPress} showMenu={false} backgroundColor="transparent" />
+        </View>
+        <View style={styles.feedbackWrapper}>
+          <EmptyState icon={icon} text={text} />
+        </View>
+      </View>
+    </>
+  );
+}
+
+type ActiveRouteContentProps = {
+  route: PassangerRouteDetailResponse;
+  currentTrip: CurrentTripResponse;
+  router: ReturnType<typeof useRouter>;
+  insets: { top: number };
+  onBackPress: () => void;
+};
+
+export function ActiveRouteContent({
+  route,
+  currentTrip,
+  router,
+  insets,
+  onBackPress,
+}: ActiveRouteContentProps) {
+  const pickupPoint = toPoint(route.my_pickup_address);
+  const displayStopPoint = pickupPoint ??
+    toPoint(route.origin_address) ??
+    toPoint(route.destination_address) ?? {
+      latitude: -30.0378,
+      longitude: -51.2232,
+    };
+
+  const tracker = usePassengerTripTracker({
+    tripId: currentTrip.trip_id,
+    stopLat: pickupPoint?.latitude ?? null,
+    stopLng: pickupPoint?.longitude ?? null,
+  });
+
+  useEffect(() => {
+    if (!tracker.tripFinished) {
+      return;
+    }
+
+    Alert.alert('Viagem finalizada', 'A viagem foi finalizada pelo motorista.', [
+      {
+        text: 'OK',
+        onPress: () => router.replace('/passenger-home-screen' as never),
+      },
+    ]);
+  }, [tracker.tripFinished, router]);
+
+  useEffect(() => {
+    if (!tracker.error) {
+      return;
+    }
+
+    Alert.alert(
+      'Erro no acompanhamento',
+      'Não foi possível acompanhar a localização em tempo real.',
+      [
+        {
+          text: 'OK',
+          onPress: onBackPress,
+        },
+      ],
+    );
+  }, [tracker.error, onBackPress]);
+
+  const driverPoint = useMemo(
+    () =>
+      tracker.driverLocation
+        ? { latitude: tracker.driverLocation.lat, longitude: tracker.driverLocation.lng }
+        : null,
+    [tracker.driverLocation],
+  );
+
+  const driverName = currentTrip.driver_name;
+  const driverPlate = currentTrip.vehicle_plate ?? '';
+  const driverAvatarUrl = currentTrip.driver_photo_url ?? undefined;
+
+  const realAddress = route.my_pickup_address || route.destination_address || route.origin_address;
+  const deliveryAddress = realAddress
+    ? [realAddress.street, realAddress.number].filter(Boolean).join(', ')
+    : 'Endereço não disponível';
+
+  const etaMinutes = tracker.eta?.eta_minutes ?? null;
+  const distanceText = tracker.connecting
+    ? '—'
+    : !tracker.trackerOnline
+      ? 'Motorista offline'
+      : tracker.eta?.distance_km != null
+        ? formatDistance(tracker.eta.distance_km)
+        : '—';
+
+  const isDriverArrived =
+    typeof tracker.eta?.distance_km === 'number' && tracker.eta.distance_km <= 0.05;
+
+  return (
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+
+      <View style={styles.screen}>
+        <ActiveRouteMap
+          currentLocation={driverPoint}
+          nextStopLocation={displayStopPoint}
+          containerStyle={styles.map}
+          recenterButtonStyle={styles.recenterButton}
+          liveRefreshIntervalMs={0}
+        />
+
+        <View style={[styles.topBarContainer, { top: insets.top + 8 }]}>
+          <RouteTopBar onBackPress={onBackPress} showMenu={false} backgroundColor="transparent" />
+        </View>
+
+        <PassengerTripBottomSheet
+          state={isDriverArrived ? 'driver_arrived' : 'driver_on_the_way'}
+          driver={{
+            id: 'driver-active-route',
+            name: driverName,
+            avatarUrl: driverAvatarUrl,
+            plate: driverPlate,
+          }}
+          timeRemaining={etaMinutes}
+          estimatedArrival={etaMinutes != null ? formatArrivalTime(etaMinutes) : '—'}
+          distance={distanceText}
+          countdownSeconds={(etaMinutes ?? 0) * 60}
+          address={deliveryAddress}
+        />
+      </View>
+    </>
+  );
+}
+
+const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: colors.light,
+  },
+  map: {
+    ...StyleSheet.absoluteFillObject,
+    width: '100%',
+    height: '100%',
+    borderWidth: 0,
+    borderRadius: 0,
+    overflow: 'visible',
+    backgroundColor: colors.light,
+  },
+  topBarContainer: {
+    position: 'absolute',
+    left: 4,
+    right: 4,
+    zIndex: 30,
+  },
+  recenterButton: {
+    marginBottom: 336,
+  },
+  feedbackWrapper: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+    paddingHorizontal: 16,
+  },
+});
