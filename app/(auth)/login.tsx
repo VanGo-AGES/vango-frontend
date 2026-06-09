@@ -128,6 +128,7 @@ export default function LoginScreen() {
 
   const watchedEmail = watch('email');
   const watchedPassword = watch('password');
+  const hasPasswordError = !!errors.password;
 
   const onInvalid = () => {
     if (!watchedEmail.trim() || !watchedPassword.trim()) {
@@ -263,12 +264,12 @@ export default function LoginScreen() {
                   secureTextEntry
                   autoCapitalize="none"
                   autoCorrect={false}
-                  errorMessage={errors.password?.message}
+                  errorMessage={hasPasswordError ? undefined : errors.password?.message}
                   placeholderTextColor={colors.subtleText}
-                  outlineColor={errors.password ? colors.destructive : colors.dark}
-                  activeOutlineColor={errors.password ? colors.destructive : colors.dark}
+                  outlineColor={hasPasswordError ? colors.destructive : colors.dark}
+                  activeOutlineColor={hasPasswordError ? colors.destructive : colors.dark}
                   right={
-                    errors.password ? (
+                    hasPasswordError ? (
                       <TextInput.Icon icon="alert-circle" color={colors.destructive} />
                     ) : undefined
                   }
@@ -277,9 +278,21 @@ export default function LoginScreen() {
             }}
           />
 
-          <Pressable onPress={handleForgotPasswordPress} style={styles.forgotPasswordButton}>
-            <Text style={styles.forgotPasswordText}>Esqueci minha senha</Text>
-          </Pressable>
+          {hasPasswordError ? (
+            <View style={styles.passwordErrorRow}>
+              <Text style={styles.passwordErrorText}>{errors.password?.message}</Text>
+              <Pressable
+                onPress={handleForgotPasswordPress}
+                style={styles.forgotPasswordInlineButton}
+              >
+                <Text style={styles.forgotPasswordInlineText}>Esqueci minha senha</Text>
+              </Pressable>
+            </View>
+          ) : (
+            <Pressable onPress={handleForgotPasswordPress} style={styles.forgotPasswordButton}>
+              <Text style={styles.forgotPasswordText}>Esqueci minha senha</Text>
+            </Pressable>
+          )}
         </View>
 
         <View style={styles.footer}>
@@ -358,9 +371,29 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     paddingTop: 4,
   },
+  passwordErrorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 4,
+    marginTop: 2,
+  },
+  passwordErrorText: {
+    ...typography.small,
+    color: colors.destructive,
+  },
+  forgotPasswordInlineButton: {
+    paddingTop: 0,
+  },
+  forgotPasswordInlineText: {
+    ...typography.small,
+    color: colors.dark,
+    textDecorationLine: 'underline',
+  },
   forgotPasswordText: {
     ...typography.small,
     color: colors.dark,
+    textDecorationLine: 'underline',
   },
   footer: {
     alignItems: 'center',
