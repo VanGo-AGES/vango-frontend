@@ -106,7 +106,7 @@ export default function LoginScreen() {
   };
 
   const handleForgotPasswordPress = () => {
-    // TODO: ligar à tela de recuperação de senha quando ela existir.
+    router.push('/forgot-password-screen');
   };
 
   return (
