@@ -49,6 +49,10 @@ export default function RootLayout() {
                   <Stack.Screen name="(auth)/splash" options={{ headerShown: false }} />
                   <Stack.Screen name="(auth)/onboarding" options={{ headerShown: false }} />
                   <Stack.Screen name="(auth)/login" options={{ headerShown: false }} />
+                  <Stack.Screen
+                    name="(auth)/forgot-password-screen"
+                    options={{ headerShown: false }}
+                  />
                   <Stack.Screen name="(auth)/register-success" options={{ headerShown: false }} />
 
                   {/* shared */}
