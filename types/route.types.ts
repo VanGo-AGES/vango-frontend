@@ -1,3 +1,5 @@
+import type { components } from './api.generated';
+
 export type RouteFormAddress = {
   cep: string;
   numero: string;
@@ -9,6 +11,13 @@ export type RouteFormAddress = {
 
 export type AddressErrors = Partial<Record<keyof RouteFormAddress, string>>;
 
+export type RouteType = 'outbound' | 'inbound';
+export type DriverRouteStatus = 'inativa' | 'em_andamento';
+export type StopType = 'embarque' | 'desembarque';
+export type RoutePassangerStatus = 'pending' | 'accepted' | 'rejected';
+export type PassengerRouteStatus = 'inativa' | 'em_andamento';
+export type PassengerMembershipStatus = 'pending' | 'accepted' | 'rejected';
+
 export interface AddressRequest {
   label: string;
   street: string;
@@ -19,25 +28,13 @@ export interface AddressRequest {
   state: string;
 }
 
-export interface AddressResponse {
-  id: string;
-  label: string;
-  street: string;
-  number: string;
-  neighborhood: string;
-  zip: string;
-  city: string;
-  state: string;
+export type AddressResponse = Omit<
+  components['schemas']['AddressResponse'],
+  'latitude' | 'longitude'
+> & {
   latitude: number | null;
   longitude: number | null;
-}
-
-export type RouteType = 'outbound' | 'inbound';
-export type DriverRouteStatus = 'inativa' | 'em_andamento';
-export type StopType = 'embarque' | 'desembarque';
-export type RoutePassangerStatus = 'pending' | 'accepted' | 'rejected';
-export type PassengerRouteStatus = 'inativa' | 'em_andamento';
-export type PassengerMembershipStatus = 'pending' | 'accepted' | 'rejected';
+};
 
 export interface RouteStopAddressResponse {
   label: string;
@@ -62,44 +59,32 @@ export interface RouteAbsenceResponse {
   reason: string | null;
 }
 
-export interface CreateRouteRequest {
+export type CreateRouteRequest = {
   name: string;
   route_type: RouteType;
   origin: AddressRequest;
   destination: AddressRequest;
   expected_time: string;
   recurrence: string;
-}
+};
 
 export type RouteUpdate = Partial<CreateRouteRequest>;
 
-export interface StopResponse {
-  id: string;
-  route_passanger_id: string;
-  order_index: number;
+export type StopResponse = Omit<components['schemas']['StopResponse'], 'type' | 'address'> & {
   type: StopType;
-  address_id: string;
   address: AddressResponse;
-}
+};
 
-export interface RouteResponse {
-  id: string;
-  name: string;
+export type RouteResponse = Omit<
+  components['schemas']['RouteResponse'],
+  'route_type' | 'status' | 'origin_address' | 'destination_address' | 'stops'
+> & {
   route_type: RouteType;
   status: DriverRouteStatus;
-  recurrence: string;
-  expected_time: string;
-  invite_code: string;
-  max_passengers: number;
   origin_address: AddressResponse;
   destination_address: AddressResponse;
   stops: StopResponse[];
-  // US10-TK19 — totais planejados calculados no backend (Mapbox Directions)
-  total_distance_km?: number | null;
-  estimated_duration_min?: number | null;
-  // viagem em andamento da rota, quando houver (usado pra abrir a tela ativa)
-  active_trip_id?: string | null;
-}
+};
 
 export interface PassangerRouteDetailResponse {
   route_id: string;
@@ -149,21 +134,13 @@ export interface PassangerRouteListItem {
   dependent_name: string | null;
 }
 
-export interface RoutePassangerResponse {
-  id: string;
-  route_id: string;
+export type RoutePassangerResponse = Omit<
+  components['schemas']['RoutePassangerResponse'],
+  'status' | 'photo_url'
+> & {
   status: RoutePassangerStatus;
-  user_id: string;
-  user_name: string;
-  user_phone: string;
   photo_url: string | null;
-  pickup_address_id: string;
-  requested_at: string;
-  joined_at: string | null;
-  dependent_id: string | null;
-  dependent_name: string | null;
-  guardian_name: string | null;
-}
+};
 
 export type CreateRouteResponse = RouteResponse;
 

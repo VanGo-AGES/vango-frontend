@@ -225,3 +225,13 @@ chore: atualiza dependência do expo-location
 - Variáveis não utilizadas são **erro** (bloqueia commit)
 - `console.log` é **aviso** (não bloqueia, mas aparece no editor)
 - Prefixar com `_` para ignorar propositalmente: `const _ignorada = ...`
+
+## Atualização de Tipos do Backend (API)
+
+Sempre que houver mudanças no contrato do backend (`openapi.json`):
+
+1. Atualize o arquivo de contrato `openapi.json` na raíz do projeto.
+2. Execute o comando para regenerar os arquivos de tipagem:
+   ```bash
+   npm run gen:api
+   ```
