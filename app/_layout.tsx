@@ -13,6 +13,13 @@ import { fonts } from '@/styles/typography';
 import { colors } from '@/styles/colors';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import OfflineScreen from '@/app/(auth)/offline-screen';
+import * as Sentry from '@sentry/react-native';
+import Constants from 'expo-constants';
+
+Sentry.init({
+  dsn: Constants.expoConfig?.extra?.sentry?.dsn,
+  environment: process.env.EXPO_PUBLIC_API_ENV || 'development',
+});
 
 SplashScreen.preventAutoHideAsync();
 
@@ -20,7 +27,7 @@ export const unstable_settings = {
   anchor: 'index',
 };
 
-export default function RootLayout() {
+function RootLayout() {
   const [fontsLoaded] = useFonts(fonts);
   const isConnected = useNetworkStatus();
 
@@ -198,3 +205,4 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   );
 }
+export default Sentry.wrap(RootLayout);
