@@ -41,6 +41,91 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/auth/login': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Login */
+    post: operations['login_auth_login_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/auth/logout': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Logout */
+    post: operations['logout_auth_logout_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/auth/password/forgot': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Forgot Password */
+    post: operations['forgot_password_auth_password_forgot_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/auth/password/reset': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Reset Password */
+    post: operations['reset_password_auth_password_reset_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/auth/refresh': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Refresh */
+    post: operations['refresh_auth_refresh_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/dependents/': {
     parameters: {
       query?: never;
@@ -102,6 +187,26 @@ export interface paths {
     };
     /** Health Check */
     get: operations['health_check_health_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/metrics/reports': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Relatório agregado de viagens do motorista
+     * @description Retorna distância (km), duração (min), passageiros transportados e viagens realizadas do motorista logado no período selecionado (day/week/month) e intervalo de datas.
+     */
+    get: operations['get_reports_metrics_reports_get'];
     put?: never;
     post?: never;
     delete?: never;
@@ -590,6 +695,24 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/users/me': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Me */
+    get: operations['get_me_users_me_get'];
+    put?: never;
+    post?: never;
+    /** Delete My Account */
+    delete: operations['delete_my_account_users_me_delete'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/users/me/push-token': {
     parameters: {
       query?: never;
@@ -649,8 +772,9 @@ export interface paths {
     put: operations['update_user_users__user_id__put'];
     post?: never;
     /**
-     * Excluir usuário
-     * @description Remove a conta do usuário e todos os dados associados em cascata.
+     * Excluir usuário (deprecated)
+     * @deprecated
+     * @description Remove a conta do usuário e todos os dados associados em cascata. Este endpoint está depreciado em favor de DELETE /users/me.
      */
     delete: operations['delete_user_users__user_id__delete'];
     options?: never;
@@ -846,6 +970,15 @@ export interface components {
       /** Vehicle Plate */
       vehicle_plate?: string | null;
     };
+    /** DeleteAccountRequest */
+    DeleteAccountRequest: {
+      /**
+       * Confirm
+       * @description Precisa ser true para excluir a conta.
+       * @default false
+       */
+      confirm: boolean;
+    };
     /** DependentCreate */
     DependentCreate: {
       /** Name */
@@ -889,6 +1022,15 @@ export interface components {
        * @description Distância total percorrida
        */
       total_km?: number | null;
+    };
+    /** ForgotPasswordRequest */
+    ForgotPasswordRequest: {
+      /**
+       * Email
+       * Format: email
+       * @example john.doe@example.com
+       */
+      email: string;
     };
     /** HTTPValidationError */
     HTTPValidationError: {
@@ -952,6 +1094,58 @@ export interface components {
        * @example senha_segura123
        */
       password: string;
+    };
+    /**
+     * LoginResponse
+     * @description Retornado por POST /auth/login e /auth/refresh: tokens + dados do usuário.
+     *
+     *     `refresh_token` é populado quando o fluxo de refresh está ativo (US17-TK09).
+     */
+    LoginResponse: {
+      /** Access Token */
+      access_token: string;
+      /** Refresh Token */
+      refresh_token?: string | null;
+      /**
+       * Token Type
+       * @default bearer
+       */
+      token_type: string;
+      user: components['schemas']['UserResponse'];
+    };
+    /** MetricsReportResponse */
+    MetricsReportResponse: {
+      /**
+       * Distance
+       * @default 0
+       */
+      distance: number;
+      /**
+       * Duration
+       * @default 0
+       */
+      duration: number;
+      /**
+       * End Date
+       * Format: date
+       */
+      end_date: string;
+      /**
+       * Passengers
+       * @default 0
+       */
+      passengers: number;
+      period: components['schemas']['ReportPeriod'];
+      /**
+       * Start Date
+       * Format: date
+       */
+      start_date: string;
+      /**
+       * Trips
+       * @default 0
+       */
+      trips: number;
     };
     /**
      * PassangerRouteDetailResponse
@@ -1070,6 +1264,11 @@ export interface components {
        */
       total_distance_km?: number | null;
     };
+    /** RefreshRequest */
+    RefreshRequest: {
+      /** Refresh Token */
+      refresh_token: string;
+    };
     /**
      * RegisterPushTokenRequest
      * @description Payload para registrar o FCM push token do dispositivo do usuário.
@@ -1082,6 +1281,22 @@ export interface components {
        * Token
        * @description FCM push token do dispositivo
        */
+      token: string;
+    };
+    /**
+     * ReportPeriod
+     * @description Granularidade do relatório selecionada nas abas Dia / Semana / Mês.
+     * @enum {string}
+     */
+    ReportPeriod: 'day' | 'week' | 'month';
+    /**
+     * ResetPasswordConfirm
+     * @description A nova senha respeita as mesmas regras do cadastro (US16-TK01).
+     */
+    ResetPasswordConfirm: {
+      /** New Password */
+      new_password: string;
+      /** Token */
       token: string;
     };
     /**
@@ -1772,6 +1987,171 @@ export interface operations {
       };
     };
   };
+  login_auth_login_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['LoginRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LoginResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  logout_auth_logout_post: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  forgot_password_auth_password_forgot_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ForgotPasswordRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            [key: string]: unknown;
+          };
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  reset_password_auth_password_reset_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ResetPasswordConfirm'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            [key: string]: unknown;
+          };
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  refresh_auth_refresh_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RefreshRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LoginResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
   list_dependents_dependents__get: {
     parameters: {
       query?: never;
@@ -1959,9 +2339,42 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': {
-            [key: string]: string;
-          };
+          'application/json': unknown;
+        };
+      };
+    };
+  };
+  get_reports_metrics_reports_get: {
+    parameters: {
+      query: {
+        period: components['schemas']['ReportPeriod'];
+        start_date: string;
+        end_date?: string | null;
+      };
+      header: {
+        'X-User-Id': string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['MetricsReportResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
         };
       };
     };
@@ -2964,6 +3377,70 @@ export interface operations {
         content: {
           'application/json': components['schemas']['UserResponse'];
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_me_users_me_get: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['UserResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  delete_my_account_users_me_delete: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['DeleteAccountRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Validation Error */
       422: {
