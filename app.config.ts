@@ -88,6 +88,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         sounds: [],
       },
     ],
+    [
+      '@sentry/react-native/expo',
+      {
+        url: 'https://sentry.io/',
+        project: 'vango-frontend',
+        organization: 'vango-ages',
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,
@@ -97,6 +105,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     router: {},
     eas: {
       projectId: 'bb0ff192-1fd1-4987-92e6-5b08060d656d',
+    },
+    sentry: {
+      dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
     },
   },
 });
