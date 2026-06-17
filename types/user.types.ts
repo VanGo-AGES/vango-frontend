@@ -23,4 +23,9 @@ export type CreateUserResponse = UserResponse;
 
 export type LoginRequest = components['schemas']['LoginRequest'];
 
-export type LoginResponse = UserResponse;
+export type LoginResponse = {
+  access_token: string;
+  token_type: string; // "bearer"
+  refresh_token: string | null;
+  user: UserResponse;
+};
