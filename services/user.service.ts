@@ -14,7 +14,7 @@ export async function createUser(data: CreateUserRequest): Promise<CreateUserRes
 }
 
 export async function loginUser(data: LoginRequest): Promise<LoginResponse> {
-  return apiPost<LoginRequest, LoginResponse>('/users/login', data);
+  return apiPost<LoginRequest, LoginResponse>('/auth/login', data);
 }
 
 export async function getUser(id: string): Promise<UserResponse> {

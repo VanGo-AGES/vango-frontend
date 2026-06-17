@@ -145,7 +145,7 @@ export default function LoginScreen() {
         password: data.password,
       });
 
-      const nextRoute = response.role === 'driver' ? '/driver-home' : '/passenger-home-screen';
+      const nextRoute = response.user.role === 'driver' ? '/driver-home' : '/passenger-home-screen';
       router.dismissAll();
       router.replace(nextRoute as never);
     } catch (error) {
