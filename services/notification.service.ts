@@ -80,12 +80,8 @@ export async function registerPushToken(token: string): Promise<void> {
     const last = await AsyncStorage.getItem(PUSH_LAST_SENT_KEY);
     if (last === registrationKey) return; // already registered for this user
 
-    const headers = {
-      'X-User-Id': user?.id ?? '',
-      'X-User-Role': user?.role ?? '',
-    } as Record<string, string>;
-
-    await apiPost<{ token: string }, void>('/users/me/push-token', { token }, headers);
+    // TK28 — auth via Bearer (api.ts); sem X-User-Id. O backend deriva o usuário do token.
+    await apiPost<{ token: string }, void>('/users/me/push-token', { token });
 
     await AsyncStorage.setItem(PUSH_LAST_SENT_KEY, registrationKey);
   } catch (error) {
