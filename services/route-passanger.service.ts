@@ -1,5 +1,4 @@
 import { apiDelete, apiGet, apiPost, getDriverHeaders } from './api';
-import { useSessionStore } from '@/store/session.store';
 import type {
   JoinRouteRequest,
   JoinRouteResponse,
@@ -10,13 +9,11 @@ import type {
   RoutePassangerResponse,
 } from '@/types/route.types';
 
+/**
+ * @deprecated TK28 — mock X-User-Id aposentado; auth agora é via Bearer (api.ts). No-op.
+ */
 export function getPassangerHeaders(): Record<string, string> {
-  const user = useSessionStore.getState().user;
-
-  return {
-    'X-User-Id': user?.id ?? '',
-    'X-User-Role': 'passenger',
-  };
+  return {};
 }
 
 export async function listRoutePassangers(routeId: string): Promise<RoutePassangerResponse[]> {

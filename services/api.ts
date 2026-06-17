@@ -2,13 +2,21 @@ import { useSessionStore } from '@/store/session.store';
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
-export function getDriverHeaders(): Record<string, string> {
-  const user = useSessionStore.getState().user;
+// TK28 — injeta o JWT como `Authorization: Bearer <access_token>` em todas as
+// chamadas. O token é lido do store de sessão (persistido pela TK12). Sem token
+// (sessão ausente), nenhum header de auth é anexado.
+function authHeaders(): Record<string, string> {
+  const accessToken = useSessionStore.getState().accessToken;
+  return accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
+}
 
-  return {
-    'X-User-Id': user?.id ?? '',
-    'X-User-Role': 'driver',
-  };
+/**
+ * @deprecated TK28 — o mock `X-User-Id`/`X-User-Role` foi aposentado. A autenticação
+ * agora é via `Authorization: Bearer` injetado centralmente nas funções abaixo.
+ * Mantido como no-op para não quebrar os call sites existentes.
+ */
+export function getDriverHeaders(): Record<string, string> {
+  return {};
 }
 
 export class ApiError extends Error {
@@ -40,7 +48,7 @@ export async function apiGet<TResponse>(
 ): Promise<TResponse> {
   const response = await fetch(`${BASE_URL}${path}`, {
     method: 'GET',
-    headers: { ...headers },
+    headers: { ...authHeaders(), ...headers },
   });
 
   return handleResponse<TResponse>(response);
@@ -53,7 +61,7 @@ export async function apiPost<TBody, TResponse>(
 ): Promise<TResponse> {
   const response = await fetch(`${BASE_URL}${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...headers },
+    headers: { 'Content-Type': 'application/json', ...authHeaders(), ...headers },
     body: JSON.stringify(body),
   });
 
@@ -69,6 +77,7 @@ export async function apiPut<TBody, TResponse>(
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
+      ...authHeaders(),
       ...headers,
     },
     body: JSON.stringify(body),
@@ -83,7 +92,7 @@ export async function apiDelete<TResponse>(
 ): Promise<TResponse> {
   const response = await fetch(`${BASE_URL}${path}`, {
     method: 'DELETE',
-    headers: { ...headers },
+    headers: { ...authHeaders(), ...headers },
   });
 
   return handleResponse<TResponse>(response);
@@ -92,6 +101,8 @@ export async function apiDelete<TResponse>(
 export async function apiUpload<TResponse>(path: string, formData: FormData): Promise<TResponse> {
   const response = await fetch(`${BASE_URL}${path}`, {
     method: 'POST',
+    // Sem Content-Type manual: o fetch define o boundary do multipart.
+    headers: { ...authHeaders() },
     body: formData,
   });
 
