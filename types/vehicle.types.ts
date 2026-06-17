@@ -1,24 +1,12 @@
-export interface CreateVehicleRequest {
-  plate: string;
-  capacity: number;
-  notes?: string | null;
-}
+import type { components } from './api.generated';
 
-export interface UpdateVehicleRequest {
-  plate?: string;
-  capacity?: number;
-  notes?: string | null;
-}
+export type CreateVehicleRequest = components['schemas']['VehicleCreate'];
 
-export interface VehicleResponse {
-  id: string;
-  driver_id: string;
+export type UpdateVehicleRequest = components['schemas']['VehicleUpdate'];
+
+export type VehicleResponse = Omit<components['schemas']['VehicleResponse'], 'plate'> & {
   plate: string | null;
-  capacity: number;
-  notes: string | null;
-  status: boolean;
-  created_at: string;
-}
+};
 
 // Aliases para consistência com o padrão do projeto
 export type CreateVehicleResponse = VehicleResponse;

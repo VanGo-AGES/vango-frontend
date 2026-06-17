@@ -1,19 +1,14 @@
+import type { components } from './api.generated';
+
+// Herdando os schemas do OpenAPI
+export type DependentResponse = components['schemas']['DependentResponse'];
+
+export type DependentCreateRequest = components['schemas']['DependentCreate'];
+
+export type DependentUpdateRequest = components['schemas']['DependentUpdate'];
+
+// Tipo auxiliar simplificado usado em algumas listagens da UI
 export interface Dependent {
   id: string;
   name: string;
-}
-
-export interface DependentCreateRequest {
-  name: string;
-}
-
-export interface DependentUpdateRequest {
-  name?: string;
-}
-
-export interface DependentResponse {
-  id: string;
-  guardian_id: string;
-  name: string;
-  created_at: string;
 }
