@@ -25,7 +25,7 @@ function formatExpectedTime(value: string): string {
 }
 
 function formatTripDate(date: Date): string {
-  return date.toLocaleDateString('en-US', {
+  return date.toLocaleDateString('pt-BR', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -48,18 +48,14 @@ export default function TripMetricsScreen() {
   const { height: screenHeight } = useWindowDimensions();
   const heroHeight = Math.max(220, Math.min(300, Math.round(screenHeight * 0.3)));
 
-  const tripId = Array.isArray(params.tripId) ? params.tripId[0] : params.tripId;
+  const tripId = params.tripId;
 
   const { data: trip, isLoading: isTripLoading, isError: isTripError } = useTrip(tripId);
 
-  const {
-    data: route,
-    isLoading: isRouteLoading,
-    isError: isRouteError,
-  } = useRoute(trip?.route_id);
+  const { data: route, isLoading: isRouteLoading } = useRoute(trip?.route_id);
 
   const isLoading = isTripLoading || isRouteLoading;
-  const hasError = isTripError || isRouteError;
+  const hasError = isTripError;
 
   const routeName = route?.name ?? trip?.route_name ?? '';
   const recurrence = route?.recurrence ? formatRecurrenceLabel(route.recurrence) : '';
@@ -72,12 +68,17 @@ export default function TripMetricsScreen() {
     startedAt && finishedAt ? Math.round((finishedAt.getTime() - startedAt.getTime()) / 60000) : 0;
 
   const distanceKm = trip?.total_km ?? 0;
-  const passengersCount = trip?.trip_passangers?.length ?? 0;
+  const passengersCount =
+    trip?.trip_passangers?.filter((passanger) => passanger.boarded_at != null).length ?? 0;
 
   const tripDate = finishedAt ?? startedAt ?? (trip?.trip_date ? new Date(trip.trip_date) : null);
 
   const dateLabel = tripDate ? formatTripDate(tripDate) : '';
   const timeLabel = startedAt ? formatTripTime(startedAt, durationMinutes) : '';
+
+  const headerStartTime = startedAt
+    ? startedAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    : expectedTime;
 
   const origin =
     route?.origin_address.latitude != null && route.origin_address.longitude != null
@@ -116,6 +117,7 @@ export default function TripMetricsScreen() {
         <Stack.Screen options={{ headerShown: false }} />
         <View style={styles.stateContainer}>
           <Text style={styles.stateText}>Não foi possível carregar as métricas da viagem.</Text>
+          <PrimaryButton label="Voltar ao início" onPress={handleExit} style={styles.stateButton} />
         </View>
       </>
     );
@@ -127,6 +129,7 @@ export default function TripMetricsScreen() {
         <Stack.Screen options={{ headerShown: false }} />
         <View style={styles.stateContainer}>
           <Text style={styles.stateText}>Métricas da viagem não encontradas.</Text>
+          <PrimaryButton label="Voltar ao início" onPress={handleExit} style={styles.stateButton} />
         </View>
       </>
     );
@@ -141,7 +144,7 @@ export default function TripMetricsScreen() {
           <RouteHeroHeader
             routeName={routeName}
             recurrence={recurrence}
-            expectedTime={expectedTime}
+            expectedTime={headerStartTime}
             durationMinutes={durationMinutes}
             distanceKm={distanceKm}
             origin={origin}
@@ -243,5 +246,9 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.text,
     textAlign: 'center',
+  },
+  stateButton: {
+    marginTop: 24,
+    alignSelf: 'stretch',
   },
 });
