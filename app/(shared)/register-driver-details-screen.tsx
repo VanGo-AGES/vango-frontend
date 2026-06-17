@@ -1,17 +1,10 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import AppDialog from '@/components/general/app-dialog';
+import { AppKeyboardAwareScrollView } from '@/components/general/app-keyboard-aware-scroll-view';
 import { AppTextField } from '@/components/general/app-text-field';
 import { PrimaryButton } from '@/components/general/primary-button';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
@@ -124,10 +117,7 @@ export default function RegisterDriverDetailsScreen() {
 
   return (
     <AppScreenContainer backgroundColor={colors.primary} style={styles.screenContainer}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.keyboardContainer}
-      >
+      <View style={styles.keyboardContainer}>
         <View style={styles.headerArea}>
           <Pressable
             onPress={() => router.back()}
@@ -145,11 +135,7 @@ export default function RegisterDriverDetailsScreen() {
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Informações do veículo</Text>
 
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
+          <AppKeyboardAwareScrollView contentContainerStyle={styles.scrollContent}>
             <View style={styles.fieldsContainer}>
               <AppTextField
                 label="Número de passageiros"
@@ -208,9 +194,9 @@ export default function RegisterDriverDetailsScreen() {
                 style={styles.nextButton}
               />
             </View>
-          </ScrollView>
+          </AppKeyboardAwareScrollView>
         </View>
-      </KeyboardAvoidingView>
+      </View>
 
       <AppDialog
         visible={showRequiredFieldsDialog}

@@ -5,7 +5,6 @@ import { Controller, useForm } from 'react-hook-form';
 import {
   Keyboard,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TouchableWithoutFeedback,
@@ -13,6 +12,7 @@ import {
 } from 'react-native';
 import { z } from 'zod';
 
+import { AppKeyboardAwareScrollView } from '@/components/general/app-keyboard-aware-scroll-view';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
 import { AppTextField } from '@/components/general/app-text-field';
 import { PrimaryButton } from '@/components/general/primary-button';
@@ -79,7 +79,7 @@ export default function CreateRouteInfoScreen() {
 
         <View style={styles.card}>
           <View style={styles.cardContent}>
-            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+            <AppKeyboardAwareScrollView>
               <View style={styles.formContent}>
                 <Text style={styles.sectionTitle}>Informações da rota</Text>
 
@@ -111,7 +111,7 @@ export default function CreateRouteInfoScreen() {
                   )}
                 />
               </View>
-            </ScrollView>
+            </AppKeyboardAwareScrollView>
 
             <View style={styles.footer}>
               <View style={styles.routeStepIndicatorWrapper}>

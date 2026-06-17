@@ -3,21 +3,13 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Controller, type FieldErrors, useForm } from 'react-hook-form';
-import {
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
 import { z } from 'zod';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import AppDialog from '@/components/general/app-dialog';
+import { AppKeyboardAwareScrollView } from '@/components/general/app-keyboard-aware-scroll-view';
 import { AppTextField } from '@/components/general/app-text-field';
 import { PrimaryButton } from '@/components/general/primary-button';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
@@ -188,11 +180,7 @@ export default function VehicleDetailsScreen() {
       edges={['top', 'left', 'right']}
       style={styles.container}
     >
-      <KeyboardAvoidingView
-        style={styles.keyboardAvoidingView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 24 : 0}
-      >
+      <View style={styles.keyboardAvoidingView}>
         <View style={styles.topArea}>
           <SectionHeader
             title={'Informações\ndo veículo'}
@@ -202,9 +190,7 @@ export default function VehicleDetailsScreen() {
         </View>
 
         <View style={styles.formCard}>
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
+          <AppKeyboardAwareScrollView
             keyboardDismissMode="interactive"
             contentContainerStyle={styles.formScrollContent}
           >
@@ -272,7 +258,7 @@ export default function VehicleDetailsScreen() {
                 />
               </View>
             </View>
-          </ScrollView>
+          </AppKeyboardAwareScrollView>
         </View>
 
         {!isKeyboardVisible && (
@@ -303,7 +289,7 @@ export default function VehicleDetailsScreen() {
             )}
           </View>
         )}
-      </KeyboardAvoidingView>
+      </View>
 
       <AppDialog
         visible={dialog.visible}

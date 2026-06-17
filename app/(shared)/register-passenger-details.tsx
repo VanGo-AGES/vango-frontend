@@ -1,11 +1,12 @@
 import { useRef, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AuthHeader } from '@/components/auth/auth-header';
 import AppDialog from '@/components/general/app-dialog';
+import { AppKeyboardAwareScrollView } from '@/components/general/app-keyboard-aware-scroll-view';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
 import { PrimaryButton } from '@/components/general/primary-button';
 import { DependentInputRow } from '@/components/passenger/dependent-input-row';
@@ -118,37 +119,34 @@ export default function PassengerDependentsScreen() {
           },
         ]}
       >
-        <View>
-          <Text style={styles.sectionTitle}>Você possui dependentes?</Text>
-          <Text style={styles.sectionSubtitle}>
-            Isso nos ajuda a ajustar recomendações para você
-          </Text>
+        <AppKeyboardAwareScrollView
+          style={styles.cardScroll}
+          contentContainerStyle={styles.cardScrollContent}
+        >
+          <View>
+            <Text style={styles.sectionTitle}>Você possui dependentes?</Text>
+            <Text style={styles.sectionSubtitle}>
+              Isso nos ajuda a ajustar recomendações para você
+            </Text>
 
-          <View style={styles.dependentsScrollWrapper}>
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              nestedScrollEnabled
-              contentContainerStyle={styles.dependentsScrollContent}
-            >
-              <DependentInputRow
-                dependents={dependents}
-                onChangeDependents={handleChangeDependents}
-                hasDependents={hasDependents}
-                onChangeHasDependents={handleChangeHasDependents}
-              />
-            </ScrollView>
+            <DependentInputRow
+              dependents={dependents}
+              onChangeDependents={handleChangeDependents}
+              hasDependents={hasDependents}
+              onChangeHasDependents={handleChangeHasDependents}
+            />
           </View>
-        </View>
 
-        <View style={styles.buttonWrapper}>
-          <PrimaryButton
-            label={isPending ? 'Salvando...' : 'Finalizar'}
-            variant="secondary"
-            onPress={handleSubmit}
-            disabled={isPending}
-            icon={<MaterialIcons name="arrow-forward" size={20} color={colors.light} />}
-          />
-        </View>
+          <View style={styles.buttonWrapper}>
+            <PrimaryButton
+              label={isPending ? 'Salvando...' : 'Finalizar'}
+              variant="secondary"
+              onPress={handleSubmit}
+              disabled={isPending}
+              icon={<MaterialIcons name="arrow-forward" size={20} color={colors.light} />}
+            />
+          </View>
+        </AppKeyboardAwareScrollView>
       </View>
 
       <AppDialog
@@ -215,6 +213,12 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     backgroundColor: colors.light,
+  },
+  cardScroll: {
+    flex: 1,
+  },
+  cardScrollContent: {
+    flexGrow: 1,
     justifyContent: 'space-between',
   },
   sectionTitle: {
@@ -228,12 +232,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: colors.text,
     ...typography.body,
-  },
-  dependentsScrollWrapper: {
-    maxHeight: 320,
-  },
-  dependentsScrollContent: {
-    paddingBottom: 8,
   },
   buttonWrapper: {
     alignSelf: 'center',

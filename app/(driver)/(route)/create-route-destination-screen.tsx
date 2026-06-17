@@ -1,11 +1,12 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { PrimaryButton } from '@/components/general/primary-button';
 import { AddressFormSection } from '@/components/route/address-form-section';
 import type { AddressErrors, RouteFormAddress } from '@/types/route.types';
+import { AppKeyboardAwareScrollView } from '@/components/general/app-keyboard-aware-scroll-view';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
 import { RouteStepIndicator } from '@/components/route/route-step-indicator';
 import { useRouteFormStore } from '@/store/route-form.store';
@@ -71,14 +72,14 @@ export default function CreateRouteDestinationScreen() {
 
       <View style={styles.card}>
         <View style={styles.cardContent}>
-          <ScrollView showsVerticalScrollIndicator={false}>
+          <AppKeyboardAwareScrollView>
             <AddressFormSection
               title="Endereço de Destino"
               value={address}
               onChange={handleChange}
               errors={errors}
             />
-          </ScrollView>
+          </AppKeyboardAwareScrollView>
 
           <View style={styles.footer}>
             <View style={styles.routeStepIndicatorWrapper}>

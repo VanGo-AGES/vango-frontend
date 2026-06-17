@@ -3,16 +3,9 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { AppKeyboardAwareScrollView } from '@/components/general/app-keyboard-aware-scroll-view';
 import { AppTextField } from '@/components/general/app-text-field';
 import { CircleIconButton } from '@/components/general/circle-icon-button';
 import { EditableProfilePicture } from '@/components/profile/editable-profile-picture';
@@ -125,10 +118,7 @@ export default function EditProfileScreen() {
       edges={['top', 'left', 'right']}
       style={styles.container}
     >
-      <KeyboardAvoidingView
-        style={styles.keyboardAvoidingView}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
+      <View style={styles.keyboardAvoidingView}>
         <View style={styles.topArea}>
           <CircleIconButton
             icon="arrow-back"
@@ -152,107 +142,112 @@ export default function EditProfileScreen() {
         </View>
 
         <View style={styles.formCard}>
-          <View style={styles.formContent}>
-            <Text style={styles.title}>Informações pessoais</Text>
+          <AppKeyboardAwareScrollView
+            style={styles.formScroll}
+            contentContainerStyle={styles.formScrollContent}
+          >
+            <View style={styles.formContent}>
+              <Text style={styles.title}>Informações pessoais</Text>
 
-            <View style={styles.fields}>
-              <Controller
-                control={control}
-                name="name"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <AppTextField
-                    label="Nome"
-                    value={value}
-                    onBlur={onBlur}
-                    onChangeText={onChange}
-                    errorMessage={errors.name?.message}
-                    autoCapitalize="words"
-                    returnKeyType="next"
-                    editable={!isFetchingUser}
-                  />
-                )}
-              />
-
-              {isDriver && (
+              <View style={styles.fields}>
                 <Controller
                   control={control}
-                  name="cpf"
+                  name="name"
                   render={({ field: { onChange, onBlur, value } }) => (
                     <AppTextField
-                      label="CPF"
-                      value={value ?? ''}
+                      label="Nome"
+                      value={value}
                       onBlur={onBlur}
-                      onChangeText={(text) => onChange(formatCpf(text))}
-                      errorMessage={errors.cpf?.message}
-                      keyboardType="numeric"
-                      maxLength={14}
+                      onChangeText={onChange}
+                      errorMessage={errors.name?.message}
+                      autoCapitalize="words"
+                      returnKeyType="next"
                       editable={!isFetchingUser}
                     />
                   )}
                 />
-              )}
 
-              <Controller
-                control={control}
-                name="phone"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <AppTextField
-                    label="Telefone"
-                    value={value}
-                    onBlur={onBlur}
-                    onChangeText={(text) => onChange(formatPhone(text))}
-                    errorMessage={errors.phone?.message}
-                    keyboardType="phone-pad"
-                    maxLength={17}
-                    editable={!isFetchingUser}
+                {isDriver && (
+                  <Controller
+                    control={control}
+                    name="cpf"
+                    render={({ field: { onChange, onBlur, value } }) => (
+                      <AppTextField
+                        label="CPF"
+                        value={value ?? ''}
+                        onBlur={onBlur}
+                        onChangeText={(text) => onChange(formatCpf(text))}
+                        errorMessage={errors.cpf?.message}
+                        keyboardType="numeric"
+                        maxLength={14}
+                        editable={!isFetchingUser}
+                      />
+                    )}
                   />
                 )}
-              />
 
-              <Controller
-                control={control}
-                name="password"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <AppTextField
-                    label="Nova senha"
-                    placeholder="Mínimo 6 caracteres"
-                    value={value}
-                    onBlur={onBlur}
-                    onChangeText={onChange}
-                    errorMessage={errors.password?.message}
-                    secureTextEntry
-                    autoComplete="password"
-                    editable={!isFetchingUser}
-                  />
-                )}
-              />
+                <Controller
+                  control={control}
+                  name="phone"
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <AppTextField
+                      label="Telefone"
+                      value={value}
+                      onBlur={onBlur}
+                      onChangeText={(text) => onChange(formatPhone(text))}
+                      errorMessage={errors.phone?.message}
+                      keyboardType="phone-pad"
+                      maxLength={17}
+                      editable={!isFetchingUser}
+                    />
+                  )}
+                />
+
+                <Controller
+                  control={control}
+                  name="password"
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <AppTextField
+                      label="Nova senha"
+                      placeholder="Mínimo 6 caracteres"
+                      value={value}
+                      onBlur={onBlur}
+                      onChangeText={onChange}
+                      errorMessage={errors.password?.message}
+                      secureTextEntry
+                      autoComplete="password"
+                      editable={!isFetchingUser}
+                    />
+                  )}
+                />
+              </View>
             </View>
-          </View>
+
+            {(isDirty || !!pendingPhotoUri) && (
+              <View style={styles.actions}>
+                <PrimaryButton
+                  label="Salvar mudanças"
+                  onPress={handleSubmit(onSubmit)}
+                  disabled={isSubmitting || isFetchingUser}
+                  icon={<MaterialIcons name="check" size={18} color={colors.light} />}
+                  labelColor={colors.light}
+                  style={styles.saveButton}
+                />
+
+                <Pressable
+                  onPress={handleCancel}
+                  accessibilityRole="button"
+                  accessibilityLabel="cancelar alterações"
+                  disabled={isSubmitting}
+                  style={({ pressed }) => pressed && styles.cancelPressed}
+                >
+                  <Text style={styles.cancelText}>Cancelar</Text>
+                </Pressable>
+              </View>
+            )}
+          </AppKeyboardAwareScrollView>
         </View>
-
-        {(isDirty || !!pendingPhotoUri) && (
-          <View style={styles.actions}>
-            <PrimaryButton
-              label="Salvar mudanças"
-              onPress={handleSubmit(onSubmit)}
-              disabled={isSubmitting || isFetchingUser}
-              icon={<MaterialIcons name="check" size={18} color={colors.light} />}
-              labelColor={colors.light}
-              style={styles.saveButton}
-            />
-
-            <Pressable
-              onPress={handleCancel}
-              accessibilityRole="button"
-              accessibilityLabel="cancelar alterações"
-              disabled={isSubmitting}
-              style={({ pressed }) => pressed && styles.cancelPressed}
-            >
-              <Text style={styles.cancelText}>Cancelar</Text>
-            </Pressable>
-          </View>
-        )}
-      </KeyboardAvoidingView>
+      </View>
     </AppScreenContainer>
   );
 }
@@ -298,6 +293,13 @@ const styles = StyleSheet.create({
     marginTop: -70,
     paddingHorizontal: 24,
     paddingTop: 56,
+  },
+  formScroll: {
+    flex: 1,
+  },
+  formScrollContent: {
+    flexGrow: 1,
+    justifyContent: 'space-between',
   },
   formContent: {
     width: '100%',
