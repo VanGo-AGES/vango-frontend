@@ -17,6 +17,10 @@ export async function loginUser(data: LoginRequest): Promise<LoginResponse> {
   return apiPost<LoginRequest, LoginResponse>('/auth/login', data);
 }
 
+export async function logoutUser(): Promise<void> {
+  return apiPost<Record<string, never>, void>('/auth/logout', {});
+}
+
 export async function getUser(id: string): Promise<UserResponse> {
   return apiGet<UserResponse>(`/users/${id}`);
 }

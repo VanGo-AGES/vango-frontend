@@ -1,14 +1,20 @@
 import { useRouter } from 'expo-router';
 import { useSessionStore } from '@/store/session.store';
+import { logoutUser } from '@/services/user.service';
 
 export function useAccountActions() {
   const router = useRouter();
   const clearSession = useSessionStore((state) => state.clearSession);
 
   const handleLogout = async () => {
-    clearSession();
-    router.dismissAll();
-    router.replace('/onboarding');
+    try {
+      await logoutUser();
+    } catch (error) {
+    } finally {
+      clearSession();
+      router.dismissAll();
+      router.replace('/onboarding');
+    }
   };
 
   const handleDeleteAccount = async () => {
