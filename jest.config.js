@@ -10,7 +10,10 @@ module.exports = {
       '@react-native|' +
       'expo|' +
       'expo-modules-core|' +
+      'expo-asset|' +
       '@expo|' +
+      '@expo-google-fonts|' +
+      '@expo-google-fonts/work-sans|' +
       'expo-router|' +
       'expo-location|' +
       'expo-task-manager|' +
