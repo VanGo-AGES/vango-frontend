@@ -3,15 +3,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import {
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+
+import { AppKeyboardAwareScrollView } from '@/components/general/app-keyboard-aware-scroll-view';
 import { z } from 'zod';
 
 import ForgotPasswordIllustration from '@/assets/images/forgot-password.svg';
@@ -105,9 +99,9 @@ export default function ForgotPasswordScreen() {
 
   return (
     <AppScreenContainer edges={['top', 'right', 'bottom', 'left']} style={styles.container}>
-      <KeyboardAvoidingView
+      <AppKeyboardAwareScrollView
         style={styles.keyboardContainer}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        contentContainerStyle={styles.keyboardContent}
       >
         <Pressable
           onPress={handleBackPress}
@@ -172,7 +166,7 @@ export default function ForgotPasswordScreen() {
             </Pressable>
           </View>
         </View>
-      </KeyboardAvoidingView>
+      </AppKeyboardAwareScrollView>
 
       <Modal
         visible={successVisible}
@@ -216,6 +210,10 @@ const styles = StyleSheet.create({
   },
   keyboardContainer: {
     flex: 1,
+  },
+  keyboardContent: {
+    flexGrow: 1,
+    justifyContent: 'space-between',
   },
   backButton: {
     width: 40,
