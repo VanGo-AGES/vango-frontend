@@ -63,6 +63,24 @@ module.exports = {
       },
       transformIgnorePatterns: [TRANSFORM_IGNORE_RN],
     },
+
+    // ── UI / screen integration tests (jest-expo + RNTL) ──
+    {
+      displayName: 'ui',
+      preset: 'jest-expo',
+      testMatch: ['<rootDir>/tests/**/*.test.{ts,tsx}'],
+      moduleNameMapper: {
+        '^@/(.*)$': '<rootDir>/$1',
+        '\\.svg$': '<rootDir>/__mocks__/svg-mock.js',
+      },
+      transformIgnorePatterns: [
+        TRANSFORM_IGNORE_RN.replace(
+          'socket.io-client',
+          'socket.io-client|' + 'expo-modules-core|' + 'expo-asset|' + '@expo-google-fonts',
+        ),
+      ],
+      setupFilesAfterEnv: ['<rootDir>/jest.setup.tsx'],
+    },
   ],
 
   collectCoverageFrom: [
