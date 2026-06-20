@@ -14,7 +14,7 @@ import { useAccountActions } from '@/hooks/use-account-actions';
 export default function ProfilePassengerScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { handleLogout, handleDeleteAccount, isLoggingOut } = useAccountActions();
+  const { handleLogout, handleDeleteAccount, isLoggingOut, isDeleting } = useAccountActions();
 
   return (
     <AppScreenContainer
@@ -55,6 +55,7 @@ export default function ProfilePassengerScreen() {
           <PrimaryButton
             label="Excluir Conta"
             onPress={handleDeleteAccount}
+            disabled={isDeleting}
             variant="warning"
             labelColor={colors.white}
             icon={<MaterialIcons name="delete-outline" size={20} color={colors.white} />}

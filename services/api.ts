@@ -88,20 +88,25 @@ export async function apiPut<TBody, TResponse>(
 
 export async function apiDelete<TResponse>(
   path: string,
-  body?: any,
   headers?: Record<string, string>,
 ): Promise<TResponse> {
-  const requestHeaders: Record<string, string> = {
-    ...authHeaders(),
-    ...headers,
-  };
-  if (body && !requestHeaders['Content-Type']) {
-    requestHeaders['Content-Type'] = 'application/json';
-  }
   const response = await fetch(`${BASE_URL}${path}`, {
     method: 'DELETE',
-    headers: requestHeaders,
-    body: body ? JSON.stringify(body) : undefined,
+    headers: { ...authHeaders(), ...headers },
+  });
+
+  return handleResponse<TResponse>(response);
+}
+
+export async function apiDeleteWithBody<TBody, TResponse>(
+  path: string,
+  body: TBody,
+  headers?: Record<string, string>,
+): Promise<TResponse> {
+  const response = await fetch(`${BASE_URL}${path}`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json', ...authHeaders(), ...headers },
+    body: JSON.stringify(body),
   });
 
   return handleResponse<TResponse>(response);
