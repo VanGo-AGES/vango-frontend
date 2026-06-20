@@ -1,43 +1,74 @@
+const TRANSFORM_IGNORE_RN =
+  'node_modules/(?!(' +
+  'react-native|' +
+  '@react-native|' +
+  'expo|' +
+  'expo-modules-core|' +
+  'expo-asset|' +
+  '@expo|' +
+  '@expo-google-fonts|' +
+  '@expo-google-fonts/work-sans|' +
+  'expo-router|' +
+  'expo-location|' +
+  'expo-task-manager|' +
+  'expo-notifications|' +
+  'expo-constants|' +
+  'expo-font|' +
+  'expo-splash-screen|' +
+  'expo-status-bar|' +
+  'expo-system-ui|' +
+  'expo-haptics|' +
+  'expo-image|' +
+  'expo-linking|' +
+  'react-native-paper|' +
+  'react-native-safe-area-context|' +
+  'react-native-screens|' +
+  'react-native-gesture-handler|' +
+  'react-native-reanimated|' +
+  '@react-navigation|' +
+  '@tanstack/react-query|' +
+  'zustand|' +
+  'socket.io-client' +
+  ')/)';
+
 module.exports = {
-  preset: 'jest-expo',
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.tsx'],
-  moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/$1',
-  },
-  transformIgnorePatterns: [
-    'node_modules/(?!(' +
-      'react-native|' +
-      '@react-native|' +
-      'expo|' +
-      'expo-modules-core|' +
-      'expo-asset|' +
-      '@expo|' +
-      '@expo-google-fonts|' +
-      '@expo-google-fonts/work-sans|' +
-      'expo-router|' +
-      'expo-location|' +
-      'expo-task-manager|' +
-      'expo-notifications|' +
-      'expo-constants|' +
-      'expo-font|' +
-      'expo-splash-screen|' +
-      'expo-status-bar|' +
-      'expo-system-ui|' +
-      'expo-haptics|' +
-      'expo-image|' +
-      'expo-linking|' +
-      'react-native-paper|' +
-      'react-native-safe-area-context|' +
-      'react-native-screens|' +
-      'react-native-gesture-handler|' +
-      'react-native-reanimated|' +
-      '@react-navigation|' +
-      '@tanstack/react-query|' +
-      'zustand|' +
-      'socket.io-client' +
-      ')/)',
+  projects: [
+    // ── Service integration tests (pure Node, fetch mocked via setup) ──
+    {
+      displayName: 'services',
+      testEnvironment: 'node',
+      testMatch: ['<rootDir>/__tests__/services/**/*.test.ts'],
+      transform: {
+        '^.+\\.[jt]sx?$': ['babel-jest', { presets: ['babel-preset-expo'] }],
+      },
+      transformIgnorePatterns: [
+        'node_modules/(?!(zustand|@react-native-async-storage|expo|@expo))',
+      ],
+      moduleNameMapper: {
+        '^@/(.*)$': '<rootDir>/$1',
+      },
+      setupFilesAfterEnv: [
+        '<rootDir>/__tests__/setup/async-storage-mock.ts',
+        '<rootDir>/__tests__/setup/msw-server.ts',
+      ],
+    },
+
+    // ── UI / screen tests (jest-expo + RNTL) ──
+    {
+      displayName: 'ui',
+      preset: 'jest-expo',
+      testMatch: ['<rootDir>/tests/**/*.test.{ts,tsx}'],
+      moduleNameMapper: {
+        '^@/(.*)$': '<rootDir>/$1',
+        '\\.svg$': '<rootDir>/__mocks__/svg-mock.js',
+      },
+      transformIgnorePatterns: [TRANSFORM_IGNORE_RN],
+      setupFilesAfterEnv: ['<rootDir>/jest.setup.tsx'],
+    },
   ],
+
   collectCoverageFrom: [
+    'services/**/*.{ts,tsx}',
     'app/**/*.{ts,tsx}',
     'components/**/*.{ts,tsx}',
     'hooks/**/*.{ts,tsx}',
