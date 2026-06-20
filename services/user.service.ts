@@ -1,4 +1,4 @@
-import { apiGet, apiPost, apiPut, apiUpload } from './api';
+import { apiGet, apiPost, apiPut, apiUpload, apiDeleteWithBody } from './api';
 import type {
   CreateUserRequest,
   CreateUserResponse,
@@ -38,4 +38,8 @@ export async function uploadPhoto(uri: string): Promise<string> {
 
   const data = await apiUpload<{ url: string }>('/uploads/photo', formData);
   return data.url;
+}
+
+export async function deleteMyAccount(): Promise<void> {
+  await apiDeleteWithBody<{ confirm: true }, void>('/users/me', { confirm: true });
 }

@@ -88,11 +88,20 @@ export async function apiPut<TBody, TResponse>(
 
 export async function apiDelete<TResponse>(
   path: string,
+  body?: any,
   headers?: Record<string, string>,
 ): Promise<TResponse> {
+  const requestHeaders: Record<string, string> = {
+    ...authHeaders(),
+    ...headers,
+  };
+  if (body && !requestHeaders['Content-Type']) {
+    requestHeaders['Content-Type'] = 'application/json';
+  }
   const response = await fetch(`${BASE_URL}${path}`, {
     method: 'DELETE',
-    headers: { ...authHeaders(), ...headers },
+    headers: requestHeaders,
+    body: body ? JSON.stringify(body) : undefined,
   });
 
   return handleResponse<TResponse>(response);
