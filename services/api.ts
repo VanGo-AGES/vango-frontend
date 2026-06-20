@@ -98,6 +98,20 @@ export async function apiDelete<TResponse>(
   return handleResponse<TResponse>(response);
 }
 
+export async function apiDeleteWithBody<TBody, TResponse>(
+  path: string,
+  body: TBody,
+  headers?: Record<string, string>,
+): Promise<TResponse> {
+  const response = await fetch(`${BASE_URL}${path}`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json', ...authHeaders(), ...headers },
+    body: JSON.stringify(body),
+  });
+
+  return handleResponse<TResponse>(response);
+}
+
 export async function apiUpload<TResponse>(path: string, formData: FormData): Promise<TResponse> {
   const response = await fetch(`${BASE_URL}${path}`, {
     method: 'POST',
