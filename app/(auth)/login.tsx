@@ -8,6 +8,7 @@ import { TextInput } from 'react-native-paper';
 import { z } from 'zod';
 
 import AppDialog from '@/components/general/app-dialog';
+import { AppKeyboardAwareScrollView } from '@/components/general/app-keyboard-aware-scroll-view';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
 import { AppTextField } from '@/components/general/app-text-field';
 import { PrimaryButton } from '@/components/general/primary-button';
@@ -205,113 +206,118 @@ export default function LoginScreen() {
       </View>
 
       <View style={styles.contentCard}>
-        <View style={styles.formContent}>
-          <Text style={styles.sectionTitle}>Faça seu login:</Text>
+        <AppKeyboardAwareScrollView
+          style={styles.cardScroll}
+          contentContainerStyle={styles.cardScrollContent}
+        >
+          <View style={styles.formContent}>
+            <Text style={styles.sectionTitle}>Faça seu login:</Text>
 
-          <Controller
-            control={control}
-            name="email"
-            render={({ field: { onChange, value } }) => {
-              const handleEmailChange = (text: string) => {
-                if (errors.email) {
-                  clearErrors('email');
-                }
-
-                onChange(text);
-              };
-
-              return (
-                <AppTextField
-                  label="E-mail"
-                  placeholder="nome@gmail.com"
-                  value={value}
-                  onChangeText={handleEmailChange}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  errorMessage={errors.email?.message}
-                  placeholderTextColor={colors.subtleText}
-                  outlineColor={errors.email ? colors.destructive : colors.dark}
-                  activeOutlineColor={errors.email ? colors.destructive : colors.dark}
-                  right={
-                    errors.email ? (
-                      <TextInput.Icon icon="alert-circle" color={colors.destructive} />
-                    ) : undefined
+            <Controller
+              control={control}
+              name="email"
+              render={({ field: { onChange, value } }) => {
+                const handleEmailChange = (text: string) => {
+                  if (errors.email) {
+                    clearErrors('email');
                   }
-                />
-              );
-            }}
-          />
 
-          <Controller
-            control={control}
-            name="password"
-            render={({ field: { onChange, value } }) => {
-              const handlePasswordChange = (text: string) => {
-                if (errors.password) {
-                  clearErrors('password');
-                }
+                  onChange(text);
+                };
 
-                onChange(text);
-              };
+                return (
+                  <AppTextField
+                    label="E-mail"
+                    placeholder="nome@gmail.com"
+                    value={value}
+                    onChangeText={handleEmailChange}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    errorMessage={errors.email?.message}
+                    placeholderTextColor={colors.subtleText}
+                    outlineColor={errors.email ? colors.destructive : colors.dark}
+                    activeOutlineColor={errors.email ? colors.destructive : colors.dark}
+                    right={
+                      errors.email ? (
+                        <TextInput.Icon icon="alert-circle" color={colors.destructive} />
+                      ) : undefined
+                    }
+                  />
+                );
+              }}
+            />
 
-              return (
-                <AppTextField
-                  label="Senha"
-                  placeholder="••••••••"
-                  value={value}
-                  onChangeText={handlePasswordChange}
-                  secureTextEntry
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  errorMessage={hasPasswordError ? undefined : errors.password?.message}
-                  placeholderTextColor={colors.subtleText}
-                  outlineColor={hasPasswordError ? colors.destructive : colors.dark}
-                  activeOutlineColor={hasPasswordError ? colors.destructive : colors.dark}
-                  right={
-                    hasPasswordError ? (
-                      <TextInput.Icon icon="alert-circle" color={colors.destructive} />
-                    ) : undefined
+            <Controller
+              control={control}
+              name="password"
+              render={({ field: { onChange, value } }) => {
+                const handlePasswordChange = (text: string) => {
+                  if (errors.password) {
+                    clearErrors('password');
                   }
-                />
-              );
-            }}
-          />
 
-          {hasPasswordError ? (
-            <View style={styles.passwordErrorRow}>
-              <Text style={styles.passwordErrorText}>{errors.password?.message}</Text>
-              <Pressable
-                onPress={handleForgotPasswordPress}
-                style={styles.forgotPasswordInlineButton}
-              >
-                <Text style={styles.forgotPasswordInlineText}>Esqueci minha senha</Text>
+                  onChange(text);
+                };
+
+                return (
+                  <AppTextField
+                    label="Senha"
+                    placeholder="••••••••"
+                    value={value}
+                    onChangeText={handlePasswordChange}
+                    secureTextEntry
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    errorMessage={hasPasswordError ? undefined : errors.password?.message}
+                    placeholderTextColor={colors.subtleText}
+                    outlineColor={hasPasswordError ? colors.destructive : colors.dark}
+                    activeOutlineColor={hasPasswordError ? colors.destructive : colors.dark}
+                    right={
+                      hasPasswordError ? (
+                        <TextInput.Icon icon="alert-circle" color={colors.destructive} />
+                      ) : undefined
+                    }
+                  />
+                );
+              }}
+            />
+
+            {hasPasswordError ? (
+              <View style={styles.passwordErrorRow}>
+                <Text style={styles.passwordErrorText}>{errors.password?.message}</Text>
+                <Pressable
+                  onPress={handleForgotPasswordPress}
+                  style={styles.forgotPasswordInlineButton}
+                >
+                  <Text style={styles.forgotPasswordInlineText}>Esqueci minha senha</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <Pressable onPress={handleForgotPasswordPress} style={styles.forgotPasswordButton}>
+                <Text style={styles.forgotPasswordText}>Esqueci minha senha</Text>
+              </Pressable>
+            )}
+          </View>
+
+          <View style={styles.footer}>
+            <PrimaryButton
+              label="Login"
+              onPress={handleSubmit(onSubmit, onInvalid)}
+              disabled={isPending}
+              icon={<MaterialIcons name="arrow-forward" size={18} color={colors.light} />}
+              labelColor={colors.light}
+              style={styles.loginButton}
+            />
+
+            <View style={styles.signUpRow}>
+              <Text style={styles.signUpText}>Não tem uma conta? </Text>
+              <Pressable onPress={handleSignUpPress}>
+                <Text style={styles.signUpLink}>Cadastre-se</Text>
               </Pressable>
             </View>
-          ) : (
-            <Pressable onPress={handleForgotPasswordPress} style={styles.forgotPasswordButton}>
-              <Text style={styles.forgotPasswordText}>Esqueci minha senha</Text>
-            </Pressable>
-          )}
-        </View>
-
-        <View style={styles.footer}>
-          <PrimaryButton
-            label="Login"
-            onPress={handleSubmit(onSubmit, onInvalid)}
-            disabled={isPending}
-            icon={<MaterialIcons name="arrow-forward" size={18} color={colors.light} />}
-            labelColor={colors.light}
-            style={styles.loginButton}
-          />
-
-          <View style={styles.signUpRow}>
-            <Text style={styles.signUpText}>Não tem uma conta? </Text>
-            <Pressable onPress={handleSignUpPress}>
-              <Text style={styles.signUpLink}>Cadastre-se</Text>
-            </Pressable>
           </View>
-        </View>
+        </AppKeyboardAwareScrollView>
       </View>
 
       <AppDialog
@@ -357,6 +363,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 64,
     paddingTop: 24,
     paddingBottom: 64,
+  },
+  cardScroll: {
+    flex: 1,
+  },
+  cardScrollContent: {
+    flexGrow: 1,
     justifyContent: 'space-between',
   },
   formContent: {

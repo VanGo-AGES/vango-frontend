@@ -1,15 +1,9 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import {
-  Keyboard,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableWithoutFeedback,
-  View,
-} from 'react-native';
+import { Keyboard, StyleSheet, Text, TouchableWithoutFeedback, View } from 'react-native';
 import AppDialog from '@/components/general/app-dialog';
+import { AppKeyboardAwareScrollView } from '@/components/general/app-keyboard-aware-scroll-view';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
 import { AppTextField } from '@/components/general/app-text-field';
 import { EmptyState } from '@/components/general/empty-state';
@@ -321,11 +315,7 @@ export default function EditRouteScreen() {
         />
 
         <View style={styles.card}>
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            contentContainerStyle={styles.scrollContent}
-          >
+          <AppKeyboardAwareScrollView contentContainerStyle={styles.scrollContent}>
             <Text style={styles.sectionTitle}>Informações</Text>
 
             <AppTextField
@@ -386,7 +376,7 @@ export default function EditRouteScreen() {
             )}
 
             <View style={styles.bottomPadding} />
-          </ScrollView>
+          </AppKeyboardAwareScrollView>
 
           <View style={styles.footer}>
             <PrimaryButton
