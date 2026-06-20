@@ -1,14 +1,26 @@
+import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useSessionStore } from '@/store/session.store';
+import { logoutUser } from '@/services/user.service';
 
 export function useAccountActions() {
   const router = useRouter();
   const clearSession = useSessionStore((state) => state.clearSession);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {
-    clearSession();
-    router.dismissAll();
-    router.replace('/onboarding');
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    try {
+      await logoutUser();
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.warn('[logout] failed to revoke token on server:', error);
+    } finally {
+      clearSession();
+      router.dismissAll();
+      router.replace('/onboarding');
+    }
   };
 
   const handleDeleteAccount = async () => {
@@ -21,5 +33,6 @@ export function useAccountActions() {
   return {
     handleLogout,
     handleDeleteAccount,
+    isLoggingOut,
   };
 }
