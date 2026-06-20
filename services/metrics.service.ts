@@ -6,14 +6,7 @@ export async function getTripReport(
   startDate: string,
   endDate?: string,
 ): Promise<MetricsReportResponse> {
-  const params = new URLSearchParams({
-    period,
-    start_date: startDate,
-  });
+  const query = `period=${encodeURIComponent(period)}&start_date=${encodeURIComponent(startDate)}${endDate ? `&end_date=${encodeURIComponent(endDate)}` : ''}`;
 
-  if (endDate) {
-    params.append('end_date', endDate);
-  }
-
-  return apiGet<MetricsReportResponse>(`/metrics/reports?${params.toString()}`);
+  return apiGet<MetricsReportResponse>(`/metrics/reports?${query}`);
 }
