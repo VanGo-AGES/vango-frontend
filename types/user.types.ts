@@ -29,3 +29,7 @@ export type LoginResponse = {
   refresh_token: string | null;
   user: UserResponse;
 };
+
+export type ForgotPasswordRequest = components['schemas']['ForgotPasswordRequest'];
+
+export type ResetPasswordRequest = components['schemas']['ResetPasswordConfirm'];

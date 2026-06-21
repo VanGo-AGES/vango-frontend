@@ -62,6 +62,10 @@ function RootLayout() {
                       name="(auth)/forgot-password-screen"
                       options={{ headerShown: false }}
                     />
+                    <Stack.Screen
+                      name="(auth)/reset-password-screen"
+                      options={{ headerShown: false }}
+                    />
                     <Stack.Screen name="(auth)/register-success" options={{ headerShown: false }} />
 
                     {/* shared */}

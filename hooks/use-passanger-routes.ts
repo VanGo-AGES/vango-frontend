@@ -7,10 +7,11 @@ export const PASSANGER_ROUTES_QUERY_KEY = ['passanger-routes'];
 
 export function usePassangerRoutes() {
   const sessionUser = useSessionStore((state) => state.user);
+  const accessToken = useSessionStore((state) => state.accessToken);
 
   return useQuery({
     queryKey: PASSANGER_ROUTES_QUERY_KEY,
     queryFn: listPassangerRoutes,
-    enabled: !!sessionUser?.id,
+    enabled: !!sessionUser?.id && !!accessToken,
   });
 }

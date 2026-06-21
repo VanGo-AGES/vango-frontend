@@ -35,13 +35,16 @@ function formatTime(value: string): string {
 export default function PassengerHomeScreen() {
   const router = useRouter();
   const sessionUser = useSessionStore((s) => s.user);
+  const accessToken = useSessionStore((s) => s.accessToken);
   const localPhotoUri = useSessionStore((s) => s.localPhotoUri);
   const { data: routesData = [], isLoading, isError, refetch } = usePassangerRoutes();
 
   useFocusEffect(
     useCallback(() => {
-      refetch();
-    }, [refetch]),
+      if (accessToken) {
+        refetch();
+      }
+    }, [refetch, accessToken]),
   );
 
   const nextRoute = getNextPassangerRoute(routesData);

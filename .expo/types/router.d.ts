@@ -30,6 +30,10 @@ declare module 'expo-router' {
             pathname: `${'/(auth)'}/register-success` | `/register-success`;
             params?: Router.UnknownInputParams;
           }
+        | {
+            pathname: `${'/(auth)'}/reset-password-screen` | `/reset-password-screen`;
+            params?: Router.UnknownInputParams;
+          }
         | { pathname: `${'/(auth)'}/splash` | `/splash`; params?: Router.UnknownInputParams }
         | {
             pathname: `${'/(driver)'}/driver-home` | `/driver-home`;
@@ -205,6 +209,10 @@ declare module 'expo-router' {
             pathname: `${'/(auth)'}/register-success` | `/register-success`;
             params?: Router.UnknownOutputParams;
           }
+        | {
+            pathname: `${'/(auth)'}/reset-password-screen` | `/reset-password-screen`;
+            params?: Router.UnknownOutputParams;
+          }
         | { pathname: `${'/(auth)'}/splash` | `/splash`; params?: Router.UnknownOutputParams }
         | {
             pathname: `${'/(driver)'}/driver-home` | `/driver-home`;
@@ -373,6 +381,8 @@ declare module 'expo-router' {
         | `/onboarding${`?${string}` | `#${string}` | ''}`
         | `${'/(auth)'}/register-success${`?${string}` | `#${string}` | ''}`
         | `/register-success${`?${string}` | `#${string}` | ''}`
+        | `${'/(auth)'}/reset-password-screen${`?${string}` | `#${string}` | ''}`
+        | `/reset-password-screen${`?${string}` | `#${string}` | ''}`
         | `${'/(auth)'}/splash${`?${string}` | `#${string}` | ''}`
         | `/splash${`?${string}` | `#${string}` | ''}`
         | `${'/(driver)'}/driver-home${`?${string}` | `#${string}` | ''}`
@@ -458,6 +468,10 @@ declare module 'expo-router' {
           }
         | {
             pathname: `${'/(auth)'}/register-success` | `/register-success`;
+            params?: Router.UnknownInputParams;
+          }
+        | {
+            pathname: `${'/(auth)'}/reset-password-screen` | `/reset-password-screen`;
             params?: Router.UnknownInputParams;
           }
         | { pathname: `${'/(auth)'}/splash` | `/splash`; params?: Router.UnknownInputParams }
