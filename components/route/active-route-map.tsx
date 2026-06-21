@@ -4,6 +4,7 @@ import MapView, { Marker, Polyline, PROVIDER_GOOGLE, type Region } from 'react-n
 import Animated, { type AnimatedStyle } from 'react-native-reanimated';
 
 import CurrentLocationPin from '@/assets/images/localizacao-atual.svg';
+import FinalDestinationPin from '@/assets/images/destino-final.svg';
 import NextStopPin from '@/assets/images/proxima-parada.svg';
 import RecenterMapButtonIcon from '@/assets/images/recenter-map-button.svg';
 import { colors, withAlpha } from '@/styles/colors';
@@ -16,6 +17,10 @@ export type ActiveRouteMapProps = {
     longitude: number;
   } | null;
   nextStopLocation?: {
+    latitude: number;
+    longitude: number;
+  } | null;
+  finalDestinationLocation?: {
     latitude: number;
     longitude: number;
   } | null;
@@ -115,6 +120,7 @@ async function fetchRealRoutePoints(
 export function ActiveRouteMap({
   currentLocation,
   nextStopLocation,
+  finalDestinationLocation,
   nextStopLabel = 'Minha parada',
   onRecenterPress,
   containerStyle,
@@ -128,9 +134,12 @@ export function ActiveRouteMap({
     { latitude: number; longitude: number }[]
   >([]);
 
+  // When no nextStop, draw route to final destination
+  const routeTarget = nextStopLocation ?? finalDestinationLocation ?? null;
+
   const initialRegion = useMemo(
-    () => buildInitialRegion(currentLocation, nextStopLocation),
-    [currentLocation, nextStopLocation],
+    () => buildInitialRegion(currentLocation, routeTarget),
+    [currentLocation, routeTarget],
   );
 
   useEffect(() => {
@@ -139,12 +148,12 @@ export function ActiveRouteMap({
     const requestId = requestIdRef.current;
 
     const syncRoute = async () => {
-      if (!currentLocation || !nextStopLocation) {
+      if (!currentLocation || !routeTarget) {
         setRouteCoordinates([]);
         return;
       }
 
-      const points = await fetchRealRoutePoints(currentLocation, nextStopLocation);
+      const points = await fetchRealRoutePoints(currentLocation, routeTarget);
 
       if (isActive && requestId === requestIdRef.current) {
         setRouteCoordinates(points);
@@ -167,7 +176,7 @@ export function ActiveRouteMap({
       isActive = false;
       clearInterval(intervalId);
     };
-  }, [currentLocation, nextStopLocation, liveRefreshIntervalMs]);
+  }, [currentLocation, routeTarget, liveRefreshIntervalMs]);
 
   useEffect(() => {
     if (!followCurrentLocation || !currentLocation) {
@@ -186,7 +195,7 @@ export function ActiveRouteMap({
   }, [currentLocation, followCurrentLocation, initialRegion]);
 
   const handleRecenterPress = () => {
-    const center = currentLocation ?? nextStopLocation;
+    const center = currentLocation ?? routeTarget;
     if (!center) {
       onRecenterPress?.();
       return;
@@ -232,6 +241,17 @@ export function ActiveRouteMap({
           </Marker>
         )}
 
+        {/* Destino final: sempre visível, mas a polyline só aparece quando não há próxima parada */}
+        {finalDestinationLocation && (
+          <Marker
+            coordinate={finalDestinationLocation}
+            title="Destino final"
+            anchor={MARKER_ANCHOR}
+          >
+            <FinalDestinationPin width={32.04} height={50} />
+          </Marker>
+        )}
+
         {currentLocation && routeCoordinates.length > 0 && (
           <>
             <Polyline
@@ -244,7 +264,7 @@ export function ActiveRouteMap({
 
             <Polyline
               coordinates={routeCoordinates}
-              strokeColor={colors.secondary}
+              strokeColor={!nextStopLocation ? colors.success : colors.secondary}
               strokeWidth={3}
               lineCap="round"
               lineJoin="round"

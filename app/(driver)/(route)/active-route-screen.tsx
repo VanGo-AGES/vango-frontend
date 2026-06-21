@@ -242,6 +242,11 @@ export default function DriverActiveRouteScreen() {
                 ? { latitude: nextStop.latitude, longitude: nextStop.longitude }
                 : undefined
             }
+            finalDestinationLocation={
+              trip?.destination_latitude != null && trip?.destination_longitude != null
+                ? { latitude: trip.destination_latitude, longitude: trip.destination_longitude }
+                : undefined
+            }
             nextStopLabel="Próxima parada"
             onRecenterPress={() => {}}
             containerStyle={styles.map}
