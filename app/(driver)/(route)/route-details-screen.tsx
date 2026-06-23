@@ -459,7 +459,22 @@ export default function RouteDetailsScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.stopsSection}>
-          <Text style={[styles.sectionTitle, styles.sectionHPadding]}>Próxima partida</Text>
+          <View style={[styles.sectionHeaderRow, styles.sectionHPadding]}>
+            <Text style={styles.sectionTitle}>Próxima partida</Text>
+            <TouchableOpacity
+              onPress={() =>
+                router.push({
+                  pathname: '/(driver)/(route)/route-preview-map-screen' as never,
+                  params: { routeId },
+                })
+              }
+              style={styles.mapLinkButton}
+              activeOpacity={0.7}
+            >
+              <MaterialIcons name="map" size={16} color={colors.secondary} />
+              <Text style={styles.mapLinkText}>Ver no mapa</Text>
+            </TouchableOpacity>
+          </View>
           <RouteStopList
             stops={stopsForView}
             onDeleteStopPress={isInProgress ? undefined : handleDeleteStopPress}
@@ -580,6 +595,20 @@ const styles = StyleSheet.create({
   stopsSection: {
     paddingTop: 24,
     gap: 12,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  mapLinkButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  mapLinkText: {
+    ...typography.small,
+    color: colors.secondary,
   },
   sectionHPadding: {
     paddingHorizontal: 16,

@@ -11,12 +11,13 @@ import { colors } from '@/styles/colors';
 export default function SplashScreen() {
   const router = useRouter();
   const user = useSessionStore((s) => s.user);
+  const accessToken = useSessionStore((s) => s.accessToken);
   const hasHydrated = useSessionStore((s) => s.hasHydrated);
   useEffect(() => {
     if (!hasHydrated) return;
 
     const timer = setTimeout(() => {
-      if (user) {
+      if (user && accessToken) {
         const destination = user.role === 'driver' ? '/driver-home' : '/passenger-home-screen';
         router.replace(destination as never);
       } else {

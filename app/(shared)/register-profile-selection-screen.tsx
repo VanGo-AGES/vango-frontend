@@ -25,8 +25,7 @@ export default function RegisterProfileSelectionScreen() {
   };
 
   const handleLoginPress = () => {
-    // TODO: substituir por /login quando o fluxo de login for implementado
-    router.push('/register-profile-selection-screen');
+    router.push('/login');
   };
 
   return (

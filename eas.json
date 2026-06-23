@@ -20,7 +20,9 @@
     "production": {
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_API_ENV": "production"
+        "EXPO_PUBLIC_API_ENV": "production",
+        "SENTRY_AUTH_TOKEN": "$SENTRY_AUTH_TOKEN",
+        "SENTRY_ALLOW_FAILURE": "true"
       }
     },
     "tunnel": {

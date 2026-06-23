@@ -4,42 +4,52 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
-
-import { AppKeyboardAwareScrollView } from '@/components/general/app-keyboard-aware-scroll-view';
 import { z } from 'zod';
 
-import ForgotPasswordIllustration from '@/assets/images/forgot-password.svg';
+import { AppKeyboardAwareScrollView } from '@/components/general/app-keyboard-aware-scroll-view';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
 import { AppTextField } from '@/components/general/app-text-field';
 import { PrimaryButton } from '@/components/general/primary-button';
-import { useForgotPassword } from '@/hooks/use-forgot-password';
+import { useResetPassword } from '@/hooks/use-reset-password';
 import { colors, withAlpha } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 
-enum ForgotPasswordErrorMessage {
-  EMAIL_EMPTY = 'E-mail não pode ser vazio',
-  EMAIL_INVALID = 'E-mail incorreto',
-  GENERIC = 'Não foi possível enviar o e-mail. Tente novamente.',
+import ForgotPasswordIllustration from '@/assets/images/forgot-password.svg';
+
+enum ResetPasswordErrorMessage {
+  TOKEN_EMPTY = 'Código não pode ser vazio',
+  PASSWORD_EMPTY = 'Senha não pode ser vazia',
+  PASSWORD_TOO_SHORT = 'Senha deve ter pelo menos 6 caracteres',
+  PASSWORD_NO_UPPERCASE = 'Senha deve conter ao menos uma letra maiúscula',
+  PASSWORD_NO_SPECIAL = 'Senha deve conter ao menos um caractere especial',
+  PASSWORD_CONFIRM_EMPTY = 'Confirmação não pode ser vazia',
+  PASSWORD_MISMATCH = 'As senhas não coincidem',
+  GENERIC = 'Token inválido ou expirado. Solicite um novo código.',
 }
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const resetPasswordSchema = z
+  .object({
+    token: z.string().trim().min(1, ResetPasswordErrorMessage.TOKEN_EMPTY),
+    new_password: z
+      .string()
+      .trim()
+      .min(1, ResetPasswordErrorMessage.PASSWORD_EMPTY)
+      .min(6, ResetPasswordErrorMessage.PASSWORD_TOO_SHORT)
+      .refine((v) => /[A-Z]/.test(v), ResetPasswordErrorMessage.PASSWORD_NO_UPPERCASE)
+      .refine((v) => /[^A-Za-z0-9]/.test(v), ResetPasswordErrorMessage.PASSWORD_NO_SPECIAL),
+    confirm_password: z.string().trim().min(1, ResetPasswordErrorMessage.PASSWORD_CONFIRM_EMPTY),
+  })
+  .refine((data) => data.new_password === data.confirm_password, {
+    message: ResetPasswordErrorMessage.PASSWORD_MISMATCH,
+    path: ['confirm_password'],
+  });
 
-const forgotPasswordSchema = z.object({
-  email: z
-    .string()
-    .trim()
-    .min(1, ForgotPasswordErrorMessage.EMAIL_EMPTY)
-    .refine((value) => EMAIL_REGEX.test(value), {
-      message: ForgotPasswordErrorMessage.EMAIL_INVALID,
-    }),
-});
+type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
 
-type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
-
-export default function ForgotPasswordScreen() {
+export default function ResetPasswordScreen() {
   const router = useRouter();
   const [successVisible, setSuccessVisible] = useState(false);
-  const { mutateAsync, isPending } = useForgotPassword();
+  const { mutateAsync, isPending } = useResetPassword();
 
   const {
     control,
@@ -47,34 +57,28 @@ export default function ForgotPasswordScreen() {
     clearErrors,
     setError,
     formState: { errors },
-  } = useForm<ForgotPasswordFormData>({
-    resolver: zodResolver(forgotPasswordSchema),
-    defaultValues: { email: '' },
+  } = useForm<ResetPasswordFormData>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: { token: '', new_password: '', confirm_password: '' },
   });
 
   const handleBackPress = () => {
     router.back();
   };
 
-  const handleSignUpPress = () => {
-    router.push('/register-profile-selection-screen');
-  };
-
-  const handleOkPress = () => {
+  const handleLoginPress = () => {
     setSuccessVisible(false);
-    router.push('/reset-password-screen');
+    router.replace('/login');
   };
 
-  const onSubmit = async (data: ForgotPasswordFormData) => {
-    const email = data.email.trim().toLowerCase();
-
+  const onSubmit = async (data: ResetPasswordFormData) => {
     try {
-      await mutateAsync({ email });
+      await mutateAsync({ token: data.token.trim(), new_password: data.new_password });
       setSuccessVisible(true);
     } catch {
-      setError('email', {
+      setError('token', {
         type: 'manual',
-        message: ForgotPasswordErrorMessage.GENERIC,
+        message: ResetPasswordErrorMessage.GENERIC,
       });
     }
   };
@@ -100,31 +104,74 @@ export default function ForgotPasswordScreen() {
           </View>
 
           <View style={styles.textBlock}>
-            <Text style={styles.title}>Esqueceu a senha?</Text>
+            <Text style={styles.title}>Redefinir senha</Text>
             <Text style={styles.subtitle}>
-              Sem problemas! Insira seu e-mail para receber as instruções.
+              Cole o código recebido por e-mail e escolha uma nova senha.
             </Text>
           </View>
 
           <View style={styles.formBlock}>
             <Controller
               control={control}
-              name="email"
+              name="token"
               render={({ field: { onChange, value } }) => (
                 <AppTextField
-                  label="E-mail"
-                  placeholder="nome@gmail.com"
+                  label="Código recebido por e-mail"
+                  placeholder="Cole o código aqui"
                   value={value}
                   onChangeText={(text) => {
-                    if (errors.email) {
-                      clearErrors('email');
-                    }
+                    if (errors.token) clearErrors('token');
                     onChange(text);
                   }}
-                  keyboardType="email-address"
                   autoCapitalize="none"
                   autoCorrect={false}
-                  errorMessage={errors.email?.message}
+                  autoComplete="off"
+                  textContentType="oneTimeCode"
+                  errorMessage={errors.token?.message}
+                />
+              )}
+            />
+
+            <Controller
+              control={control}
+              name="new_password"
+              render={({ field: { onChange, value } }) => (
+                <AppTextField
+                  label="Nova senha"
+                  placeholder="Mínimo 6 caracteres"
+                  value={value}
+                  onChangeText={(text) => {
+                    if (errors.new_password) clearErrors('new_password');
+                    onChange(text);
+                  }}
+                  secureTextEntry
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  autoComplete="off"
+                  textContentType="none"
+                  errorMessage={errors.new_password?.message}
+                />
+              )}
+            />
+
+            <Controller
+              control={control}
+              name="confirm_password"
+              render={({ field: { onChange, value } }) => (
+                <AppTextField
+                  label="Confirmar nova senha"
+                  placeholder="Repita a nova senha"
+                  value={value}
+                  onChangeText={(text) => {
+                    if (errors.confirm_password) clearErrors('confirm_password');
+                    onChange(text);
+                  }}
+                  secureTextEntry
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  autoComplete="off"
+                  textContentType="none"
+                  errorMessage={errors.confirm_password?.message}
                 />
               )}
             />
@@ -133,20 +180,13 @@ export default function ForgotPasswordScreen() {
 
         <View style={styles.footer}>
           <PrimaryButton
-            label="Enviar"
+            label="Redefinir senha"
             onPress={handleSubmit(onSubmit)}
             disabled={isPending}
             variant="secondary"
-            icon={<MaterialIcons name="send" size={18} color={colors.light} />}
+            icon={<MaterialIcons name="lock-reset" size={18} color={colors.light} />}
             style={styles.button}
           />
-
-          <View style={styles.signUpRow}>
-            <Text style={styles.signUpText}>Não tem uma conta? </Text>
-            <Pressable onPress={handleSignUpPress}>
-              <Text style={styles.signUpLink}>Cadastre-se</Text>
-            </Pressable>
-          </View>
         </View>
       </AppKeyboardAwareScrollView>
 
@@ -154,30 +194,27 @@ export default function ForgotPasswordScreen() {
         visible={successVisible}
         transparent
         animationType="fade"
-        onRequestClose={handleOkPress}
+        onRequestClose={handleLoginPress}
         statusBarTranslucent
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>E-mail enviado!</Text>
+              <Text style={styles.modalTitle}>Senha redefinida!</Text>
               <Text style={styles.modalBody}>
-                Confira sua caixa de entrada e copie o código recebido.
-              </Text>
-              <Text style={styles.modalTip}>
-                Dica: Se não encontrar, dê uma olhada na pasta de spam.
+                Sua senha foi alterada com sucesso. Faça login com a nova senha.
               </Text>
             </View>
 
             <View style={styles.modalDivider} />
 
             <Pressable
-              onPress={handleOkPress}
+              onPress={handleLoginPress}
               style={styles.modalAction}
               accessibilityRole="button"
             >
               <MaterialIcons name="check" size={18} color={colors.secondary} />
-              <Text style={styles.modalActionText}>Inserir código</Text>
+              <Text style={styles.modalActionText}>Ir para o login</Text>
             </Pressable>
           </View>
         </View>
@@ -239,7 +276,7 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingHorizontal: 30,
     maxWidth: 360,
-    marginTop: 40,
+    gap: 16,
   },
   footer: {
     alignItems: 'center',
@@ -248,21 +285,6 @@ const styles = StyleSheet.create({
   },
   button: {
     alignSelf: 'stretch',
-  },
-  signUpRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexWrap: 'wrap',
-  },
-  signUpText: {
-    ...typography.small,
-    color: colors.dark,
-  },
-  signUpLink: {
-    ...typography.smallBold,
-    color: colors.dark,
-    textDecorationLine: 'underline',
   },
   modalOverlay: {
     flex: 1,
@@ -297,12 +319,6 @@ const styles = StyleSheet.create({
   modalBody: {
     ...typography.body,
     color: colors.text,
-    textAlign: 'left',
-  },
-  modalTip: {
-    ...typography.body,
-    color: colors.text,
-    fontStyle: 'italic',
     textAlign: 'left',
   },
   modalDivider: {

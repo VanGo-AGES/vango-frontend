@@ -1,11 +1,9 @@
-import { ExpoConfig, ConfigContext } from 'expo/config';
-
-export default ({ config }: ConfigContext): ExpoConfig => ({
+module.exports = ({ config }) => ({
   ...config,
   name: 'vango-frontend',
   slug: 'vango-frontend',
   owner: 'vango-ages',
-  version: '1.0.0',
+  version: '1.0.1',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
   scheme: 'vangofrontend',
@@ -94,6 +92,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         url: 'https://sentry.io/',
         project: 'vango-frontend',
         organization: 'vango-ages',
+        authToken: process.env.SENTRY_AUTH_TOKEN,
       },
     ],
   ],

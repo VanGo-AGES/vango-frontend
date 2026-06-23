@@ -28,6 +28,8 @@ enum RegisterBasicInfoErrorMessage {
   PHONE_INVALID = 'Telefone incorreto',
   PASSWORD_EMPTY = 'Senha não pode ser vazia',
   PASSWORD_TOO_SHORT = 'Senha deve ter pelo menos 6 caracteres',
+  PASSWORD_NO_UPPERCASE = 'Senha deve conter ao menos uma letra maiúscula',
+  PASSWORD_NO_SPECIAL = 'Senha deve conter ao menos um caractere especial',
   CPF_EMPTY = 'CPF não pode ser vazio',
   CPF_INVALID = 'CPF inválido',
 }
@@ -46,7 +48,9 @@ const registerBasicInfoSchema = z.object({
     .string()
     .trim()
     .min(1, RegisterBasicInfoErrorMessage.PASSWORD_EMPTY)
-    .min(6, RegisterBasicInfoErrorMessage.PASSWORD_TOO_SHORT),
+    .min(6, RegisterBasicInfoErrorMessage.PASSWORD_TOO_SHORT)
+    .refine((v) => /[A-Z]/.test(v), RegisterBasicInfoErrorMessage.PASSWORD_NO_UPPERCASE)
+    .refine((v) => /[^A-Za-z0-9]/.test(v), RegisterBasicInfoErrorMessage.PASSWORD_NO_SPECIAL),
   cpf: z.string().optional(),
   name: z.string().trim().min(1, RegisterBasicInfoErrorMessage.NAME_EMPTY),
   phone: z
@@ -67,6 +71,7 @@ export default function RegisterBasicInfoScreen() {
   const { userType } = useLocalSearchParams<{ userType?: string }>();
   const { mutateAsync, isPending } = useCreateUser();
   const setUser = useSessionStore((s) => s.setUser);
+  const clearSession = useSessionStore((s) => s.clearSession);
 
   const [requiredDialogVisible, setRequiredDialogVisible] = useState(false);
 
@@ -135,6 +140,8 @@ export default function RegisterBasicInfoScreen() {
         ...(isDriver && data.cpf ? { cpf: onlyDigits(data.cpf) } : {}),
       });
 
+      // Garante que tokens de sessão anteriores não vazem para o novo usuário
+      clearSession();
       setUser({
         id: response.id,
         name: response.name,
@@ -157,6 +164,25 @@ export default function RegisterBasicInfoScreen() {
           type: 'manual',
           message: RegisterBasicInfoErrorMessage.EMAIL_ALREADY_EXISTS,
         });
+        return;
+      }
+
+      if (error instanceof ApiError && error.status === 422) {
+        const details = Array.isArray(error.detail) ? error.detail : [];
+        for (const item of details) {
+          const loc: string[] = item?.loc ?? [];
+          const msg: string = (item?.msg ?? '').replace(/^Value error,\s*/i, '');
+          if (loc.includes('password')) {
+            setError('password', { type: 'manual', message: msg });
+            return;
+          }
+          if (loc.includes('email')) {
+            setError('email', { type: 'manual', message: msg });
+            return;
+          }
+        }
+        const firstMsg = details[0]?.msg?.replace(/^Value error,\s*/i, '');
+        setError('email', { type: 'manual', message: firstMsg ?? 'Dados inválidos' });
         return;
       }
 

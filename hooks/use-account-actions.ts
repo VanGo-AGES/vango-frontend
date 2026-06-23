@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useQueryClient } from '@tanstack/react-query';
 import { useSessionStore } from '@/store/session.store';
 import { logoutUser } from '@/services/user.service';
 import { useDeleteUser } from '@/hooks/use-delete-user';
 
 export function useAccountActions() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const clearSession = useSessionStore((state) => state.clearSession);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -22,6 +24,7 @@ export function useAccountActions() {
       console.warn('[logout] failed to revoke token on server:', error);
     } finally {
       clearSession();
+      queryClient.clear();
       router.dismissAll();
       router.replace('/onboarding');
     }
@@ -31,6 +34,7 @@ export function useAccountActions() {
     deleteUser(undefined, {
       onSuccess: () => {
         clearSession();
+        queryClient.clear();
         router.dismissAll();
         router.replace('/onboarding');
       },
