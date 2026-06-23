@@ -52,7 +52,7 @@ export function mockFetch(responses: { status?: number; body?: unknown }[]): voi
 
 beforeAll(() => {
   process.env.EXPO_PUBLIC_API_URL = 'http://localhost';
-  global.fetch = (url: string | URL | Request, init?: RequestInit) => {
+  globalThis.fetch = (url: string | URL | Request, init?: RequestInit) => {
     if (!_mockImpl) throw new Error('fetch called but no mock set — call mockFetch() first');
     return _mockImpl(url as string, init);
   };
