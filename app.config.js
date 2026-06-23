@@ -1,11 +1,9 @@
-import { ExpoConfig, ConfigContext } from 'expo/config';
-
-export default ({ config }: ConfigContext): ExpoConfig => ({
+module.exports = ({ config }) => ({
   ...config,
   name: 'vango-frontend',
   slug: 'vango-frontend',
   owner: 'vango-ages',
-  version: '1.0.0',
+  version: '1.0.1',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
   scheme: 'vangofrontend',
@@ -88,6 +86,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         sounds: [],
       },
     ],
+    [
+      '@sentry/react-native/expo',
+      {
+        url: 'https://sentry.io/',
+        project: 'vango-frontend',
+        organization: 'vango-ages',
+        authToken: process.env.SENTRY_AUTH_TOKEN,
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,
@@ -97,6 +104,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     router: {},
     eas: {
       projectId: 'bb0ff192-1fd1-4987-92e6-5b08060d656d',
+    },
+    sentry: {
+      dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
     },
   },
 });

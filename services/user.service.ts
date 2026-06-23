@@ -1,9 +1,11 @@
-import { apiGet, apiPost, apiPut, apiUpload } from './api';
+import { apiGet, apiPost, apiPut, apiUpload, apiDeleteWithBody } from './api';
 import type {
   CreateUserRequest,
   CreateUserResponse,
+  ForgotPasswordRequest,
   LoginRequest,
   LoginResponse,
+  ResetPasswordRequest,
   UpdateUserRequest,
   UpdateUserResponse,
   UserResponse,
@@ -14,7 +16,19 @@ export async function createUser(data: CreateUserRequest): Promise<CreateUserRes
 }
 
 export async function loginUser(data: LoginRequest): Promise<LoginResponse> {
-  return apiPost<LoginRequest, LoginResponse>('/users/login', data);
+  return apiPost<LoginRequest, LoginResponse>('/auth/login', data);
+}
+
+export async function logoutUser(): Promise<void> {
+  return apiPost<Record<string, never>, void>('/auth/logout', {});
+}
+
+export async function requestPasswordReset(data: ForgotPasswordRequest): Promise<void> {
+  return apiPost<ForgotPasswordRequest, void>('/auth/password/forgot', data);
+}
+
+export async function resetPassword(data: ResetPasswordRequest): Promise<void> {
+  return apiPost<ResetPasswordRequest, void>('/auth/password/reset', data);
 }
 
 export async function getUser(id: string): Promise<UserResponse> {
@@ -34,4 +48,8 @@ export async function uploadPhoto(uri: string): Promise<string> {
 
   const data = await apiUpload<{ url: string }>('/uploads/photo', formData);
   return data.url;
+}
+
+export async function deleteMyAccount(): Promise<void> {
+  await apiDeleteWithBody<{ confirm: true }, void>('/users/me', { confirm: true });
 }

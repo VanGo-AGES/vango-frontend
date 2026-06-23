@@ -1,5 +1,4 @@
 import { apiGet, apiPost, getDriverHeaders } from './api';
-import { useSessionStore } from '@/store/session.store';
 import type {
   CurrentTripResponse,
   FinishTripRequest,
@@ -9,13 +8,9 @@ import type {
   TripResponse,
 } from '@/types/trip.types';
 
+// TK28 — mock X-User-Id aposentado; auth agora é via Bearer (api.ts). No-op.
 function getPassengerHeaders(): Record<string, string> {
-  const user = useSessionStore.getState().user;
-
-  return {
-    'X-User-Id': user?.id ?? '',
-    'X-User-Role': user?.role ?? 'guardian',
-  };
+  return {};
 }
 
 export async function getCurrentTrip(

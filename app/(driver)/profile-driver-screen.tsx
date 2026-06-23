@@ -14,7 +14,7 @@ import { useAccountActions } from '@/hooks/use-account-actions';
 export default function ProfileDriverScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { handleLogout, handleDeleteAccount } = useAccountActions();
+  const { handleLogout, handleDeleteAccount, isLoggingOut, isDeleting } = useAccountActions();
 
   return (
     <AppScreenContainer
@@ -58,6 +58,7 @@ export default function ProfileDriverScreen() {
           <PrimaryButton
             label="Excluir Conta"
             onPress={handleDeleteAccount}
+            disabled={isDeleting}
             variant="warning"
             labelColor={colors.white}
             icon={<MaterialIcons name="delete-outline" size={20} color={colors.white} />}
@@ -67,6 +68,7 @@ export default function ProfileDriverScreen() {
           <PrimaryButton
             label="Sair"
             onPress={handleLogout}
+            disabled={isLoggingOut}
             variant="primary"
             labelColor={colors.light}
             icon={<MaterialIcons name="keyboard-return" size={20} color={colors.light} />}

@@ -5,20 +5,11 @@ import { MetricDateChip } from '@/components/metrics/metric-date-chip';
 import { MetricList } from '@/components/metrics/metric-list';
 import { PrimaryButton } from '@/components/general/primary-button';
 import { RouteHeroHeader } from '@/components/route/route-hero-header';
+import { useTrip } from '@/hooks/use-trip';
+import { useRoute } from '@/hooks/use-route';
 import { colors } from '@/styles/colors';
 import { typography } from '@/styles/typography';
 import { MaterialIcons } from '@expo/vector-icons';
-
-const FALLBACK_ROUTE_NAME = 'Rota finalizada';
-const FALLBACK_RECURRENCE = 'Seg • Ter • Qua • Qui • Sex';
-const FALLBACK_EXPECTED_TIME = '07:00';
-const FALLBACK_DURATION_MINUTES = 45;
-const FALLBACK_DISTANCE_KM = 12;
-const FALLBACK_PASSENGERS = 3;
-
-//TO DO
-const MOCK_ORIGIN = { latitude: -30.0277, longitude: -51.1632 };
-const MOCK_DESTINATION = { latitude: -30.0495, longitude: -51.2287 };
 
 function formatRecurrenceLabel(recurrence: string): string {
   return recurrence
@@ -34,7 +25,7 @@ function formatExpectedTime(value: string): string {
 }
 
 function formatTripDate(date: Date): string {
-  return date.toLocaleDateString('en-US', {
+  return date.toLocaleDateString('pt-BR', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -48,13 +39,7 @@ function formatTripTime(start: Date, durationMinutes: number): string {
 }
 
 type TripMetricsParams = {
-  routeName?: string;
-  recurrence?: string;
-  expectedTime?: string;
-  durationMinutes?: string;
-  distanceKm?: string;
-  passengersCount?: string;
-  tripDate?: string;
+  tripId?: string;
 };
 
 export default function TripMetricsScreen() {
@@ -63,28 +48,92 @@ export default function TripMetricsScreen() {
   const { height: screenHeight } = useWindowDimensions();
   const heroHeight = Math.max(220, Math.min(300, Math.round(screenHeight * 0.3)));
 
-  const routeName = params.routeName ?? FALLBACK_ROUTE_NAME;
-  const recurrence = params.recurrence
-    ? formatRecurrenceLabel(params.recurrence)
-    : FALLBACK_RECURRENCE;
-  const expectedTime = params.expectedTime
-    ? formatExpectedTime(params.expectedTime)
-    : FALLBACK_EXPECTED_TIME;
-  const durationMinutes = params.durationMinutes
-    ? Number(params.durationMinutes)
-    : FALLBACK_DURATION_MINUTES;
-  const distanceKm = params.distanceKm ? Number(params.distanceKm) : FALLBACK_DISTANCE_KM;
-  const passengersCount = params.passengersCount
-    ? Number(params.passengersCount)
-    : FALLBACK_PASSENGERS;
+  const tripId = params.tripId;
 
-  const tripDate = params.tripDate ? new Date(params.tripDate) : new Date();
-  const dateLabel = formatTripDate(tripDate);
-  const timeLabel = formatTripTime(tripDate, durationMinutes);
+  const { data: trip, isLoading: isTripLoading, isError: isTripError } = useTrip(tripId);
+
+  const { data: route, isLoading: isRouteLoading } = useRoute(trip?.route_id);
+
+  const isLoading = isTripLoading || isRouteLoading;
+  const hasError = isTripError;
+
+  const routeName = route?.name ?? trip?.route_name ?? '';
+  const recurrence = route?.recurrence ? formatRecurrenceLabel(route.recurrence) : '';
+  const expectedTime = route?.expected_time ? formatExpectedTime(route.expected_time) : '';
+
+  const startedAt = trip?.started_at ? new Date(trip.started_at) : null;
+  const finishedAt = trip?.finished_at ? new Date(trip.finished_at) : null;
+
+  const durationMinutes =
+    startedAt && finishedAt ? Math.round((finishedAt.getTime() - startedAt.getTime()) / 60000) : 0;
+
+  const distanceKm = trip?.total_km ?? 0;
+  const passengersCount =
+    trip?.trip_passangers?.filter((passanger) => passanger.boarded_at != null).length ?? 0;
+
+  const tripDate = finishedAt ?? startedAt ?? (trip?.trip_date ? new Date(trip.trip_date) : null);
+
+  const dateLabel = tripDate ? formatTripDate(tripDate) : '';
+  const timeLabel = startedAt ? formatTripTime(startedAt, durationMinutes) : '';
+
+  const headerStartTime = startedAt
+    ? startedAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    : expectedTime;
+
+  const origin =
+    route?.origin_address.latitude != null && route.origin_address.longitude != null
+      ? {
+          latitude: route.origin_address.latitude,
+          longitude: route.origin_address.longitude,
+        }
+      : undefined;
+
+  const destination =
+    route?.destination_address.latitude != null && route.destination_address.longitude != null
+      ? {
+          latitude: route.destination_address.latitude,
+          longitude: route.destination_address.longitude,
+        }
+      : undefined;
 
   const handleExit = () => {
     router.replace('/driver-home');
   };
+
+  if (isLoading) {
+    return (
+      <>
+        <Stack.Screen options={{ headerShown: false }} />
+        <View style={styles.stateContainer}>
+          <Text style={styles.stateText}>Carregando métricas da viagem...</Text>
+        </View>
+      </>
+    );
+  }
+
+  if (hasError) {
+    return (
+      <>
+        <Stack.Screen options={{ headerShown: false }} />
+        <View style={styles.stateContainer}>
+          <Text style={styles.stateText}>Não foi possível carregar as métricas da viagem.</Text>
+          <PrimaryButton label="Voltar ao início" onPress={handleExit} style={styles.stateButton} />
+        </View>
+      </>
+    );
+  }
+
+  if (!trip || !tripDate) {
+    return (
+      <>
+        <Stack.Screen options={{ headerShown: false }} />
+        <View style={styles.stateContainer}>
+          <Text style={styles.stateText}>Métricas da viagem não encontradas.</Text>
+          <PrimaryButton label="Voltar ao início" onPress={handleExit} style={styles.stateButton} />
+        </View>
+      </>
+    );
+  }
 
   return (
     <>
@@ -95,12 +144,11 @@ export default function TripMetricsScreen() {
           <RouteHeroHeader
             routeName={routeName}
             recurrence={recurrence}
-            expectedTime={expectedTime}
+            expectedTime={headerStartTime}
             durationMinutes={durationMinutes}
             distanceKm={distanceKm}
-            //TO DO
-            origin={MOCK_ORIGIN}
-            destination={MOCK_DESTINATION}
+            origin={origin}
+            destination={destination}
             style={[styles.heroHeader, { minHeight: heroHeight }]}
           />
         </View>
@@ -185,6 +233,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   ctaButton: {
+    alignSelf: 'stretch',
+  },
+  stateContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+    backgroundColor: colors.light,
+  },
+  stateText: {
+    ...typography.body,
+    color: colors.text,
+    textAlign: 'center',
+  },
+  stateButton: {
+    marginTop: 24,
     alignSelf: 'stretch',
   },
 });

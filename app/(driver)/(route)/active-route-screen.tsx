@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { Alert, Linking, StyleSheet, View, Text, ActivityIndicator } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
@@ -60,11 +60,9 @@ export default function DriverActiveRouteScreen() {
     finishMutation.isPending;
 
   const bottomPadding = Math.max(24, insets.bottom);
-  const sheetMaxHeight = 570 + bottomPadding;
-  const sheetMinHeight = 310;
-  const sheetMaxTranslateY = sheetMaxHeight - sheetMinHeight;
 
-  const sheetTranslateY = useSharedValue(sheetMaxTranslateY);
+  // Initial value targets the driving (collapsed) position; resets via useEffect on state change.
+  const sheetTranslateY = useSharedValue(570 + bottomPadding - 310);
   const floatingButtonsStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: sheetTranslateY.value }],
   }));
@@ -213,6 +211,20 @@ export default function DriverActiveRouteScreen() {
     };
   }, [isArrived, nextStop]);
 
+  const isArrivalSheet = Boolean(stopArrivalProps);
+
+  // Sheet dimensions change between driving (570/310) and arrival (326/260) states.
+  // FABs must stay anchored just above the sheet top in both states.
+  const sheetMaxHeightForState = (isArrivalSheet ? 326 : 570) + bottomPadding;
+  const sheetMinHeightForState = isArrivalSheet ? 260 : 310;
+  const sheetMaxTranslateYForState = sheetMaxHeightForState - sheetMinHeightForState;
+
+  // Reset sheet to collapsed position whenever the arrival state toggles so the
+  // sharedValue stays within the new state's valid [0, MAX_TRANSLATE_Y] range.
+  useEffect(() => {
+    sheetTranslateY.value = sheetMaxTranslateYForState;
+  }, [isArrivalSheet, insets.bottom]);
+
   const isMapLoading = !lastLocation || isLoadingNextStop;
 
   return (
@@ -242,10 +254,18 @@ export default function DriverActiveRouteScreen() {
                 ? { latitude: nextStop.latitude, longitude: nextStop.longitude }
                 : undefined
             }
+            finalDestinationLocation={
+              trip?.destination_latitude != null && trip?.destination_longitude != null
+                ? { latitude: trip.destination_latitude, longitude: trip.destination_longitude }
+                : undefined
+            }
             nextStopLabel="Próxima parada"
             onRecenterPress={() => {}}
             containerStyle={styles.map}
-            recenterButtonStyle={[styles.recenterButtonPosition, floatingButtonsStyle]}
+            recenterButtonStyle={[
+              { marginBottom: sheetMaxHeightForState + FAB_GAP - OVERLAY_PADDING },
+              floatingButtonsStyle,
+            ]}
           />
         )}
 
@@ -253,7 +273,14 @@ export default function DriverActiveRouteScreen() {
           <RouteTopBar onBackPress={handleBackPress} showMenu={false} />
         </View>
 
-        <Animated.View pointerEvents="box-none" style={[styles.fabContainer, floatingButtonsStyle]}>
+        <Animated.View
+          pointerEvents="box-none"
+          style={[
+            styles.fabContainer,
+            { bottom: sheetMaxHeightForState + FAB_GAP },
+            floatingButtonsStyle,
+          ]}
+        >
           <NavigationFab
             isOpen={navigationMenuOpen}
             onToggle={() => setNavigationMenuOpen(!navigationMenuOpen)}
@@ -338,6 +365,11 @@ export default function DriverActiveRouteScreen() {
   );
 }
 
+// Gap between FABs bottom edge and the sheet top edge (same in both states).
+const FAB_GAP = 42;
+// Padding applied by the overlay container inside ActiveRouteMap.
+const OVERLAY_PADDING = 16;
+
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
@@ -358,11 +390,8 @@ const styles = StyleSheet.create({
   fabContainer: {
     position: 'absolute',
     right: 16,
-    bottom: 636,
+    // bottom is set dynamically per state via inline style
     alignItems: 'flex-end',
-  },
-  recenterButtonPosition: {
-    marginBottom: 620,
   },
   emptyContainer: {
     position: 'absolute',

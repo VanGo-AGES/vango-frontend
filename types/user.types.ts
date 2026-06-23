@@ -1,42 +1,35 @@
+import type { components } from './api.generated';
+
 export type UserRole = 'driver' | 'passenger';
 
-export interface CreateUserRequest {
-  name: string;
-  email: string;
-  phone: string;
-  password: string;
+export type CreateUserRequest = Omit<components['schemas']['UserCreate'], 'role'> & {
   role: UserRole;
-  cpf?: string;
-  photo_url?: string;
-}
+};
 
-export interface UserResponse {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
+export type UserResponse = Omit<
+  components['schemas']['UserResponse'],
+  'role' | 'cpf' | 'photo_url'
+> & {
   role: UserRole;
   cpf: string | null;
   photo_url: string | null;
-  created_at: string;
-  updated_at: string;
-}
+};
 
-export interface UpdateUserRequest {
-  name?: string;
-  phone?: string;
-  cpf?: string;
-  password?: string;
-  photo_url?: string;
-}
+export type UpdateUserRequest = components['schemas']['UserUpdate'];
 
 export type UpdateUserResponse = UserResponse;
 
 export type CreateUserResponse = UserResponse;
 
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
+export type LoginRequest = components['schemas']['LoginRequest'];
 
-export type LoginResponse = UserResponse;
+export type LoginResponse = {
+  access_token: string;
+  token_type: string; // "bearer"
+  refresh_token: string | null;
+  user: UserResponse;
+};
+
+export type ForgotPasswordRequest = components['schemas']['ForgotPasswordRequest'];
+
+export type ResetPasswordRequest = components['schemas']['ResetPasswordConfirm'];

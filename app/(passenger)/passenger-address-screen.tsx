@@ -1,8 +1,9 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
+import { AppKeyboardAwareScrollView } from '@/components/general/app-keyboard-aware-scroll-view';
 import { AppScreenContainer } from '@/components/general/app-screen-container';
 import { AuthHeader } from '@/components/auth/auth-header';
 import { CircleIconButton } from '@/components/general/circle-icon-button';
@@ -127,12 +128,10 @@ export default function PassengerAddressScreen() {
         </View>
       </View>
 
-      <ScrollView
+      <AppKeyboardAwareScrollView
         style={styles.content}
         contentContainerStyle={styles.contentContainer}
-        showsVerticalScrollIndicator={false}
         keyboardDismissMode="on-drag"
-        keyboardShouldPersistTaps="handled"
       >
         <AddressFormSection
           title=""
@@ -140,7 +139,7 @@ export default function PassengerAddressScreen() {
           onChange={handleAddressChange}
           errors={errors}
         />
-      </ScrollView>
+      </AppKeyboardAwareScrollView>
 
       <View style={styles.footer}>
         <View style={styles.stepIndicatorContainer}>

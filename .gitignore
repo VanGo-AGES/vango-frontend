@@ -4,7 +4,12 @@
 node_modules/
 
 # Expo
-.expo/
+# Ignora o .expo/, EXCETO os tipos de rota gerados (router.d.ts) — versionados
+# para que `tsc --noEmit` seja determinístico no pre-commit e na CI (US00-TK02).
+.expo/*
+!.expo/types/
+.expo/types/*
+!.expo/types/router.d.ts
 dist/
 web-build/
 expo-env.d.ts
