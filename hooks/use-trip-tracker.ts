@@ -83,5 +83,5 @@ export function useTripTracker(tripId: string) {
     };
   }, [tripId, user?.id]);
 
-  return { eta, lastLocation, isConnected, error };
+  return { eta, resetEta: () => setEta(null), lastLocation, isConnected, error };
 }

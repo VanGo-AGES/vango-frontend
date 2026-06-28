@@ -42,9 +42,13 @@ export default function DriverActiveRouteScreen() {
 
   const [localMissedDropoffs, setLocalMissedDropoffs] = useState<Set<string>>(new Set());
 
-  const { eta, lastLocation, error: gpsError } = useTripTracker(tripId!);
+  const { eta, resetEta, lastLocation, error: gpsError } = useTripTracker(tripId!);
   const { data: trip } = useTrip(tripId!);
   const { data: nextStop, isLoading: isLoadingNextStop } = useTripNextStop(tripId!);
+
+  useEffect(() => {
+    resetEta();
+  }, [nextStop?.stop_id]);
 
   const boardMutation = useBoardPassanger();
   const absentMutation = useMarkPassangerAbsent();
@@ -255,8 +259,12 @@ export default function DriverActiveRouteScreen() {
                 : undefined
             }
             finalDestinationLocation={
-              trip?.destination_latitude != null && trip?.destination_longitude != null
-                ? { latitude: trip.destination_latitude, longitude: trip.destination_longitude }
+              (trip as any)?.destination_latitude != null &&
+              (trip as any)?.destination_longitude != null
+                ? {
+                    latitude: (trip as any).destination_latitude,
+                    longitude: (trip as any).destination_longitude,
+                  }
                 : undefined
             }
             nextStopLabel="Próxima parada"
@@ -299,6 +307,7 @@ export default function DriverActiveRouteScreen() {
               name: nextStop.passanger_name,
               phoneNumber: nextStop.passanger_phone,
             }}
+            isLoadingEta={eta === null}
             timeRemaining={typeof eta?.eta_minutes === 'number' ? eta.eta_minutes : 0}
             estimatedArrival={calculateExpectedArrival()}
             distance={

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, {
@@ -27,6 +27,7 @@ export type TripBottomSheetProps = {
   timeRemaining: number;
   estimatedArrival: string;
   distance: string;
+  isLoadingEta?: boolean;
   onCallPassenger?: () => void;
   onSkipStop: () => void;
   translateY?: SharedValue<number>;
@@ -44,6 +45,7 @@ export function TripBottomSheet({
   timeRemaining,
   estimatedArrival,
   distance,
+  isLoadingEta = false,
   onSkipStop,
   translateY: externalTranslateY,
   stopArrival,
@@ -180,16 +182,27 @@ export function TripBottomSheet({
               <View style={styles.header}>
                 <Text style={styles.timeLabel}>tempo até a próxima parada:</Text>
 
-                <View style={styles.timeHighlightContainer}>
-                  <Text style={styles.timeBig}>{timeRemaining.toString().padStart(2, '0')} </Text>
-                  <Text style={styles.timeUnit}>min</Text>
-                </View>
+                {isLoadingEta ? (
+                  <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="small" color={colors.dark} />
+                    <Text style={styles.loadingText}>calculando rota...</Text>
+                  </View>
+                ) : (
+                  <>
+                    <View style={styles.timeHighlightContainer}>
+                      <Text style={styles.timeBig}>
+                        {timeRemaining.toString().padStart(2, '0')}{' '}
+                      </Text>
+                      <Text style={styles.timeUnit}>min</Text>
+                    </View>
 
-                <View style={styles.statsContainer}>
-                  <Text style={styles.statText}>{estimatedArrival}</Text>
-                  <View style={styles.statDivider} />
-                  <Text style={styles.statText}>{distance}</Text>
-                </View>
+                    <View style={styles.statsContainer}>
+                      <Text style={styles.statText}>{estimatedArrival}</Text>
+                      <View style={styles.statDivider} />
+                      <Text style={styles.statText}>{distance}</Text>
+                    </View>
+                  </>
+                )}
               </View>
 
               <View style={styles.cardsContainer}>
@@ -280,6 +293,16 @@ const styles = StyleSheet.create({
   timeUnit: {
     ...typography.header2,
     color: colors.dark,
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginVertical: 12,
+  },
+  loadingText: {
+    ...typography.body,
+    color: colors.subtleText,
   },
   statsContainer: {
     flexDirection: 'row',

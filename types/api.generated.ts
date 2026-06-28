@@ -1753,10 +1753,6 @@ export interface components {
        * Format: uuid
        */
       vehicle_id: string;
-      /** Destination Latitude */
-      destination_latitude?: number | null;
-      /** Destination Longitude */
-      destination_longitude?: number | null;
     };
     /**
      * UpdateSchedulesRequest
