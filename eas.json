@@ -21,6 +21,8 @@
       "autoIncrement": true,
       "env": {
         "EXPO_PUBLIC_API_ENV": "production",
+        "EXPO_PUBLIC_API_URL": "http://3.139.105.48:8000",
+        "EXPO_PUBLIC_SOCKET_URL": "http://3.139.105.48:8000",
         "SENTRY_AUTH_TOKEN": "$SENTRY_AUTH_TOKEN",
         "SENTRY_ALLOW_FAILURE": "true"
       }

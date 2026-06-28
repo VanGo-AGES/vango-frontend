@@ -17,6 +17,7 @@ import { typography } from '@/styles/typography';
 import { useCreateUser } from '@/hooks/use-create-user';
 import { formatCpf, formatPhone, isValidCpf, onlyDigits, PHONE_REGEX } from '@/lib/formatters';
 import { ApiError } from '@/services/api';
+import { loginUser } from '@/services/user.service';
 import { useSessionStore } from '@/store/session.store';
 
 enum RegisterBasicInfoErrorMessage {
@@ -52,7 +53,11 @@ const registerBasicInfoSchema = z.object({
     .refine((v) => /[A-Z]/.test(v), RegisterBasicInfoErrorMessage.PASSWORD_NO_UPPERCASE)
     .refine((v) => /[^A-Za-z0-9]/.test(v), RegisterBasicInfoErrorMessage.PASSWORD_NO_SPECIAL),
   cpf: z.string().optional(),
-  name: z.string().trim().min(1, RegisterBasicInfoErrorMessage.NAME_EMPTY),
+  name: z
+    .string()
+    .trim()
+    .min(1, RegisterBasicInfoErrorMessage.NAME_EMPTY)
+    .min(3, 'Nome deve ter pelo menos 3 caracteres'),
   phone: z
     .string()
     .trim()
@@ -71,6 +76,7 @@ export default function RegisterBasicInfoScreen() {
   const { userType } = useLocalSearchParams<{ userType?: string }>();
   const { mutateAsync, isPending } = useCreateUser();
   const setUser = useSessionStore((s) => s.setUser);
+  const setTokens = useSessionStore((s) => s.setTokens);
   const clearSession = useSessionStore((s) => s.clearSession);
 
   const [requiredDialogVisible, setRequiredDialogVisible] = useState(false);
@@ -140,8 +146,17 @@ export default function RegisterBasicInfoScreen() {
         ...(isDriver && data.cpf ? { cpf: onlyDigits(data.cpf) } : {}),
       });
 
-      // Garante que tokens de sessão anteriores não vazem para o novo usuário
+      // Login automático para obter tokens — as próximas telas (driver/passenger
+      // details) requerem Authorization header. clearSession() é chamado DEPOIS
+      // do login para evitar janela onde accessToken fica null durante o await.
+      const session = await loginUser({
+        email: data.email.trim().toLowerCase(),
+        password: data.password,
+      });
+
+      // Limpa sessão anterior e aplica a nova atomicamente.
       clearSession();
+      setTokens(session.access_token, session.refresh_token ?? null);
       setUser({
         id: response.id,
         name: response.name,
@@ -178,6 +193,18 @@ export default function RegisterBasicInfoScreen() {
           }
           if (loc.includes('email')) {
             setError('email', { type: 'manual', message: msg });
+            return;
+          }
+          if (loc.includes('name')) {
+            setError('name', { type: 'manual', message: msg });
+            return;
+          }
+          if (loc.includes('phone')) {
+            setError('phone', { type: 'manual', message: msg });
+            return;
+          }
+          if (loc.includes('cpf')) {
+            setError('cpf', { type: 'manual', message: msg });
             return;
           }
         }
@@ -366,7 +393,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: 64,
     paddingTop: 24,
-    paddingBottom: 80,
+    paddingBottom: 120,
     justifyContent: 'space-between',
   },
   formContent: {
@@ -393,6 +420,7 @@ const styles = StyleSheet.create({
   loginRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingBottom: 32,
   },
   loginText: {
     ...typography.small,

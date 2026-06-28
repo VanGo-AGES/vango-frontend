@@ -181,11 +181,9 @@ export function validateMetricsReportResponse(v: unknown): void {
 export function validateVehicleResponse(v: unknown): void {
   assertShape('VehicleResponse', v, {
     id: { type: 'string' },
-    plate: { type: 'string' },
-    model: { type: 'string' },
-    brand: { type: 'string' },
-    color: { type: 'string' },
-    year: { type: 'number' },
+    capacity: { type: 'number' },
+    driver_id: { type: 'string' },
+    created_at: { type: 'string' },
   });
 }
 

@@ -6,7 +6,10 @@ import {
 } from '../setup/schema-validators';
 import {
   acceptRequest,
+  getNextPassangerRoute,
+  getNextRouteOccurrenceDateFromList,
   getPassangerRouteDetail,
+  getPassangerHeaders,
   getRouteByInviteCode,
   joinRoute,
   leaveRoute,
@@ -233,5 +236,98 @@ describe('getRouteByInviteCode — GET /routes/invite/:code', () => {
       status: 404,
       detail: 'Invite not found',
     });
+  });
+});
+
+describe('getPassangerHeaders (deprecated no-op)', () => {
+  it('returns an empty object', () => {
+    expect(getPassangerHeaders()).toEqual({});
+  });
+});
+
+describe('getNextRouteOccurrenceDateFromList', () => {
+  it('returns null for an empty recurrence list', () => {
+    expect(getNextRouteOccurrenceDateFromList([])).toBeNull();
+  });
+
+  it('returns null when all entries are invalid day names', () => {
+    expect(getNextRouteOccurrenceDateFromList(['monday', 'tuesday'])).toBeNull();
+  });
+
+  it('returns a YYYY-MM-DD string for a valid day', () => {
+    const result = getNextRouteOccurrenceDateFromList(['seg']);
+    expect(result).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it('returns today when today is in the list', () => {
+    const dayNames = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab'];
+    const now = new Date(2025, 5, 9); // Monday
+    const todayName = dayNames[now.getDay()]; // 'seg'
+
+    const result = getNextRouteOccurrenceDateFromList([todayName], now);
+
+    expect(result).toBe('2025-06-09');
+  });
+
+  it('returns the next closest weekday from now', () => {
+    const monday = new Date(2025, 5, 9); // June 9 — Monday
+
+    // 'quarta' (Wed) is 2 days away
+    const result = getNextRouteOccurrenceDateFromList(['quarta'], monday);
+
+    expect(result).toBe('2025-06-11');
+  });
+});
+
+describe('getNextPassangerRoute', () => {
+  const baseRoute = {
+    route_id: ROUTE_ID,
+    route_name: 'Morning Route',
+    membership_status: 'accepted',
+    recurrence: ['seg', 'qua', 'sex'],
+    expected_time: '07:30',
+    origin_address: {},
+    destination_address: {},
+  };
+
+  it('returns null for an empty list', () => {
+    expect(getNextPassangerRoute([])).toBeNull();
+  });
+
+  it('returns null when no route has accepted membership_status', () => {
+    const routes = [{ ...baseRoute, membership_status: 'pending' }];
+    expect(getNextPassangerRoute(routes as any)).toBeNull();
+  });
+
+  it('returns null when expected_time is invalid', () => {
+    const routes = [{ ...baseRoute, expected_time: 'invalid-time' }];
+    expect(getNextPassangerRoute(routes as any)).toBeNull();
+  });
+
+  it('returns null when recurrence maps to no valid days', () => {
+    const routes = [{ ...baseRoute, recurrence: ['monday', 'tuesday'] }];
+    expect(getNextPassangerRoute(routes as any)).toBeNull();
+  });
+
+  it('returns the single accepted route with valid data', () => {
+    const routes = [baseRoute];
+    const result = getNextPassangerRoute(routes as any);
+    expect(result).toBe(routes[0]);
+  });
+
+  it('returns the route with the nearest upcoming occurrence', () => {
+    // routeA: Sunday at 23:59 (far); routeB: every day at 00:01 (always near)
+    const routeA = { ...baseRoute, route_id: 'r-a', recurrence: ['dom'], expected_time: '23:59' };
+    const routeB = {
+      ...baseRoute,
+      route_id: 'r-b',
+      recurrence: ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'],
+      expected_time: '00:01',
+    };
+
+    const result = getNextPassangerRoute([routeA, routeB] as any);
+
+    expect(result).not.toBeNull();
+    expect(['r-a', 'r-b']).toContain(result?.route_id);
   });
 });

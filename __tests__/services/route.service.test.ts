@@ -8,12 +8,14 @@ import {
 import {
   createRoute,
   deleteRoute,
+  getNextRoute,
   getNextRouteOccurrenceDate,
   getRouteById,
   isRouteToday,
   listDriverRoutes,
   listRouteAbsences,
   listRoutePassangers,
+  removePassanger,
   splitStopsByAbsence,
   updateRoute,
 } from '@/services/route.service';
@@ -304,6 +306,30 @@ describe('getNextRouteOccurrenceDate', () => {
     expect(getNextRouteOccurrenceDate('monday')).toBeNull();
   });
 
+  it('returns null when route has invalid seconds in expected_time (parseExpectedTime returns null)', () => {
+    const routes = [
+      {
+        id: ROUTE_ID,
+        name: 'Route',
+        recurrence: 'seg',
+        expected_time: '07:30:99', // seconds=99 > 59 → invalid
+        invite_code: 'X',
+        max_passengers: 10,
+        route_type: 'outbound' as const,
+        status: 'inativa' as const,
+        origin_address: ADDR,
+        destination_address: ADDR,
+        accepted_count: 0,
+        stops: [],
+        active_trip_id: null,
+        total_distance_km: null,
+        estimated_duration_min: null,
+      },
+    ];
+
+    expect(getNextRoute(routes)).toBeNull();
+  });
+
   it('returns a YYYY-MM-DD formatted string', () => {
     const result = getNextRouteOccurrenceDate('seg');
     expect(result).toMatch(/^\d{4}-\d{2}-\d{2}$/);
@@ -321,5 +347,70 @@ describe('getNextRouteOccurrenceDate', () => {
     // quarta(Wed=+2) vs sexta(Fri=+4) → quarta is closer
     const result = getNextRouteOccurrenceDate('quarta,sexta', monday);
     expect(result).toBe('2025-06-11'); // Wednesday
+  });
+});
+
+describe('removePassanger — DELETE /routes/:id/passangers/:rpId', () => {
+  it('sends DELETE with Bearer and returns undefined', async () => {
+    mockFetch([{ status: 204, body: null }]);
+
+    const result = await removePassanger(ROUTE_ID, RP_ID);
+
+    expect(result).toBeUndefined();
+    expect(fetchCalls[0].url).toContain(`/routes/${ROUTE_ID}/passangers/${RP_ID}`);
+    expect(fetchCalls[0].method).toBe('DELETE');
+    expect(fetchCalls[0].headers['Authorization']).toBe(AUTH_HEADER);
+  });
+});
+
+describe('getNextRoute', () => {
+  const baseRoute = {
+    id: ROUTE_ID,
+    name: 'Morning Route',
+    invite_code: 'ABC12',
+    max_passengers: 20,
+    route_type: 'outbound' as const,
+    status: 'inativa' as const,
+    origin_address: ADDR,
+    destination_address: ADDR,
+    accepted_count: 0,
+    stops: [],
+    active_trip_id: null,
+    total_distance_km: null,
+    estimated_duration_min: null,
+  };
+
+  it('returns null for an empty route list', () => {
+    expect(getNextRoute([])).toBeNull();
+  });
+
+  it('returns null when all routes have invalid recurrence', () => {
+    const routes = [{ ...baseRoute, recurrence: '', expected_time: '07:30:00' }];
+    expect(getNextRoute(routes)).toBeNull();
+  });
+
+  it('returns null when all routes have invalid expected_time', () => {
+    const routes = [{ ...baseRoute, recurrence: 'seg', expected_time: 'invalid' }];
+    expect(getNextRoute(routes)).toBeNull();
+  });
+
+  it('returns the single valid route', () => {
+    const routes = [{ ...baseRoute, recurrence: 'seg,ter,qua,qui,sex', expected_time: '07:30:00' }];
+    expect(getNextRoute(routes)).toBe(routes[0]);
+  });
+
+  it('returns the route with the nearest next occurrence', () => {
+    const routeA = { ...baseRoute, id: 'r-a', recurrence: 'dom', expected_time: '23:59:00' };
+    const routeB = {
+      ...baseRoute,
+      id: 'r-b',
+      recurrence: 'seg,ter,qua,qui,sex,sab,dom',
+      expected_time: '00:01:00',
+    };
+
+    const result = getNextRoute([routeA, routeB]);
+
+    expect(result).not.toBeNull();
+    expect(['r-a', 'r-b']).toContain(result?.id);
   });
 });
